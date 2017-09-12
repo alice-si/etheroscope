@@ -327,7 +327,7 @@ gulp.task('clean-build-app-prod', ['clean-prod'], pipes.builtAppProd);
 gulp.task('watch-dev', ['clean-build-app-dev', 'validate-devserver-scripts'], function() {
 
     // start nodemon to auto-reload the dev server
-    plugins.nodemon({ script: 'server.js', ext: 'js', watch: ['devServer/'], env: {NODE_ENV : 'development'}, nodeArgs: ['--debug'] })
+    plugins.nodemon({ script: 'server.js', ext: 'js', watch: ['devServer/'], env: {NODE_ENV : 'development'}, nodeArgs: ['--inspect'] })
         .on('change', ['validate-devserver-scripts'])
         .on('restart', function () {
             console.log('[nodemon] restarted dev server');
