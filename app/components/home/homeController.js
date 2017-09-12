@@ -3,10 +3,9 @@ angular.module('aliceApp')
     var vm = this;
 
     vm.favourites = {
-      'Alice' : "0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C"
+      'Alice' : "0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C",
+      'The DAO' : "0xbb9bc244d798123fde783fcc1c72d3bb8c189413"
     };
-
-    //vm.contractAddress = "0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C";
 
     vm.selectFavourite = function(val) {
       vm.contractAddress = val;

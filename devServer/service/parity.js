@@ -72,7 +72,7 @@ Parity.getMaxCachedBlock = function () {
 
 Parity.getHistory = function (address) {
   var startTime = new Date().getTime();
-  var startBlock = web3.eth.blockNumber - 200000;
+  var startBlock = web3.eth.blockNumber - 150000;
   console.log("From block: " + startBlock);
   return new Promise(function (resolve, reject) {
     web3.trace.filter({"fromBlock": "0x" + startBlock.toString(16), "toAddress": [address]}, function (err, traces) {

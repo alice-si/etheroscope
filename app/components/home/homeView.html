@@ -20,7 +20,8 @@
             </form>
             <div class="favourites-box">
                 Favourites:
-                <a ng-repeat="(key, val) in homeCtrl.favourites" ng-click="homeCtrl.selectFavourite(val)">{{key}}</a>
+                <a style="margin-right: 10px;"
+                   ng-repeat="(key, val) in homeCtrl.favourites" ng-click="homeCtrl.selectFavourite(val)">{{key}}</a>
             </div>
         </div>
 
