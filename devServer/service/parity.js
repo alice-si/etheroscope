@@ -71,8 +71,13 @@ Parity.getMaxCachedBlock = function () {
 };
 
 Parity.getHistory = function (address) {
+  var startTime = new Date().getTime();
+  var startBlock = web3.eth.blockNumber - 200000;
+  console.log("From block: " + startBlock);
   return new Promise(function (resolve, reject) {
-    web3.trace.filter({"fromBlock": "0x2DC6C0", "toAddress": [address]}, function (err, traces) {
+    web3.trace.filter({"fromBlock": "0x" + startBlock.toString(16), "toAddress": [address]}, function (err, traces) {
+      console.log("Fetched in : " + (new Date().getTime() - startTime));
+      console.log("Browsing through " + traces.length + " transactions");
       if (err) return reject(err);
       return resolve(traces);
     });
