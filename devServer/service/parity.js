@@ -5,27 +5,35 @@ var Level = require('level');
 var Config = require('../../config');
 
 
-var contractCache = {};
-var blockCache = Level('./blocks');
+var contractCache = Level('./db/contracts');
+var blockCache = Level('./db/blocks');
 
 var web3 = new Web3(new Web3.providers.HttpProvider(Config.parityUrl));
 
 function Parity() {
 }
 
+Parity.parseContract = function(desc, address) {
+    var contractABI = JSON.parse(desc);
+    var Contract = web3.eth.contract(contractABI);
+    return Contract.at(address);
+}
+
 Parity.getContract = function (address) {
   return new Promise(function (resolve, reject) {
-    if (contractCache[address]) return resolve(contractCache[address]);
-    return axios.get("https://api.etherscan.io/api?module=contract&action=getabi&address=" + address + "&apikey=KEKY5TS8G2WH712WG3SY5HWDHD2HNIUPJD")
-      .then(function (response) {
-        var contractABI = JSON.parse(response.data.result);
-        var Contract = web3.eth.contract(contractABI);
-        var contract = Contract.at(address);
-        contractCache[address] = contract;
-        return resolve(contract);
-      }).catch(function (err) {
-        return reject(err);
-      });
+      contractCache.get(address, function (err, value) {
+              if (err) {
+                  return axios.get("https://api.etherscan.io/api?module=contract&action=getabi&address=" + address + "&apikey=KEKY5TS8G2WH712WG3SY5HWDHD2HNIUPJD")
+                      .then(function (response) {
+                          var desc = response.data.result;
+                          contractCache.put(address, desc);
+                          return resolve(Parity.parseContract(desc, address));
+                      }).catch(function (err) {
+                          return reject(err);
+                      });
+              }
+              return resolve(Parity.parseContract(value, address));
+          }) ;
   });
 };
 
@@ -72,7 +80,7 @@ Parity.getMaxCachedBlock = function () {
 
 Parity.getHistory = function (address) {
   var startTime = new Date().getTime();
-  var startBlock = web3.eth.blockNumber - 150000;
+  var startBlock = web3.eth.blockNumber - 100000;
   console.log("From block: " + startBlock);
   return new Promise(function (resolve, reject) {
     web3.trace.filter({"fromBlock": "0x" + startBlock.toString(16), "toAddress": [address]}, function (err, traces) {
