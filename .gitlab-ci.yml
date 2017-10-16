@@ -14,8 +14,8 @@ build:
 deploy:
   stage: deploy
   script:
+    - cp -r * /home/gitlab-runner/deploy/etheroscope
     - cd /home/gitlab-runner/deploy/etheroscope
-    - git checkout $CI_COMMIT_SHA
     - killall -q gulp parity || true
     - (parity --tracing on --pruning archive --dapps-port=9090 & disown) &> /dev/null
     - node ./tools/fetchBlocks.js
