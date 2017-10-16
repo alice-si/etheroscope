@@ -1,12 +1,12 @@
 build:
   stage: build
   script:
-    - parity --tracing on --pruning archive --dapps-port=9090; npm install; bower install
+    - npm install; bower install
 
 createCache:
   stage: deploy
   script:
-    - node ./tools/fetchBlocks.js
+    - killall gulp parity; (parity --tracing on --pruning archive --dapps-port=9090 & disown) &> /dev/null; node ./tools/fetchBlocks.js
       
 run:
   stage: deploy
