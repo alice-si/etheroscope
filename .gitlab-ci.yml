@@ -3,8 +3,8 @@ build:
   script:
     - parity --tracing on --pruning archive --dapps-port=9090; npm install; bower install
 
-cache-blocks:
-  stage: cache-blocks
+cache:
+  stage: cache
   script:
     - node ./tools/fetchBlocks.js
       
