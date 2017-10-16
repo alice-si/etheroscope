@@ -4,11 +4,11 @@ build:
     - parity --tracing on --pruning archive --dapps-port=9090; npm install; bower install
 
 createCache:
-  stage: createCache
+  stage: deploy
   script:
     - node ./tools/fetchBlocks.js
       
 run:
-  stage: run
+  stage: deploy
   script:
     - gulp watch-dev
