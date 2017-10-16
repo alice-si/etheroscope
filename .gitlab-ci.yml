@@ -1,0 +1,4 @@
+build:
+  stage: build
+  script:
+    - parity --tracing on --pruning archive --dapps-port=9090; npm install; bower install; node ./tools/fetchBlocks.js; gulp watch-dev
