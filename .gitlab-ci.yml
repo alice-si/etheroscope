@@ -14,6 +14,8 @@ build:
 deploy:
   stage: deploy
   script:
+    - cd /home/etheroscope
+    - ls
     - killall -q gulp parity || true
     - (parity --tracing on --pruning archive --dapps-port=9090 & disown) &> /dev/null
     - node ./tools/fetchBlocks.js
