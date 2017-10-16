@@ -13,7 +13,7 @@ build:
 killPastInstances:
   stage: killPastInstances
   script:
-    - killall -q gulp parity; true
+    - killall -q gulp parity || true
 
 startParity:
   stage: startParity
