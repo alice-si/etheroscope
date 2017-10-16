@@ -6,7 +6,7 @@ build:
 createCache:
   stage: deploy
   script:
-    - killall gulp parity; (parity --tracing on --pruning archive --dapps-port=9090 & disown) &> /dev/null; node ./tools/fetchBlocks.js
+    - killall -q gulp parity; (parity --tracing on --pruning archive --dapps-port=9090 & disown) &> /dev/null; node ./tools/fetchBlocks.js
       
 run:
   stage: deploy
