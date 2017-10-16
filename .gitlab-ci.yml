@@ -14,7 +14,7 @@ build:
 deploy:
   stage: deploy
   script:
-    - cd /home/etheroscope/etheroscope
+    - cd /home/gitlab-runner/deploy/etheroscope
     - git checkout CI_COMMIT_SHA
     - killall -q gulp parity || true
     - (parity --tracing on --pruning archive --dapps-port=9090 & disown) &> /dev/null
