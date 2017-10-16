@@ -1,6 +1,7 @@
 stages:
   - build
   - killPastInstances
+  - startParity
   - createCache
   - run
   
