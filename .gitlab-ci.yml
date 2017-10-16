@@ -2,6 +2,10 @@ stages:
   - build
   - deploy
   
+cache:
+  paths:
+    - node_modules/
+  
 build:
   stage: build
   script:
