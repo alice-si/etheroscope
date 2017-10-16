@@ -1,31 +1,16 @@
 stages:
   - build
-  - killPastInstances
-  - startParity
-  - createCache
-  - run
+  - deploy
   
 build:
   stage: build
   script:
     - npm install
 
-killPastInstances:
-  stage: killPastInstances
+deploy:
+  stage: deploy
   script:
     - killall -q gulp parity || true
-
-startParity:
-  stage: startParity
-  script:
     - (parity --tracing on --pruning archive --dapps-port=9090 & disown) &> /dev/null
-
-createCache:
-  stage: createCache
-  script:
     - node ./tools/fetchBlocks.js
-      
-run:
-  stage: run
-  script:
     - gulp watch-dev
