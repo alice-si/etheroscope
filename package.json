@@ -42,7 +42,8 @@
   },
   "scripts": {
     "prestart": "npm install",
-    "start": "node server.js"
+    "start": "gulp watch-dev",
+    "test": "jasmine"
   },
   "dependencies": {
     "async": "^2.0.0-rc.4",
