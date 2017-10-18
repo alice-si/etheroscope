@@ -43,8 +43,9 @@
   },
   "scripts": {
     "prestart": "npm install",
-    "start": "node server.js",
-    "lint": "./node_modules/.bin/standard \"./*.js\" \"devSever/**/*.js\" \"tools/**/*.js\""
+    "start": "gulp watch-dev",
+    "lint": "./node_modules/.bin/standard \"./*.js\" \"devSever/**/*.js\" \"tools/**/*.js\"",
+    "test": "jasmine"
   },
   "dependencies": {
     "async": "^2.5.0",
@@ -53,6 +54,7 @@
     "bitcoinjs-lib": "^2.3.0",
     "bluebird": "^3.5.1",
     "fs": "0.0.1-security",
+    "jasmine": "^2.8.0",
     "level": "^1.7.0",
     "mailgun-js": "^0.7.15",
     "mangopay2-nodejs-sdk": "^1.5.0",
