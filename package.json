@@ -67,7 +67,9 @@
     "path": "^0.12.7",
     "randomstring": "^1.1.5",
     "requestify": "^0.1.17",
+    "sequelize": "^4.15.0",
     "stripe": "^4.25.0",
+    "tedious": "^2.0.0",
     "ursa": "^0.9.4",
     "validator": "^7.2.0",
     "web3": "git+https://github.com/gobitfly/web3.js.git#develop"
