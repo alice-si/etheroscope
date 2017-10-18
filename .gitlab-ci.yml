@@ -18,6 +18,12 @@ lint:
     - npm install
     - npm run-script lint
 
+unit-test:
+  stage: test
+  script:
+    - npm install
+    - npm test
+
 deploy:
   stage: deploy
   script:
