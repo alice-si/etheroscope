@@ -93,4 +93,3 @@ Parity.getHistory = function (address) {
 };
 
 module.exports = Parity;
-
