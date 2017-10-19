@@ -6,8 +6,8 @@ const parityUrl = 'http://51.140.27.249:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 const inDB = false
 
-const Parity = function () {
-  this.getContract = function (address) {
+const Parity = {
+  getContract: function (address) {
     return new Promise(function (resolve, reject) {
       if (inDB) {
         // withdraw and retrieve
@@ -28,17 +28,17 @@ const Parity = function () {
           })
       }
     })
-  }
+  },
 
   // Obtaining Contract information from ABI and address
-  this.parseContract = function (desc, address) {
+  parseContract: function (desc, address) {
     var contractABI = JSON.parse(desc)
     var Contract = web3.eth.contract(contractABI)
     return Contract.at(address)
-  }
+  },
 
   // Query value of variable at certain block
-  this.queryAtBlock = function (query, block) {
+  queryAtBlock: function (query, block) {
     var hex = '0x' + block.toString(16)
     web3.eth.defaultBlock = hex
     return new Promise(function (resolve, reject) {
@@ -46,32 +46,18 @@ const Parity = function () {
         return (err ? reject(err) : resolve(parseInt(result.valueOf())))
       })
     })
-  }
+  },
 
-  this.getBlockTime = function (blockNumber) {
+  getBlockTime: function (blockNumber) {
     var approx = Math.round(blockNumber / 1000) * 1000
     return new Promise(function (resolve) {
       var time = web3.eth.getBlock(approx).timestamp * 1000
       // cache into db
       return resolve(time)
     })
-  }
+  },
 
-  // TODO: delete if dependencies not affected
-  // this.getMaxCachedBlock = function () {
-  //   var max = 0
-  //   return new Promise(function (resolve) {
-  //     blockCache.createReadStream()
-  //       .on('data', function (data) {
-  //         if (parseInt(data.key) > max) max = parseInt(data.key)
-  //       })
-  //       .on('end', function () {
-  //         return resolve(max)
-  //       })
-  //   })
-  // }
-
-  this.getHistory = function (address) {
+  getHistory: function (address) {
     var startTime = new Date().getTime()
     var startBlock = web3.eth.blockNumber - 150000
     console.log('From block: ' + startBlock)
@@ -83,9 +69,8 @@ const Parity = function () {
         return resolve(traces)
       })
     })
-  }
-
-  this.generateDataPoints = function (events, contract, method, res) {
+  },
+  generateDataPoints: function (events, contract, method, res) {
     // if not exist in db...
     let history = []
     let prevTime = 0
