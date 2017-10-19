@@ -51,17 +51,9 @@ const Parity = function () {
   this.getBlockTime = function (blockNumber) {
     var approx = Math.round(blockNumber / 1000) * 1000
     return new Promise(function (resolve) {
-      blockCache.get(approx, function (err, value) {
-        if (err) {
-          var time = web3.eth.getBlock(approx).timestamp * 1000
-          blockCache.put(approx, time, function (err) {
-            if (err) console.log(err)
-          })
-          return resolve(time)
-        } else {
-          return resolve(value)
-        }
-      })
+      var time = web3.eth.getBlock(approx).timestamp * 1000
+      // cache into db
+      return resolve(time)
     })
   }
 

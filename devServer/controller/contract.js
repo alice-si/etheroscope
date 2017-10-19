@@ -1,7 +1,7 @@
-var Fs = require('fs')
+// var Fs = require('fs')
 var Parity = require('../service/parity')
-var Promise = require('bluebird')
-var Level = require('level')
+require('bluebird')
+// var Level = require('level')
 
 // var historyCache = Level('./db/history')
 
