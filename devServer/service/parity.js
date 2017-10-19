@@ -18,7 +18,7 @@ const Parity = {
         const axiosAPI = '&apikey=KEKY5TS8G2WH712WG3SY5HWDHD2HNIUPJD'
         return axios.get(axiosGET + address + axiosAPI)
           .then(function (res) {
-            const parsedContract = this.parseContract(res.data.result, address)
+            const parsedContract = Parity.parseContract(res.data.result, address)
             // TODO: Place parsedContract in database
             return resolve(parsedContract)
           })
@@ -76,10 +76,10 @@ const Parity = {
     let prevTime = 0
     Promise.map(events, function (event) {
       return new Promise(function (resolve) {
-        this.getBlockTime(event.blockNumber.valueOf()).then(function (time) {
+        Parity.getBlockTime(event.blockNumber.valueOf()).then(function (time) {
           if (time === prevTime) return resolve()
           prevTime = time
-          this.queryAtBlock(contract[method], event.blockNumber.valueOf()).then(function (val) {
+          Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()).then(function (val) {
             history.push([time, val])
             return resolve(val)
           })
