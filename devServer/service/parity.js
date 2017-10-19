@@ -20,7 +20,8 @@ const Parity = {
         return axios.get(axiosGET + address + axiosAPI)
           .then(function (res) {
             const parsedContract = Parity.parseContract(res.data.result, address)
-            // TODO: Place parsedContract in database
+            // TODO: add in parsed contract field in the contracts table
+            db.addContracts([address, null], () => {})
             return resolve(parsedContract)
           })
           .catch(function (err) {
@@ -81,8 +82,8 @@ const Parity = {
           if (time === prevTime) return resolve()
           prevTime = time
           Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()).then(function (val) {
-            db.addDataPoints([contact.address, index, event.blockNumber.valueof(), val],
-              ()=>{}) 
+            db.addDataPoints([contract.address, index, event.blockNumber.valueof(), val],
+              () => {})
             history.push([time, val])
             return resolve(val)
           })
