@@ -30,5 +30,5 @@ deploy:
     - cp -r * /home/gitlab-runner/deploy/etheroscope
     - cd /home/gitlab-runner/deploy/etheroscope
     - killall -q gulp || true
-    - ((parity --tracing on --pruning archive --dapps-port=8545 && node ./tools/fetchBlocks.js) & disown) &> /dev/null
+    - ((parity --tracing on --pruning archive --dapps-port=8545) & disown) &> /dev/null
     - (gulp watch-dev & disown) &> /dev/null

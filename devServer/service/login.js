@@ -1,4 +1,4 @@
-var login = { 
+var login = {
   username: 'alice',
   password: 'Etheroinc123!',
   hostname: 'etheroscopedb.database.windows.net'

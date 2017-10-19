@@ -73,7 +73,9 @@ let queryAtBlock = function (query, block) {
   web3.eth.defaultBlock = hex
   return new Promise(function (resolve, reject) {
     return query(function (err, result) {
-      if (err) return reject(err)
+      if (err) {
+        return reject(err)
+      }
       return resolve(parseInt(result.valueOf()))
     })
   })

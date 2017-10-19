@@ -7,7 +7,6 @@ var login = require('./login.js')
  * does not already exist in the database, it will
  * be created.
  */
-
 const contracts = new mssql.Table('Contracts')
 contracts.create = true
 contracts.columns.add('contractHash', mssql.VarChar(40),
