@@ -65,18 +65,19 @@ const Parity = function () {
     })
   }
 
-  this.getMaxCachedBlock = function () {
-    var max = 0
-    return new Promise(function (resolve) {
-      blockCache.createReadStream()
-        .on('data', function (data) {
-          if (parseInt(data.key) > max) max = parseInt(data.key)
-        })
-        .on('end', function () {
-          return resolve(max)
-        })
-    })
-  }
+  // TODO: delete if dependencies not affected
+  // this.getMaxCachedBlock = function () {
+  //   var max = 0
+  //   return new Promise(function (resolve) {
+  //     blockCache.createReadStream()
+  //       .on('data', function (data) {
+  //         if (parseInt(data.key) > max) max = parseInt(data.key)
+  //       })
+  //       .on('end', function () {
+  //         return resolve(max)
+  //       })
+  //   })
+  // }
 
   this.getHistory = function (address) {
     var startTime = new Date().getTime()
@@ -93,6 +94,7 @@ const Parity = function () {
   }
 
   this.generateDataPoints = function (events, contract, method, res) {
+    // if not exist in db...
     let history = []
     let prevTime = 0
     Promise.map(events, function (event) {
