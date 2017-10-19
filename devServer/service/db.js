@@ -109,7 +109,7 @@ db.getDataPoints = function (contractHash, callback) {
   request.query(sql, callback)
 }
 
-/* This function returns *all* the variables in a given date range 
+/* This function returns *all* the variables in a given date range
  * for a given contract hash
  */
 db.getDataPointsInDateRange = function (contractHash, from, to, callback) {
