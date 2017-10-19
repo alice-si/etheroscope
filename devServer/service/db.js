@@ -10,36 +10,36 @@ var login = require('./login.js')
 const contracts = new mssql.Table('Contracts')
 contracts.create = true
 contracts.columns.add('contractHash', mssql.VarChar(40),
-                    {nullable: false, primary: true})
+  {nullable: false, primary: true})
 contracts.columns.add('name', mssql.VarChar(128),
-                    {nullable: true})
+  {nullable: true})
 
 const blocks = new mssql.Table('Blocks')
 blocks.create = true
 blocks.columns.add('blockNumber', mssql.BIGINT,
-                    {nullable: false, primary: true})
+  {nullable: false, primary: true})
 blocks.columns.add('timeStamp', mssql.DATETIME,
-                    {nullable: false})
+  {nullable: false})
 
 const variables = new mssql.Table('Variables')
 variables.create = true
 variables.columns.add('contractHash', mssql.VarChar(40),
-                    {nullable: false, primary: true})
+  {nullable: false, primary: true})
 variables.columns.add('variableID', mssql.INT,
-                    {nullable: false, primary: true})
+  {nullable: false, primary: true})
 variables.columns.add('name', mssql.VarChar(128),
-                    {nullable: true})
+  {nullable: true})
 
 const dataPoints = new mssql.Table('DataPoints')
 dataPoints.create = true
 dataPoints.columns.add('contractHash', mssql.VarChar(40),
-                    {nullable: false, primary: true})
+  {nullable: false, primary: true})
 dataPoints.columns.add('variableID', mssql.INT,
-                    {nullable: false, primary: true})
+  {nullable: false, primary: true})
 dataPoints.columns.add('blockNumber', mssql.BIGINT,
-                    {nullable: false, primary: true})
+  {nullable: false, primary: true})
 dataPoints.columns.add('value', mssql.VarChar(128),
-                    {nullable: false})
+  {nullable: false})
 
 /* ESTABLISHING A CONNECTION
  * Here we create a connection pool to the mssql server.
@@ -51,7 +51,7 @@ const pool = new mssql.ConnectionPool({
   server: login.hostname,
   database: login.database,
   options: {
-      encrypt: true
+    encrypt: true
   },
   pool: {
     max: 10,
