@@ -1,61 +1,75 @@
-var Sequelize = require('sequelize')                                                          
+var mssql = require('mssql')
 var login = require('./login.js')
 
-const db = new Sequelize('EtheroscopeDB', login.username, login.password, {
-  host: login.hostname,
-  dialect: 'mssql',
-  operatorsAliases: false,
+/* TABLE DEFINITIONS
+ * Here we define all the tables used in the database.
+ * Setting the .create attribute means that if the table
+ * does not already exist in the database, it will
+ * be created.
+ */
 
-  dialectOptions: {
-    encrypt: true
-  },  
+const contracts = new mssql.Table('Contracts')
+contracts.create = true
+contracts.columns.add('contractHash', mssql.VarChar(40),
+                    {nullable: false, primary: true})
+contracts.columns.add('name', mssql.VarChar(128),
+                    {nullable: true})
 
+const blocks = new mssql.Table('Blocks')
+blocks.create = true
+blocks.columns.add('blockNumber', mssql.BIGINT,
+                    {nullable: false, primary: true})
+blocks.columns.add('timeStamp', mssql.DATETIME,
+                    {nullable: false})
+
+const variables = new mssql.Table('Variables')
+variables.create = true
+variables.columns.add('contractHash', mssql.VarChar(40),
+                    {nullable: false, primary: true})
+variables.columns.add('variableID', mssql.INT,
+                    {nullable: false, primary: true})
+variables.columns.add('name', mssql.VarChar(128),
+                    {nullable: true})
+
+const dataPoints = new mssql.Table('DataPoints')
+dataPoints.create = true
+dataPoints.columns.add('contractHash', mssql.VarChar(40),
+                    {nullable: false, primary: true})
+dataPoints.columns.add('variableID', mssql.INT,
+                    {nullable: false, primary: true})
+dataPoints.columns.add('blockNumber', mssql.BIGINT,
+                    {nullable: false, primary: true})
+dataPoints.columns.add('value', mssql.VarChar(128),
+                    {nullable: false})
+
+/* ESTABLISHING A CONNECTION
+ * Here we create a connection pool to the mssql server.
+ * we store the configuration in a separate module, login.js.
+ */
+const pool = new mssql.ConnectionPool({
+  user: login.username,
+  password: login.password,
+  server: login.hostname,
+  database: login.database,
+  options: {
+      encrypt: true
+  },
   pool: {
-    max: 5,
+    max: 10,
     min: 0,
-    idle: 10000
+    idleTimeoutMillis: 30000
   }
 })
 
-db
-  .authenticate()
-  .then(() => {
-    console.log('Connection has been established successfully.')
-  })  
-  .catch(err => {
-    console.error('Unable to connect to the database:', err)
+pool.connect(err => {
+  if (err) {
+    console.log('Error connecting to database pool:')
+    console.log(err)
+  } else {
+    console.log('Successfully connected to pool')
+  }
 })
 
-const dataPoints = db.define('dataPoints', {
-  contractHash: Sequelize.CHAR(40),
-  variableID: Sequelize.INTEGER,
-  value: Sequelize.CHAR(78),
-  blockNumber: Sequelize.BIGINT
-})
-
-const contracts = db.define('contracts', {
-  contractHash: Sequelize.CHAR(40),
-  name: Sequelize.CHAR(128)
-})
-
-const blocks = db.define('blocks', {
-  blockNumber: Sequelize.BIGINT,
-  timeStamp: Sequelize.DATE
-})
-
-const variables = db.define('variables', {
-  contractHash: Sequelize.CHAR(40),
-  variableID: Sequelize.INTEGER,
-  name: Sequelize.CHAR(128)
-})
-
-// force: true will drop the table if it already exists
-User.sync({force: true}).then(() => {
-  // Table created
-  return User.create({
-    firstName: 'John',
-    lastName: 'Hancock'
-  })
-})
+var db = {}
 
 module.exports = db
