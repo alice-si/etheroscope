@@ -26,6 +26,8 @@ unit-test:
 
 deploy:
   stage: deploy
+  only:
+    - master
   script:
     - cp -r * /home/gitlab-runner/deploy/etheroscope
     - cd /home/gitlab-runner/deploy/etheroscope

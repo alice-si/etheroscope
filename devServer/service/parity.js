@@ -2,7 +2,7 @@ const axios = require('axios')
 const Web3 = require('web3')
 const Promise = require('bluebird')
 
-const parityUrl = 'http://localhost:8545'
+const parityUrl = 'http://51.140.27.249:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 const inDB = false
 
