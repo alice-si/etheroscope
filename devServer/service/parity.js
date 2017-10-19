@@ -60,15 +60,17 @@ const Parity = {
   },
 
   getHistory: function (address) {
-    var startTime = new Date().getTime()
-    var startBlock = 0
-    console.log('From block: ' + startBlock)
+    let startBlock = 1230000
+    let endBlock = 1250000
+    let filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
     return new Promise(function (resolve, reject) {
-      web3.trace.filter({'fromBlock': '0x' + startBlock.toString(16), 'toAddress': [address]}, function (err, traces) {
-        console.log('Fetched in : ' + (new Date().getTime() - startTime))
-        console.log('Browsing through ' + traces.length + ' transactions')
-        if (err) return reject(err)
-        return resolve(traces)
+      filter.get(function (error, result) {
+        if (!error) {
+          console.log('[I] Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
+          resolve(result)
+        } else {
+          reject(error)
+        }
       })
     })
   },
