@@ -77,10 +77,17 @@ var db = {}
  */
 db.addContracts = function (values, callback) {
   var request = new mssql.Request(pool)
-  console.log('The vlaues are:')
-  console.log(values)
   var sql = 'insert into Contracts (contractHash, name) values ?'
   request.query(sql, [values], callback)
+}
+
+/* This function takes in a contract hash
+ * and a callback function (err, result)
+ */
+db.getContractName = function (contractHash, callback) {
+  var request = new mssql.Request(pool)
+  var sql = "select * from Contracts where contractHash='" + contractHash + "'"
+  request.query(sql, callback)
 }
 
 /* This function takes in an array of arrays of the form:
@@ -93,12 +100,18 @@ db.addDataPoints = function (values, callback) {
   request.query(sql, [values], callback)
 }
 
+/* This function returns *all* the variables across all dates
+ * for a given contract hash
+ */
 db.getDataPoints = function (contractHash, callback) {
   var request = new mssql.Request(pool)
   var sql = "select * from DataPoints where contractHash='" + contractHash + "'"
   request.query(sql, callback)
 }
 
+/* This function returns *all* the variables in a given date range 
+ * for a given contract hash
+ */
 db.getDataPointsInDateRange = function (contractHash, from, to, callback) {
   var request = new mssql.Request(pool)
   var sql = 'select * from (DataPoints natural join Blocks)' +
