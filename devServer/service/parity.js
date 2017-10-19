@@ -1,6 +1,7 @@
 const axios = require('axios')
 const Web3 = require('web3')
 const Promise = require('bluebird')
+const db = require('./db')
 
 const parityUrl = 'http://51.140.27.249:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
@@ -74,12 +75,14 @@ const Parity = {
     // if not exist in db...
     let history = []
     let prevTime = 0
-    Promise.map(events, function (event) {
+    Promise.map(events, function (event, index, length) {
       return new Promise(function (resolve) {
         this.getBlockTime(event.blockNumber.valueOf()).then(function (time) {
           if (time === prevTime) return resolve()
           prevTime = time
           this.queryAtBlock(contract[method], event.blockNumber.valueOf()).then(function (val) {
+            db.addDataPoints([contact.address, index, event.blockNumber.valueof(), val],
+              ()=>{}) 
             history.push([time, val])
             return resolve(val)
           })
