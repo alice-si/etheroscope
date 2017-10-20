@@ -1,10 +1,10 @@
 const axios = require('axios')
 const Web3 = require('web3')
 const Promise = require('bluebird')
-const db = require('./db')
+// const db = require('./db')
 
 // const parityUrl = 'http://localhost:8545'
-const parityUrl = 'http://etheroscope.uksouth.cloudapp.azure.com:8545'
+const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 const inDB = false
 
@@ -16,13 +16,15 @@ const Parity = {
         // return the parsedContract
       } else {
         // TODO: Queuing System for Etherscan API
+        // console.log('pre etherscan')
         const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
-        const axiosAPI = '&apikey=KEKY5TS8G2WH712WG3SY5HWDHD2HNIUPJD'
+        const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
+        // const axiosAPI = '&apikey=KEKY5TS8G2WH712WG3SY5HWDHD2HNIUPJD'
         return axios.get(axiosGET + address + axiosAPI)
           .then(function (res) {
             const parsedContract = Parity.parseContract(res.data.result, address)
             // TODO: add in parsed contract field in the contracts table
-            db.addContracts([address, null], () => {})
+            // db.addContracts([address, null], () => {})
             return resolve(parsedContract)
           })
           .catch(function (err) {
@@ -87,6 +89,7 @@ const Parity = {
           Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()).then(function (val) {
             // db.addDataPoints([contract.address, index, event.blockNumber.valueof(), val],
             //   () => {})
+            console.log('Pushed T-V pair: ' + time + ', ' + val)
             history.push([time, val])
             console.log('pushed')
             return resolve(val)
