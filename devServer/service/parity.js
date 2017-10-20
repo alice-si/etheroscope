@@ -3,7 +3,8 @@ const Web3 = require('web3')
 const Promise = require('bluebird')
 const db = require('./db')
 
-const parityUrl = 'http://51.140.27.249:8545'
+// const parityUrl = 'http://localhost:8545'
+const parityUrl = 'http://etheroscope.uksouth.cloudapp.azure.com:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 const inDB = false
 
@@ -78,13 +79,14 @@ const Parity = {
     let history = []
     let prevTime = 0
     Promise.map(events, function (event, index, length) {
+      console.log('booboo')
       return new Promise(function (resolve) {
         Parity.getBlockTime(event.blockNumber.valueOf()).then(function (time) {
           if (time === prevTime) return resolve()
           prevTime = time
           Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()).then(function (val) {
-            db.addDataPoints([contract.address, index, event.blockNumber.valueof(), val],
-              () => {})
+            // db.addDataPoints([contract.address, index, event.blockNumber.valueof(), val],
+            //   () => {})
             history.push([time, val])
             console.log('pushed')
             return resolve(val)
