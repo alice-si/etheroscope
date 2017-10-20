@@ -27,7 +27,8 @@ module.exports = function (app) {
         return Parity.getHistory(contractAddress)
       })
       .then(function (events) {
-        return Parity.generateDataPoints(events, contract, req.params.method, res)
+        let response = Parity.generateDataPoints(events, contract, req.params.method)
+        return res.status(200).json(response)
       })
       .catch(function (err) {
         console.log(err)

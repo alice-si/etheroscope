@@ -67,15 +67,14 @@ const Parity = {
       filter.get(function (error, result) {
         if (!error) {
           console.log('[I] Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
-          resolve(result)
+          return resolve(result)
         } else {
           reject(error)
         }
       })
     })
   },
-  generateDataPoints: function (events, contract, method, res) {
-    // if not exist in db...
+  generateDataPoints: function (events, contract, method) {
     let history = []
     let prevTime = 0
     Promise.map(events, function (event, index, length) {
@@ -87,6 +86,7 @@ const Parity = {
             db.addDataPoints([contract.address, index, event.blockNumber.valueof(), val],
               () => {})
             history.push([time, val])
+            console.log('pushed')
             return resolve(val)
           })
         })
@@ -95,7 +95,7 @@ const Parity = {
       history.sort(function (a, b) {
         return a[0] - b[0]
       })
-      return res.status(200).json(history)
+      return JSON.stringify(history)
     })
   }
 }
