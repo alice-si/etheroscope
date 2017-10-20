@@ -77,7 +77,7 @@ const Parity = {
       })
     })
   },
-  generateDataPoints: function (events, contract, method) {
+  generateDataPoints: function (events, contract, method, res) {
     let history = []
     let prevTime = 0
     Promise.map(events, function (event, index, length) {
@@ -96,12 +96,13 @@ const Parity = {
           })
         })
       })
-    }, {concurrency: 20}).then(function () {
-      history.sort(function (a, b) {
-        return a[0] - b[0]
+    }, {concurrency: 20})
+      .then(function () {
+        history.sort(function (a, b) {
+          return a[0] - b[0]
+        })
+        return res.status(200).json(history)
       })
-      return JSON.stringify(history)
-    })
   }
 }
 

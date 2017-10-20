@@ -13,7 +13,7 @@ Promise.config({
 })
 
 var isProduction = process.env.NODE_ENV === 'production'
-var staticdir = isProduction ? 'dist.prod' : 'dist.dev' // get static files dir
+var staticdir = isProduction ? 'dist.dev' : 'dist.dev' // get static files dir
 
 process.on('uncaughtException', function (err) {
   console.error(err)
@@ -43,9 +43,9 @@ require('./devServer/routes')(app) // configure our routes
 // STATIC FILES
 
 // resources
-if (!isProduction) {
+// if (!isProduction) {
   app.use(express.static(path.join(__dirname, '/', staticdir))) // set the static files location /public/img will be /img for users
-}
+// }
 // html5
 app.get('/*', function (req, res) {
   res.sendfile(path.join(__dirname, '/', staticdir, '/index.html'))

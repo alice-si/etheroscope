@@ -37,7 +37,7 @@
     "passport": "^0.3.0",
     "passport-jwt": "^2.2.1",
     "protractor": "^1.1.1",
-    "q": "^1.1.2",
+    "q": "^1.5.1",
     "shelljs": "^0.2.6",
     "standard": "^10.0.3"
   },
@@ -69,7 +69,7 @@
     "randomstring": "^1.1.5",
     "requestify": "^0.1.17",
     "stripe": "^4.25.0",
-    "tedious": "^2.0.0",
+    "tedious": "^2.0.1",
     "ursa": "^0.9.4",
     "validator": "^7.2.0",
     "web3": "git+https://github.com/gobitfly/web3.js.git#develop"
