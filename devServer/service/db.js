@@ -71,4 +71,54 @@ pool.connect(err => {
 
 var db = {}
 
+/* This function takes in an array of arrays of the form:
+ * values = ['0x0123456789', 'name']
+ * and a callback function (err, result)
+ */
+db.addContracts = function (values, callback) {
+  var request = new mssql.Request(pool)
+  var sql = 'insert into Contracts (contractHash, name) values ?'
+  request.query(sql, [values], callback)
+}
+
+/* This function takes in a contract hash
+ * and a callback function (err, result)
+ */
+db.getContractName = function (contractHash, callback) {
+  var request = new mssql.Request(pool)
+  var sql = "select * from Contracts where contractHash='" + contractHash + "'"
+  request.query(sql, callback)
+}
+
+/* This function takes in an array of arrays of the form:
+ * values = ['0x0123456789', 'id', blockNumber, 'value']
+ * and a callback function (err, result)
+ */
+db.addDataPoints = function (values, callback) {
+  var request = new mssql.Request(pool)
+  var sql = 'insert into DataPoints (contractHash, variableID, blockNumber, value) values ?'
+  request.query(sql, [values], callback)
+}
+
+/* This function returns *all* the variables across all dates
+ * for a given contract hash
+ */
+db.getDataPoints = function (contractHash, callback) {
+  var request = new mssql.Request(pool)
+  var sql = "select * from DataPoints where contractHash='" + contractHash + "'"
+  request.query(sql, callback)
+}
+
+/* This function returns *all* the variables in a given date range
+ * for a given contract hash
+ */
+db.getDataPointsInDateRange = function (contractHash, from, to, callback) {
+  var request = new mssql.Request(pool)
+  var sql = 'select * from (DataPoints natural join Blocks)' +
+            "where contractHash='" +
+            contractHash + "' and timeStamp between '" +
+            from + "' and '" + to + "'"
+  request.query(sql, callback)
+}
+
 module.exports = db

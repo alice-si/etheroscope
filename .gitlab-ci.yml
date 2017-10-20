@@ -26,9 +26,12 @@ unit-test:
 
 deploy:
   stage: deploy
+  only:
+    - master
   script:
     - cp -r * /home/gitlab-runner/deploy/etheroscope
     - cd /home/gitlab-runner/deploy/etheroscope
+    - mv app/env/prod-config.js app/env/dev-config.js
     - killall -q gulp || true
-    - ((parity --tracing on --pruning archive --dapps-port=8545) & disown) &> /dev/null
+    - ((parity --tracing on --pruning archive --jsonrpc-port=8545) & disown) &> /dev/null
     - (gulp watch-dev & disown) &> /dev/null
