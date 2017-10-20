@@ -11,5 +11,4 @@ import { Component } from '@angular/core';
 })
 export class AboutComponent {
     open: Boolean = false;
-
 }
