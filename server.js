@@ -44,7 +44,7 @@ require('./devServer/routes')(app) // configure our routes
 
 // resources
 // if (!isProduction) {
-  app.use(express.static(path.join(__dirname, '/', staticdir))) // set the static files location /public/img will be /img for users
+app.use(express.static(path.join(__dirname, '/', staticdir))) // set the static files location /public/img will be /img for users
 // }
 // html5
 app.get('/*', function (req, res) {
