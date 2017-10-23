@@ -72,7 +72,7 @@ const Parity = {
           console.log('[I] Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
           return resolve(result)
         } else {
-          reject(error)
+          return reject(error)
         }
       })
     })
@@ -80,34 +80,40 @@ const Parity = {
   generateDataPoints: function (events, contract, method, res) {
     let history = []
     let prevTime = 0
-    Promise.map(events, function (event, index, length) {
-      console.log('booboo')
-      return new Promise(function (resolve) {
-        Parity.getBlockTime(event.blockNumber.valueOf()).then(function (time) {
-          if (time === prevTime) return resolve()
-          prevTime = time
-          Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()).then(function (val) {
-            // db.addDataPoints([contract.address, index, event.blockNumber.valueof(), val],
-            //   () => {})
-            console.log('Pushed T-V pair: ' + time + ', ' + val)
-            history.push([time, val])
-            console.log('pushed')
-            return resolve(val)
+    return new Promise(function (resolve, reject) {
+      for (var event in events) {
+        Parity.getBlockTime(event.blockNumber.valueOf())
+          .then(function (time) {
+            if (time !== prevTime) {
+              prevTime = time
+              Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()).then(function (val) {
+                // db.addDataPoints([contract.address, index, event.blockNumber.valueof(), val],
+                //   () => {})
+                console.log('Pushed T-V pair: ' + time + ', ' + val)
+                history.push([time, val])
+                // return resolve(val)
+              })
+            }
           })
-        })
-      })
-    }, {concurrency: 20})
-      .then(function () {
-        return new Promise(function (resolve) {
-          history.sort(function (a, b) {
-            return a[0] - b[0]
-          })
-          return resolve(history)
-        })
-      })
-      .then(function (historyR) {
-        return res.status(200).json(historyR)
-      })
+      }
+      return resolve(history)
+    })
+    // Promise.map(events, function (event, index, length) {
+    //   console.log('booboo')
+    //   return new Promise(function (resolve) {
+    //   })
+    // }, {concurrency: 20})
+    //   .then(function () {
+    //     return new Promise(function (resolve) {
+    //       history.sort(function (a, b) {
+    //         return a[0] - b[0]
+    //       })
+    //       return resolve(history)
+    //     })
+    //   })
+    //   .then(function (historyR) {
+    //     return res.status(200).json(historyR)
+    //   })
   }
 }
 
