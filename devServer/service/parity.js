@@ -98,10 +98,15 @@ const Parity = {
       })
     }, {concurrency: 20})
       .then(function () {
-        history.sort(function (a, b) {
-          return a[0] - b[0]
+        return new Promise(function (resolve) {
+          history.sort(function (a, b) {
+            return a[0] - b[0]
+          })
+          return resolve(history)
         })
-        return res.status(200).json(history)
+      })
+      .then(function (historyR) {
+        return res.status(200).json(historyR)
       })
   }
 }
