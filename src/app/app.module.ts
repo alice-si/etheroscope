@@ -10,7 +10,9 @@ import { AppComponent } from './app.component';
 import { ROUTING } from "./app.routing";
 import { HomeComponent } from "./home/home.component";
 import { AboutComponent } from "./about/about.component";
-import { ExplorerComponent } from "./explorer/explorer.component"
+import { ExplorerComponent } from "./explorer/explorer.component";
+
+import { ContractService } from "./_services/contract.service";
 
 @NgModule({
     declarations: [
@@ -28,7 +30,9 @@ import { ExplorerComponent } from "./explorer/explorer.component"
         NgxChartsModule,
         ROUTING
     ],
-    providers: [],
+    providers: [
+        ContractService
+    ],
     bootstrap: [AppComponent]
 })
 export class AppModule {

@@ -1,4 +1,7 @@
 import { Component } from "@angular/core";
+import { ContractService } from "../_services/contract.service";
+
+import { multi } from "../data";
 
 @Component({
     styleUrls: ['./explorer.component.scss'],
@@ -6,10 +9,10 @@ import { Component } from "@angular/core";
 })
 
 export class ExplorerComponent {
-	single: any[];
-  	multi: any[];
+    single: any[];
+    multi: any[];
 
-  	variables: string[] = ["minTokensToCreate", "totalSupply", "divisor", "totalRewardToken", "actualBalance"];
+	 	variables: string[] = ["minTokensToCreate", "totalSupply", "divisor", "totalRewardToken", "actualBalance"];
 
   	view: any[];
 
@@ -31,21 +34,10 @@ export class ExplorerComponent {
   	// line, area
   	autoScale = true;
   
-  	constructor() {
-  		var single = [{ "name": "Germany", "value": 8940000},
-		  { "name": "USA", "value": 5000000 },
-		  { "name": "France", "value": 7200000 }];
+  	constructor(private contractService: ContractService) {
+      this.single = [];
 
-		var multi = [{ "name": "Germany", "series": [{ "name": "2010", "value": 7300000 },
-		      										{ "name": "2011", "value": 8940000}] },
-		
-		  { "name": "USA", "series": [{ "name": "2010", "value": 7870000 },
-		     						 { "name": "2011", "value": 8270000 }] },
-		
-		  { "name": "France", "series": [{ "name": "2010", "value": 5000002 },
-		      { "name": "2011", "value": 5800000 }] }];
-
-    	Object.assign(this, {single, multi})   
+    	Object.assign(this, {multi})   
   	}
   
   	onSelect(event) {
@@ -53,10 +45,19 @@ export class ExplorerComponent {
   	}
 
   	alertExplore(value: string) {
-  		alert("TODO: Explore smart contract: " + value);
+      var temp = [{ "name": "Alice", "series": [{ "name": "2010", "value": 7300000 },
+                              { "name": "2011", "value": 8940000},
+                              { "name": "2012", "value": 9877000}] }]
+      this.multi = [...temp];
   	}
 
   	alertVariable(variable: string) {
   		alert("TODO: Edit graph to display " + variable);
   	}
+}
+
+export class Contract {
+    constructor(
+        name: string,
+        variables: string[]){ }
 }

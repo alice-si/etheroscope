@@ -1,6 +1,6 @@
 <div class="search-area">
     <div class="form-group">
-		<input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="alertExplore(searchBar.value)" placeholder="Enter a valid smart contract hash">
+		<input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" placeholder="Enter a valid smart contract hash">
         <button type="button" class="btn btn-primary" (click)="alertExplore(searchBar.value)">Explore</button>
     </div>
 </div>
