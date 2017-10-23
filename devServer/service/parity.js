@@ -1,8 +1,10 @@
 const axios = require('axios')
 const Web3 = require('web3')
 const Promise = require('bluebird')
+// const db = require('./db')
 
-const parityUrl = 'http://51.140.27.249:8545'
+// const parityUrl = 'http://localhost:8545'
+const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 const inDB = false
 
@@ -14,12 +16,15 @@ const Parity = {
         // return the parsedContract
       } else {
         // TODO: Queuing System for Etherscan API
+        // console.log('pre etherscan')
         const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
-        const axiosAPI = '&apikey=KEKY5TS8G2WH712WG3SY5HWDHD2HNIUPJD'
+        const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
+        // const axiosAPI = '&apikey=KEKY5TS8G2WH712WG3SY5HWDHD2HNIUPJD'
         return axios.get(axiosGET + address + axiosAPI)
           .then(function (res) {
             const parsedContract = Parity.parseContract(res.data.result, address)
-            // TODO: Place parsedContract in database
+            // TODO: add in parsed contract field in the contracts table
+            // db.addContracts([address, null], () => {})
             return resolve(parsedContract)
           })
           .catch(function (err) {
@@ -58,39 +63,57 @@ const Parity = {
   },
 
   getHistory: function (address) {
-    var startTime = new Date().getTime()
-    var startBlock = 0
-    console.log('From block: ' + startBlock)
+    let startBlock = 1230000
+    let endBlock = 1250000
+    let filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
     return new Promise(function (resolve, reject) {
-      web3.trace.filter({'fromBlock': '0x' + startBlock.toString(16), 'toAddress': [address]}, function (err, traces) {
-        console.log('Fetched in : ' + (new Date().getTime() - startTime))
-        console.log('Browsing through ' + traces.length + ' transactions')
-        if (err) return reject(err)
-        return resolve(traces)
+      filter.get(function (error, result) {
+        if (!error) {
+          console.log('[I] Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
+          return resolve(result)
+        } else {
+          return reject(error)
+        }
       })
     })
   },
   generateDataPoints: function (events, contract, method, res) {
-    // if not exist in db...
     let history = []
     let prevTime = 0
-    Promise.map(events, function (event) {
-      return new Promise(function (resolve) {
-        Parity.getBlockTime(event.blockNumber.valueOf()).then(function (time) {
-          if (time === prevTime) return resolve()
-          prevTime = time
-          Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()).then(function (val) {
-            history.push([time, val])
-            return resolve(val)
+    return new Promise(function (resolve, reject) {
+      for (var event in events) {
+        Parity.getBlockTime(event.blockNumber.valueOf())
+          .then(function (time) {
+            if (time !== prevTime) {
+              prevTime = time
+              Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()).then(function (val) {
+                // db.addDataPoints([contract.address, index, event.blockNumber.valueof(), val],
+                //   () => {})
+                console.log('Pushed T-V pair: ' + time + ', ' + val)
+                history.push([time, val])
+                // return resolve(val)
+              })
+            }
           })
-        })
-      })
-    }, {concurrency: 20}).then(function () {
-      history.sort(function (a, b) {
-        return a[0] - b[0]
-      })
-      return res.status(200).json(history)
+      }
+      return resolve(history)
     })
+    // Promise.map(events, function (event, index, length) {
+    //   console.log('booboo')
+    //   return new Promise(function (resolve) {
+    //   })
+    // }, {concurrency: 20})
+    //   .then(function () {
+    //     return new Promise(function (resolve) {
+    //       history.sort(function (a, b) {
+    //         return a[0] - b[0]
+    //       })
+    //       return resolve(history)
+    //     })
+    //   })
+    //   .then(function (historyR) {
+    //     return res.status(200).json(historyR)
+    //   })
   }
 }
 

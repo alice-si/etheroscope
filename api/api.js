@@ -1,6 +1,5 @@
 var axios = require('axios')
 var Promise = require('bluebird')
-// var Level = require('level')
 var Web3 = require('web3')
 var web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'))
 
@@ -44,16 +43,18 @@ let getMethods = function (contract) {
 }
 
 let getHistory = function (address) {
-  let startTime = new Date().getTime()
-  let startBlock = web3.eth.blockNumber - 105000
-  console.log('From block: ' + startBlock)
+  // let startTime = new Date().getTime()
+  let startBlock = 1230000
+  let endBlock = 1500000
+  var filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
   return new Promise(function (resolve, reject) {
-    web3.trace.filter({'fromBlock': '0x' + startBlock.toString(16), 'toAddress': [address]}, function (err, traces) {
-      console.log('Fetched in : ' + (new Date().getTime() - startTime))
-      console.log('Browsing through ' + traces.length + ' transactions')
-      if (err) return reject(err)
-      // return resolve(traces)
-      resolve(console.log(traces))
+    filter.get(function (error, result) {
+      if (!error) {
+        console.log('[I] Fetched all transactions sent or sent to ' + address)
+        resolve(result)
+      } else {
+        reject(error)
+      }
     })
   })
 }
@@ -113,3 +114,7 @@ let getHistoryHTTPS = function (contractAddress, method) {
     })
   })
 }
+
+getHistory(Alice).then(function (val) {
+  console.log('done with val: ' + val)
+})
