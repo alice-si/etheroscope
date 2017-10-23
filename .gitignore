@@ -4,3 +4,4 @@
 /dist.*
 /blocks
 *.DS_Store
+package-lock.json
