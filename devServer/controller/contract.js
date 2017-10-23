@@ -33,7 +33,7 @@ module.exports = function (app) {
         console.log('Obtained Transaction History')
         return Parity.generateDataPoints(events, contract, method, res)
       })
-      .then(function(results) {
+      .then(function (results) {
         console.log('generated data points: ' + results)
         res.status(200).json(results)
       })

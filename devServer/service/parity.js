@@ -76,26 +76,26 @@ const Parity = {
       })
     })
   },
-  generateDataPoints: function (events_a, contract, method, res) {
+  generateDataPoints: function (eventsA, contract, method, res) {
     let i = 0
     let prevTime = 0
-    return new Promise (function (resolve, reject) {
-      Promise.map(events_a, function (event) {
-        console.log("mapping...: " + i)
+    return new Promise(function (resolve, reject) {
+      Promise.map(eventsA, function (event) {
+        console.log('mapping...: ' + i)
         i++
         return Promise.all([Parity.getBlockTime(event.blockNumber.valueOf()),
           Parity.queryAtBlock(contract[method], event.blockNumber.valueOf())])
       }).then(function (events) {
         return Promise.filter(events, ([time, val]) => {
-          console.log("filtering...")
+          console.log('filtering...')
           if (time !== prevTime) {
-            prevTime = time;
-            return true;
+            prevTime = time
+            return true
           } else {
-            return false;
+            return false
           }
         })
-      }).then(function (events){
+      }).then(function (events) {
         return resolve(events)
       }).catch(function (err) {
         console.log('Data set generation error: ' + err)
