@@ -1,9 +1,8 @@
 const axios = require('axios')
 const Web3 = require('web3')
-const Promise = require('bluebird')
+var Promise = require('bluebird')
 // const db = require('./db')
 
-// const parityUrl = 'http://localhost:8545'
 const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 const inDB = false
@@ -63,8 +62,8 @@ const Parity = {
   },
 
   getHistory: function (address) {
-    let startBlock = 1230000
-    let endBlock = 1250000
+    let startBlock = 1240000
+    let endBlock = 1245000
     let filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
     return new Promise(function (resolve, reject) {
       filter.get(function (error, result) {
@@ -77,44 +76,32 @@ const Parity = {
       })
     })
   },
-  generateDataPoints: function (events, contract, method, res) {
-    let history = []
+  generateDataPoints: function (events_a, contract, method, res) {
+    let i = 0
     let prevTime = 0
-    return new Promise(function (resolve, reject) {
-      for (var event in events) {
-        Parity.getBlockTime(event.blockNumber.valueOf())
-          .then(function (time) {
-            if (time !== prevTime) {
-              prevTime = time
-              Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()).then(function (val) {
-                // db.addDataPoints([contract.address, index, event.blockNumber.valueof(), val],
-                //   () => {})
-                console.log('Pushed T-V pair: ' + time + ', ' + val)
-                history.push([time, val])
-                // return resolve(val)
-              })
-            }
-          })
-      }
-      return resolve(history)
+    return new Promise (function (resolve, reject) {
+      Promise.map(events_a, function (event) {
+        console.log("mapping...: " + i)
+        i++
+        return Promise.all([Parity.getBlockTime(event.blockNumber.valueOf()),
+          Parity.queryAtBlock(contract[method], event.blockNumber.valueOf())])
+      }).then(function (events) {
+        return Promise.filter(events, ([time, val]) => {
+          console.log("filtering...")
+          if (time !== prevTime) {
+            prevTime = time;
+            return true;
+          } else {
+            return false;
+          }
+        })
+      }).then(function (events){
+        return resolve(events)
+      }).catch(function (err) {
+        console.log('Data set generation error: ' + err)
+        return reject(err)
+      })
     })
-    // Promise.map(events, function (event, index, length) {
-    //   console.log('booboo')
-    //   return new Promise(function (resolve) {
-    //   })
-    // }, {concurrency: 20})
-    //   .then(function () {
-    //     return new Promise(function (resolve) {
-    //       history.sort(function (a, b) {
-    //         return a[0] - b[0]
-    //       })
-    //       return resolve(history)
-    //     })
-    //   })
-    //   .then(function (historyR) {
-    //     return res.status(200).json(historyR)
-    //   })
   }
 }
-
 module.exports = Parity

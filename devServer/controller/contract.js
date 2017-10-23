@@ -26,17 +26,16 @@ module.exports = function (app) {
     // Then, we get the history of transactions
       .then(function (parsedContract) {
         contract = parsedContract
+        console.log('Parsed Contract')
         return Parity.getHistory(contractAddress)
       })
       .then(function (events) {
-        console.log(events)
-        Parity.generateDataPoints(events, contract, method, res).then(function (history) {
-          history.sort(function (a, b) {
-            return (a[0] - b[0])
-          })
-          res.status(200).json(history)
-        })
-        // return res.status(200).json(history)
+        console.log('Obtained Transaction History')
+        return Parity.generateDataPoints(events, contract, method, res)
+      })
+      .then(function(results) {
+        console.log('generated data points: ' + results)
+        res.status(200).json(results)
       })
       .catch(function (err) {
         console.log(err)
