@@ -44,8 +44,8 @@
   "scripts": {
     "prestart": "npm install",
     "start": "gulp watch-dev",
-    "lint": "./node_modules/.bin/standard \"./*.js\" \"devServer/**/*.js\" \"tools/**/*.js\"",
-    "test": "jasmine"
+    "lint": "./node_modules/.bin/standard --env jasmine \"./*.js\" \"devServer/**/*.js\" \"tools/**/*.js\" \"spec/**/*.js\"",
+    "test": "./node_modules/.bin/jasmine"
   },
   "dependencies": {
     "async": "^2.5.0",
