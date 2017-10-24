@@ -9,7 +9,6 @@ module.exports = function (app) {
   app.get('/api/explore/:contractAddress', function (req, res) {
     return Parity.getContract(req.params.contractAddress)
       .then(function (contract) {
-        // console.log('Here')
         return res.status(200).json(contract)
       }).catch(function (err) {
         console.log(err)
