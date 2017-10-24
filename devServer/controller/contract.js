@@ -21,6 +21,10 @@ module.exports = function (app) {
     const contractAddress = req.params.contractAddress
     const method = req.params.method
     let contract = null
+    res.setTimeout(300000, function () {
+      // TODO: Solve this computational problem
+      console.log('Response timeout.')
+    })
     // First we obtain the contract.
     return Parity.getContract(contractAddress)
     // Then, we get the history of transactions
