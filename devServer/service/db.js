@@ -1,5 +1,6 @@
 var mssql = require('mssql')
 var login = require('./login.js')
+var path = require('path')
 
 /* TABLE DEFINITIONS
  * Here we define all the tables used in the database.
@@ -32,10 +33,10 @@ pool.connect(err => {
     console.log(err)
   } else {
     console.log('Successfully connected to pool')
-    var fs = require('fs');
-    fs.readFile(__dirname + '/dbschema.ddl', function (err, data) {
+    var fs = require('fs')
+    fs.readFile(path.join(__dirname, '/dbschema.ddl'), function (err, data) {
       if (err) {
-        throw err; 
+        throw err
       }
       var request = new mssql.Request(pool)
       request.query(data.toString(), (err, result) => {
@@ -44,7 +45,6 @@ pool.connect(err => {
         }
       })
     })
-    
   }
 })
 
@@ -52,26 +52,26 @@ var db = {}
 
 /* A function to build a set of values
  * to be inserted in an sql statement.
- * Each record is represented as an array of 
+ * Each record is represented as an array of
  * values. This function takes in an array of
  * such arrays, to facilitate inserting
  * multiple records.
- */ 
-function buildValueString(valuesArray) {
+ */
+function buildValueString (valuesArray) {
   var result = ''
-  for (i = 0; i < valuesArray.length; i++) {
+  for (var i = 0; i < valuesArray.length; i++) {
     result += '('
-    for (j = 0; j < valuesArray[i].length; j++) {
-      result += "\'" 
+    for (var j = 0; j < valuesArray[i].length; j++) {
+      result += "'"
       result += valuesArray[i][j]
-      result += "\', "
+      result += "', "
     }
     // Remove the last two characters ', ' from the string
-    result = result.slice(0, -2);
+    result = result.slice(0, -2)
     result += '), '
   }
   // Remove the last two characters ', ' from the string
-  return result.slice(0, -2);
+  return result.slice(0, -2)
 }
 
 /* This function takes in an array of arrays of the form:
@@ -101,9 +101,9 @@ db.getContractName = function (contractHash, callback) {
 db.addDataPoints = function (values, callback) {
   var request = new mssql.Request(pool)
   var valueString = buildValueString(values)
-  var sql = 'insert into DataPoints '
-          + '(contractHash, variableID, blockNumber, value) values '
-          + valueString
+  var sql = 'insert into DataPoints ' +
+          '(contractHash, variableID, blockNumber, value) values ' +
+          valueString
   request.query(sql, callback)
 }
 
@@ -121,10 +121,10 @@ db.getDataPoints = function (contractHash, callback) {
  */
 db.getDataPointsInDateRange = function (contractHash, from, to, callback) {
   var request = new mssql.Request(pool)
-  var sql = 'select * from (DataPoints natural join Blocks)'
-          + "where contractHash='"
-          + contractHash + "' and timeStamp between '"
-          + from + "' and '" + to + "'"
+  var sql = 'select * from (DataPoints natural join Blocks)' +
+          "where contractHash='" +
+          contractHash + "' and timeStamp between '" +
+          from + "' and '" + to + "'"
   request.query(sql, callback)
 }
 
