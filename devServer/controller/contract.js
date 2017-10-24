@@ -19,16 +19,23 @@ module.exports = function (app) {
 
   app.get('/api/getHistory/:contractAddress/:method', function (req, res) {
     const contractAddress = req.params.contractAddress
+    const method = req.params.method
     let contract = null
     // First we obtain the contract.
-    return Parity.getContract(req.params.contractAddress)
-      // Then, we get the history of transactions
+    return Parity.getContract(contractAddress)
+    // Then, we get the history of transactions
       .then(function (parsedContract) {
         contract = parsedContract
+        console.log('Parsed Contract')
         return Parity.getHistory(contractAddress)
       })
       .then(function (events) {
-        return Parity.generateDataPoints(events, contract, req.params.method, res)
+        console.log('Obtained Transaction History')
+        return Parity.generateDataPoints(events, contract, method, res)
+      })
+      .then(function (results) {
+        console.log('generated data points: ' + results)
+        res.status(200).json(results)
       })
       .catch(function (err) {
         console.log(err)
