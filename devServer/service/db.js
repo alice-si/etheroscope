@@ -46,6 +46,7 @@ db.poolConnect = function () {
           request.query(data.toString(), (err, result) => {
             if (err) {
               console.log('Error creating tables - perhaps they already exist')
+              console.log(err)
             }
             resolve()
           })
