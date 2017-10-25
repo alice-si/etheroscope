@@ -104,16 +104,19 @@ const Parity = {
   generateDataPoints: function (eventsA, contract, method, res) {
     let i = 0
     let prevTime = 0
-    db.getDataPoints(contract.address.substr(2), function (err, res) {
-      if (err) console.log('Error getting datapoint from the db:\n' + err)
-      if (res.recordset.length !== 0) {
-        console.log('generateDataPoints: Cache hit: ' + contract.address)
-        // TODO: verify this
-        // console.log(res.recordset)
-        return res.recordset
-      } else {
-        console.log('generateDataPoints: Cache miss.')
-        return new Promise(function (resolve, reject) {
+    return new Promise(function (resolve, reject) {
+      db.getDataPoints(contract.address.substr(2), function (err, res) {
+        if (err) console.log('Error getting datapoint from the db:\n' + err)
+        if (res.recordset.length !== 0) {
+          console.log('generateDataPoints: Cache hit: ' + contract.address)
+          // TODO: verify this
+          return Promise.map(res.recordset, (dataObj) => {
+            return [dataObj.timeStamp, dataObj.value, dataObj.blockNumber]
+          }).then((triplets) => {
+            return resolve(triplets)
+          })
+        } else {
+          console.log('generateDataPoints: Cache miss.')
           Promise.map(eventsA, function (event) {
             console.log('mapping...: ' + i)
             i++
@@ -143,8 +146,8 @@ const Parity = {
               console.log('Data set generation error: ' + err)
               return reject(err)
             })
-        })
-      }
+        }
+      })
     })
   }
 }

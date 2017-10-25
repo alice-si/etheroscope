@@ -133,7 +133,7 @@ db.addBlockTime = function (values, callback) {
  */
 db.getDataPoints = function (contractHash, callback) {
   var request = new mssql.Request(pool)
-  var sql = 'Select timeStamp, value, blockNumber from blocks, dataPoints where blocks.blockNumber = dataPoints.blockNumber AND dataPoints.contractHash = \'' + contractHash + '\''
+  var sql = 'Select timeStamp, value, blocks.blockNumber from blocks, dataPoints where blocks.blockNumber = dataPoints.blockNumber AND dataPoints.contractHash = \'' + contractHash + '\''
   request.query(sql, callback)
 }
 
