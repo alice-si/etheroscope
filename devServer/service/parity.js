@@ -5,7 +5,6 @@ const db = require('./db')
 
 const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
-const inDB = false
 
 const Parity = {
   getContract: function (address) {
@@ -49,13 +48,13 @@ const Parity = {
         if (err) console.log('variable retrieval error: ' + err)
         if (res.recordset.length === 0) {
           console.log('Caching variables for contract: ')
-          var abi = parsedContract.abi;
-          variableNames = [];
+          var abi = parsedContract.abi
+          let variableNames = []
           return Promise.each(abi, (item) => {
-            if (item.outputs && item.outputs.length === 1
-              && item.outputs[0].type.indexOf('uint') === 0
-              && item.inputs.length === 0) {
-              variableNames.push(item.name);
+            if (item.outputs && item.outputs.length === 1 &&
+              item.outputs[0].type.indexOf('uint') === 0 &&
+              item.inputs.length === 0) {
+              variableNames.push(item.name)
             }
           })
             .then((results) => {
