@@ -12,7 +12,7 @@ const Parity = {
     return new Promise(function (resolve, reject) {
       db.getContractName(address.substr(2), function (err, res) {
         if (err) {
-          console.log('Error getting contract name from the db:\n' +  err)
+          console.log('Error getting contract name from the db:\n' + err)
         }
         console.log(res)
         if (res.rowsAffected[0] !== 0) {
@@ -65,19 +65,19 @@ const Parity = {
 
   getBlockTime: function (blockNumber) {
     return new Promise(function (resolve) {
-    db.getBlockTime(blockNumber, function(err, res) {
-      if (err) {
-        console.log('Error getting the time of a block from db:\n' + err)
-      }
-      if (res.recordset.length !== 0) {
-        return resolve(res.recordset.timeStamp)
-      }
-      var approx = Math.round(blockNumber / 1000) * 1000
+      db.getBlockTime(blockNumber, function (err, res) {
+        if (err) {
+          console.log('Error getting the time of a block from db:\n' + err)
+        }
+        if (res.recordset.length !== 0) {
+          return resolve(res.recordset.timeStamp)
+        }
+        var approx = Math.round(blockNumber / 1000) * 1000
         var time = web3.eth.getBlock(approx).timestamp * 1000
         console.log('Adding ' + blockNumber + ' with time ' + time)
         db.addBlockTime([[blockNumber, time]], function (err, res) {
           if (err) {
-            console.log("Error adding the time of a block to the db:\n" + err)
+            console.log('Error adding the time of a block to the db:\n' + err)
           }
         })
         // cache into db
@@ -105,34 +105,31 @@ const Parity = {
     let i = 0
     let prevTime = 0
     db.getDataPoints(contract.address.substr(2), function (err, res) {
-      if (err) {
-        console.log('Error getting datapoint from the db:\n' + err)
-      }
+      if (err) console.log('Error getting datapoint from the db:\n' + err)
       if (res.recordset.length !== 0) {
-        console.log('Cache hit baby!')
-        // TODO parse this
+        console.log('generateDataPoints: Cache hit: ' + contract.address)
+        // TODO: verify this
+        // console.log(res.recordset)
         return res.recordset
       } else {
+        console.log('generateDataPoints: Cache miss.')
         return new Promise(function (resolve, reject) {
           Promise.map(eventsA, function (event) {
             console.log('mapping...: ' + i)
             i++
-            // [[a,b],[c,d]]
+            // [(t,v,b)]
             return Promise.all([Parity.getBlockTime(event.blockNumber.valueOf()),
-              Parity.queryAtBlock(contract[method], event.blockNumber.valueOf())])
+              Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()), event.blockNumber.valueOf()])
           }, {concurrency: 20})
-            .then(function (events) {
-              return Promise.filter(events, ([time, val]) => {
+            .then((events) => {
+              return Promise.filter(events, ([time, val, blockNum]) => {
                 console.log('filtering...')
                 if (time !== prevTime) {
                   prevTime = time
-                  db.addDataPoints([
-                    [contract.address.substr(2), method, time, val]
-                  ], function (err, res) {
-                    if (err) {
-                      console.log('Error adding datapoint to db:\n' + err)
-                    }
-                  })
+                  db.addDataPoints([[contract.address.substr(2), method, blockNum, val]],
+                    (err, res) => {
+                      if (err) console.log('Error adding datapoint to db:\n' + err)
+                    })
                   return true
                 } else {
                   return false

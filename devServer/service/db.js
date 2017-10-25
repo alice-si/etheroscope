@@ -30,7 +30,7 @@ const pool = new mssql.ConnectionPool({
 var db = {}
 
 db.poolConnect = function () {
-  return new Promise(function (resolve, reject){
+  return new Promise(function (resolve, reject) {
     pool.connect(err => {
       if (err) {
         console.log('Error connecting to database pool:')
@@ -55,7 +55,6 @@ db.poolConnect = function () {
     })
   })
 }
-
 
 /* A function to build a set of values
  * to be inserted in an sql statement.
@@ -109,7 +108,7 @@ db.addDataPoints = function (values, callback) {
   var request = new mssql.Request(pool)
   var valueString = buildValueString(values)
   var sql = 'insert into DataPoints ' +
-    '(contractHash, variableID, timeStamp, value) values ' +
+    '(contractHash, variableID, blockNumber, value) values ' +
     valueString
   request.query(sql, callback)
 }
@@ -134,7 +133,7 @@ db.addBlockTime = function (values, callback) {
  */
 db.getDataPoints = function (contractHash, callback) {
   var request = new mssql.Request(pool)
-  var sql = "select * from DataPoints where contractHash='" + contractHash + "'"
+  var sql = 'Select timeStamp, value, blockNumber from blocks, dataPoints where blocks.blockNumber = dataPoints.blockNumber AND dataPoints.contractHash = \'' + contractHash + '\''
   request.query(sql, callback)
 }
 
