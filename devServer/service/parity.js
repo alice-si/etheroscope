@@ -70,7 +70,7 @@ const Parity = {
           console.log('Error getting the time of a block from db:\n' + err)
         }
         if (res.recordset.length !== 0) {
-          return resolve(res.recordset.timeStamp)
+          return resolve(res.recordset[0].timeStamp)
         }
         var approx = Math.round(blockNumber / 1000) * 1000
         var time = web3.eth.getBlock(approx).timestamp * 1000
@@ -105,7 +105,7 @@ const Parity = {
     let i = 0
     let prevTime = 0
     return new Promise(function (resolve, reject) {
-      db.getDataPoints(contract.address.substr(2), function (err, res) {
+      db.getDataPoints(contract.address.substr(2), method, function (err, res) {
         if (err) console.log('Error getting datapoint from the db:\n' + err)
         if (res.recordset.length !== 0) {
           console.log('generateDataPoints: Cache hit: ' + contract.address)
@@ -140,7 +140,7 @@ const Parity = {
               })
             })
             .then(function (events) {
-              return resolve(events)
+              resolve(events)
             })
             .catch(function (err) {
               console.log('Data set generation error: ' + err)

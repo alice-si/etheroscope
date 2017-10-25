@@ -131,9 +131,9 @@ db.addBlockTime = function (values, callback) {
 /* This function returns *all* the variables across all dates
  * for a given contract hash
  */
-db.getDataPoints = function (contractHash, callback) {
+db.getDataPoints = function (contractHash, variableID, callback) {
   var request = new mssql.Request(pool)
-  var sql = 'Select timeStamp, value, blocks.blockNumber from blocks, dataPoints where blocks.blockNumber = dataPoints.blockNumber AND dataPoints.contractHash = \'' + contractHash + '\''
+  var sql = 'Select timeStamp, value, blocks.blockNumber from blocks, dataPoints where blocks.blockNumber = dataPoints.blockNumber AND dataPoints.contractHash = \'' + contractHash + '\' AND dataPoints.variableID= \'' + variableID + '\''
   request.query(sql, callback)
 }
 
