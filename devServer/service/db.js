@@ -121,12 +121,12 @@ db.addVariable = function (values, callback) {
   request.query(sql, callback)
 }
 
-db.addBlockTime(function (values, callback) {
+db.addBlockTime = function (values, callback) {
   var request = new mssql.Request(pool)
   var valueString = buildValueString(values)
   var sql = 'insert into Blocks (blockNumber, timeStamp) values ' + valueString
   request.query(sql, callback)
-})
+}
 
 /* This function returns *all* the variables across all dates
  * for a given contract hash
