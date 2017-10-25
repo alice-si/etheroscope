@@ -9,9 +9,13 @@ module.exports = function (app) {
   app.get('/api/explore/:contractAddress', function (req, res) {
     return Parity.getContract(req.params.contractAddress)
       .then(function (contract) {
-        // console.log('Here')
-        return res.status(200).json(contract)
-      }).catch(function (err) {
+        return Parity.getContractVariables(contract)
+      })
+      .then(function (variables) {
+        console.log('vars??????: ' + JSON.stringify(variables))
+        return res.status(200).json(variables)
+      })
+      .catch(function (err) {
         console.log(err)
         return res.status(400).json(err.message)
       })

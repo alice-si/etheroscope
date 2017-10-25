@@ -23,6 +23,6 @@ create table dataPoints(
     value        VARCHAR(78) not null,
     primary key (contractHash, variableName, blockNumber),
     foreign key (contractHash) references contracts(contractHash),
-    foreign key (blockNumber) references  blocks(blockNumber)
+    foreign key (blockNumber) references  blocks(blockNumber),
     foreign key (contractHash, variableName) references  variables(contractHash, variableName)
 );

@@ -11,30 +11,20 @@ const Parity = {
   getContract: function (address) {
     return new Promise(function (resolve, reject) {
       db.getContractName(address.substr(2), function (err, res) {
-        if (err) {
-          console.log('Error getting contract name from the db:\n' + err)
-        }
-        console.log(res)
-        if (res.rowsAffected[0] !== 0) {
-          console.log('cachedd name!!!')
-          // TODO get the variable names for the hash and return that
-        } else {
-          console.log('not cached name!!!')
-          db.addContracts([[address.substr(2), null]], function (err, res) {
-            if (err) {
-              console.log('Error adding contract name to the db')
-            }
+        if (err) console.log('Error getting contract name from the db:\n' + err)
+        // Caching new contract
+        if (res.rowsAffected[0] === 0) {
+          console.log('Caching new contract: ' + address)
+          db.addContracts([[address.substr(2), null]], (err, res) => {
+            if (err) console.log('Error adding contract name to the db')
           })
         }
         // TODO: Queuing System for Etherscan API
-        // console.log('pre etherscan')
         const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
         const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
-        // const axiosAPI = '&apikey=KEKY5TS8G2WH712WG3SY5HWDHD2HNIUPJD'
         return axios.get(axiosGET + address + axiosAPI)
           .then(function (res) {
-            const parsedContract = Parity.parseContract(res.data.result, address)
-            // TODO: add in parsed contract field in the contracts table
+            let parsedContract = Parity.parseContract(res.data.result, address)
             return resolve(parsedContract)
           })
           .catch(function (err) {
@@ -50,6 +40,38 @@ const Parity = {
     var contractABI = JSON.parse(desc)
     var Contract = web3.eth.contract(contractABI)
     return Contract.at(address)
+  },
+
+  getContractVariables: function (parsedContract) {
+    return new Promise((resolve, reject) => {
+      let address = parsedContract.address
+      db.getVariables(address, (err, res) => {
+        if (err) console.log('variable retrieval error: ' + err)
+        if (res.recordset.length === 0) {
+          console.log('Caching variables for contract: ')
+          var abi = parsedContract.abi;
+          variableNames = [];
+          return Promise.each(abi, (item) => {
+            if (item.outputs && item.outputs.length === 1
+              && item.outputs[0].type.indexOf('uint') === 0
+              && item.inputs.length === 0) {
+              variableNames.push(item.name);
+            }
+          })
+            .then((results) => {
+              return Promise.each(variableNames, (variableName) => {
+                db.addVariable([[address.substr(2), variableName]], (err, res) => {
+                  if (err) console.log('Error with caching variables: ' + err)
+                })
+              })
+            })
+            .then((results) => {
+              return resolve(variableNames)
+            })
+        }
+        return resolve(res)
+      })
+    })
   },
 
   // Query value of variable at certain block

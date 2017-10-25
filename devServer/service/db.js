@@ -46,7 +46,6 @@ db.poolConnect = function () {
           request.query(data.toString(), (err, result) => {
             if (err) {
               console.log('Error creating tables - perhaps they already exist')
-              console.log(err)
             }
             resolve()
           })
@@ -117,7 +116,7 @@ db.addDataPoints = function (values, callback) {
 db.addVariable = function (values, callback) {
   var request = new mssql.Request(pool)
   var valueString = buildValueString(values)
-  var sql = 'insert into Variables (contractHash, variableName, name) values ' + valueString
+  var sql = 'insert into Variables (contractHash, variableName) values ' + valueString
   request.query(sql, callback)
 }
 
@@ -131,15 +130,15 @@ db.addBlockTime = function (values, callback) {
 /* This function returns *all* the variables across all dates
  * for a given contract hash
  */
-db.getDataPoints = function (contractHash, variableID, callback) {
+db.getDataPoints = function (contractHash, variableName, callback) {
   var request = new mssql.Request(pool)
-  var sql = 'Select timeStamp, value, blocks.blockNumber from blocks, dataPoints where blocks.blockNumber = dataPoints.blockNumber AND dataPoints.contractHash = \'' + contractHash + '\' AND dataPoints.variableID= \'' + variableID + '\''
+  var sql = 'Select timeStamp, value, blocks.blockNumber from blocks, dataPoints where blocks.blockNumber = dataPoints.blockNumber AND dataPoints.contractHash = \'' + contractHash + '\' AND dataPoints.variableName= \'' + variableName + '\''
   request.query(sql, callback)
 }
 
 db.getVariables = function (contractHash, callback) {
   var request = new mssql.Request(pool)
-  var sql = "select * from variables where contractHash='" + contractHash + "'"
+  var sql = "select variableName from variables where contractHash='" + contractHash + "'"
   request.query(sql, callback)
 }
 

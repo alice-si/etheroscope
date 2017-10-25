@@ -4,6 +4,7 @@ angular.module('aliceApp')
 
     vm.favourites = {
       'Alice' : "0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C",
+      'DigixCrowdSale' : "0xF0160428a8552AC9bB7E050D90eEADE4DDD52843",
       'The DAO' : "0xbb9bc244d798123fde783fcc1c72d3bb8c189413"
     };
 
@@ -17,16 +18,8 @@ angular.module('aliceApp')
         vm.waiting = true;
         $http.get(API + 'explore/' + vm.contractAddress).then(
           function (response) {
-            console.log(response.data);
-            var abi = response.data.abi;
-            vm.methods = [];
-            abi.forEach(function(item) {
-              if (item.outputs && item.outputs.length === 1 && item.outputs[0].type.indexOf('uint') === 0) {
-                if (item.inputs.length === 0) {
-                  vm.methods.push(item.name);
-                }
-              }
-            });
+            console.log(response.data)
+            vm.methods = response.data
             vm.waiting = false;
           }, function (rejection) {
             NotificationService.error(rejection.data);
