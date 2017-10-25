@@ -27,28 +27,34 @@ const pool = new mssql.ConnectionPool({
   }
 })
 
-pool.connect(err => {
-  if (err) {
-    console.log('Error connecting to database pool:')
-    console.log(err)
-  } else {
-    console.log('Successfully connected to pool')
-    var fs = require('fs')
-    fs.readFile(path.join(__dirname, '/dbschema.ddl'), function (err, data) {
-      if (err) {
-        throw err
-      }
-      var request = new mssql.Request(pool)
-      request.query(data.toString(), (err, result) => {
-        if (err) {
-          console.log('Error creating tables - perhaps they already exist')
-        }
-      })
-    })
-  }
-})
-
 var db = {}
+
+db.poolConnect = function () {
+  return new Promise(function (resolve, reject){
+    pool.connect(err => {
+      if (err) {
+        console.log('Error connecting to database pool:')
+        console.log(err)
+      } else {
+        console.log('Successfully connected to pool')
+        var fs = require('fs')
+        fs.readFile(path.join(__dirname, '/dbschema.ddl'), function (err, data) {
+          if (err) {
+            throw err
+          }
+          var request = new mssql.Request(pool)
+          request.query(data.toString(), (err, result) => {
+            if (err) {
+              console.log('Error creating tables - perhaps they already exist')
+            }
+            resolve()
+          })
+        })
+      }
+    })
+  })
+}
+
 
 /* A function to build a set of values
  * to be inserted in an sql statement.
@@ -102,10 +108,25 @@ db.addDataPoints = function (values, callback) {
   var request = new mssql.Request(pool)
   var valueString = buildValueString(values)
   var sql = 'insert into DataPoints ' +
-          '(contractHash, variableID, blockNumber, value) values ' +
-          valueString
+    '(contractHash, variableID, blockNumber, value) values ' +
+    valueString
   request.query(sql, callback)
 }
+
+/* This function takes a variable */
+db.addVariable = function (values, callback) {
+  var request = new mssql.Request(pool)
+  var valueString = buildValueString(values)
+  var sql = 'insert into Variables (contractHash, variableID, name) values ' + valueString
+  request.query(sql, callback)
+}
+
+db.addBlockTime(function (values, callback) {
+  var request = new mssql.Request(pool)
+  var valueString = buildValueString(values)
+  var sql = 'insert into Blocks (blockNumber, timeStamp) values ' + valueString
+  request.query(sql, callback)
+})
 
 /* This function returns *all* the variables across all dates
  * for a given contract hash
@@ -116,15 +137,27 @@ db.getDataPoints = function (contractHash, callback) {
   request.query(sql, callback)
 }
 
+db.getVariables = function (contractHash, callback) {
+  var request = new mssql.Request(pool)
+  var sql = "select * from variables where contractHash='" + contractHash + "'"
+  request.query(sql, callback)
+}
+
+db.getBlockTime = function (blockNumber, callback) {
+  var request = new mssql.Request(pool)
+  var sql = "select * from Blocks where blockNumber='" + blockNumber + "'"
+  request.query(sql, callback)
+}
+
 /* This function returns *all* the variables in a given date range
  * for a given contract hash
  */
 db.getDataPointsInDateRange = function (contractHash, from, to, callback) {
   var request = new mssql.Request(pool)
   var sql = 'select * from (DataPoints natural join Blocks)' +
-          "where contractHash='" +
-          contractHash + "' and timeStamp between '" +
-          from + "' and '" + to + "'"
+    "where contractHash='" +
+    contractHash + "' and timeStamp between '" +
+    from + "' and '" + to + "'"
   request.query(sql, callback)
 }
 
