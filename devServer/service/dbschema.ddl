@@ -5,14 +5,14 @@ create table contracts(
 );
 
 create table blocks(
-    blockNumber: BIGINT   not null,
-    timeStamp:   DATETIME not null,
+    blockNumber BIGINT   not null,
+    timeStamp   DATETIME not null,
     primary key (blockNumber)
 );
 
 create table variables(
     contractHash VARCHAR(40) not null,
-    variableID   IN          not null,
+    variableID   INT         not null,
     name         VARCHAR(128),
     primary key (contractHash, variableID)
 );
@@ -20,7 +20,7 @@ create table variables(
 create table dataPoints(
     contractHash VARCHAR(40) not null,
     variableID   VARCHAR(50) not null,
-    blockNumber: BIGINT      not null,
+    blockNumber  BIGINT      not null,
     value        VARCHAR(78) not null,
     primary key (contractHash, variableID, blockNumber),
     foreign key (contractHash) references contracts(contractHash),

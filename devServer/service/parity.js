@@ -83,24 +83,28 @@ const Parity = {
       Promise.map(eventsA, function (event) {
         console.log('mapping...: ' + i)
         i++
+        // [[a,b],[c,d]]
         return Promise.all([Parity.getBlockTime(event.blockNumber.valueOf()),
           Parity.queryAtBlock(contract[method], event.blockNumber.valueOf())])
-      }).then(function (events) {
-        return Promise.filter(events, ([time, val]) => {
-          console.log('filtering...')
-          if (time !== prevTime) {
-            prevTime = time
-            return true
-          } else {
-            return false
-          }
+      }, {concurrency: 20})
+        .then(function (events) {
+          return Promise.filter(events, ([time, val]) => {
+            console.log('filtering...')
+            if (time !== prevTime) {
+              prevTime = time
+              return true
+            } else {
+              return false
+            }
+          })
         })
-      }).then(function (events) {
-        return resolve(events)
-      }).catch(function (err) {
-        console.log('Data set generation error: ' + err)
-        return reject(err)
-      })
+        .then(function (events) {
+          return resolve(events)
+        })
+        .catch(function (err) {
+          console.log('Data set generation error: ' + err)
+          return reject(err)
+        })
     })
   }
 }
