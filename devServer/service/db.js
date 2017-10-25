@@ -108,7 +108,7 @@ db.addDataPoints = function (values, callback) {
   var request = new mssql.Request(pool)
   var valueString = buildValueString(values)
   var sql = 'insert into DataPoints ' +
-    '(contractHash, variableID, blockNumber, value) values ' +
+    '(contractHash, variableID, timeStamp, value) values ' +
     valueString
   request.query(sql, callback)
 }
