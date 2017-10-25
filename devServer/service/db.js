@@ -108,7 +108,7 @@ db.addDataPoints = function (values, callback) {
   var request = new mssql.Request(pool)
   var valueString = buildValueString(values)
   var sql = 'insert into DataPoints ' +
-    '(contractHash, variableID, blockNumber, value) values ' +
+    '(contractHash, variableName, blockNumber, value) values ' +
     valueString
   request.query(sql, callback)
 }
@@ -117,7 +117,7 @@ db.addDataPoints = function (values, callback) {
 db.addVariable = function (values, callback) {
   var request = new mssql.Request(pool)
   var valueString = buildValueString(values)
-  var sql = 'insert into Variables (contractHash, variableID, name) values ' + valueString
+  var sql = 'insert into Variables (contractHash, variableName, name) values ' + valueString
   request.query(sql, callback)
 }
 
