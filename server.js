@@ -13,7 +13,7 @@ Promise.config({
 })
 
 var isProduction = process.env.NODE_ENV === 'production'
-var staticdir = isProduction ? 'dist.dev' : 'dist.dev' // get static files dir
+var staticdir = isProduction ? 'dist' : 'dist' // get static files dir
 
 process.on('uncaughtException', function (err) {
   console.error(err)
