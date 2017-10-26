@@ -20,7 +20,7 @@ lint:
 unit-test:
   stage: test
   script:
-    - true
+    - echo "TODO"
 
 deploy:
   stage: deploy
