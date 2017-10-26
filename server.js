@@ -52,6 +52,7 @@ app.get('/*', function (req, res) {
 })
 
 // start app ===============================================
+require('./devServer/service/db').poolConnect()
 app.listen(port)                                    // startup our app at http://localhost:8080
 console.log('Starting server at: ' + port)          // shoutout to the user
 

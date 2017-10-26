@@ -49,6 +49,10 @@
         }
     },
     "defaults": {
+        "serve": {
+            "port": 8080,
+            "host": "localhost"
+        },
         "styleExt": "scss",
         "prefixInterfaces": false,
         "inline": {

@@ -1,5 +1,6 @@
 var mssql = require('mssql')
 var login = require('./login.js')
+var path = require('path')
 
 /* TABLE DEFINITIONS
  * Here we define all the tables used in the database.
@@ -7,40 +8,6 @@ var login = require('./login.js')
  * does not already exist in the database, it will
  * be created.
  */
-const contracts = new mssql.Table('Contracts')
-contracts.create = true
-contracts.columns.add('contractHash', mssql.VarChar(40),
-  {nullable: false, primary: true})
-contracts.columns.add('name', mssql.VarChar(128),
-  {nullable: true})
-
-const blocks = new mssql.Table('Blocks')
-blocks.create = true
-blocks.columns.add('blockNumber', mssql.BIGINT,
-  {nullable: false, primary: true})
-blocks.columns.add('timeStamp', mssql.DATETIME,
-  {nullable: false})
-
-const variables = new mssql.Table('Variables')
-variables.create = true
-variables.columns.add('contractHash', mssql.VarChar(40),
-  {nullable: false, primary: true})
-variables.columns.add('variableID', mssql.INT,
-  {nullable: false, primary: true})
-variables.columns.add('name', mssql.VarChar(128),
-  {nullable: true})
-
-const dataPoints = new mssql.Table('DataPoints')
-dataPoints.create = true
-dataPoints.columns.add('contractHash', mssql.VarChar(40),
-  {nullable: false, primary: true})
-dataPoints.columns.add('variableID', mssql.INT,
-  {nullable: false, primary: true})
-dataPoints.columns.add('blockNumber', mssql.BIGINT,
-  {nullable: false, primary: true})
-dataPoints.columns.add('value', mssql.VarChar(128),
-  {nullable: false})
-
 /* ESTABLISHING A CONNECTION
  * Here we create a connection pool to the mssql server.
  * we store the configuration in a separate module, login.js.
@@ -60,15 +27,137 @@ const pool = new mssql.ConnectionPool({
   }
 })
 
-pool.connect(err => {
-  if (err) {
-    console.log('Error connecting to database pool:')
-    console.log(err)
-  } else {
-    console.log('Successfully connected to pool')
-  }
-})
-
 var db = {}
+
+db.poolConnect = function () {
+  return new Promise(function (resolve, reject) {
+    pool.connect(err => {
+      if (err) {
+        console.log('Error connecting to database pool:')
+        console.log(err)
+      } else {
+        console.log('Successfully connected to pool')
+        var fs = require('fs')
+        fs.readFile(path.join(__dirname, '/dbschema.ddl'), function (err, data) {
+          if (err) {
+            throw err
+          }
+          var request = new mssql.Request(pool)
+          request.query(data.toString(), (err, result) => {
+            if (err) {
+              console.log('Error creating tables - perhaps they already exist')
+            }
+            resolve()
+          })
+        })
+      }
+    })
+  })
+}
+
+/* A function to build a set of values
+ * to be inserted in an sql statement.
+ * Each record is represented as an array of
+ * values. This function takes in an array of
+ * such arrays, to facilitate inserting
+ * multiple records.
+ */
+function buildValueString (valuesArray) {
+  var result = ''
+  for (var i = 0; i < valuesArray.length; i++) {
+    result += '('
+    for (var j = 0; j < valuesArray[i].length; j++) {
+      result += "'"
+      result += valuesArray[i][j]
+      result += "', "
+    }
+    // Remove the last two characters ', ' from the string
+    result = result.slice(0, -2)
+    result += '), '
+  }
+  // Remove the last two characters ', ' from the string
+  return result.slice(0, -2)
+}
+
+/* This function takes in an array of arrays of the form:
+ * values = ['0x0123456789', 'name']
+ * and a callback function (err, result)
+ */
+db.addContracts = function (values, callback) {
+  var request = new mssql.Request(pool)
+  var valueString = buildValueString(values)
+  var sql = 'insert into Contracts (contractHash, name) values ' + valueString
+  request.query(sql, callback)
+}
+
+/* This function takes in a contract hash
+ * and a callback function (err, result)
+ */
+db.getContractName = function (contractHash, callback) {
+  var request = new mssql.Request(pool)
+  var sql = "select * from Contracts where contractHash='" + contractHash + "'"
+  request.query(sql, callback)
+}
+
+/* This function takes in an array of arrays of the form:
+ * values = ['0x0123456789', 'id', blockNumber, 'value']
+ * and a callback function (err, result)
+ */
+db.addDataPoints = function (values, callback) {
+  var request = new mssql.Request(pool)
+  var valueString = buildValueString(values)
+  var sql = 'insert into DataPoints ' +
+    '(contractHash, variableName, blockNumber, value) values ' +
+    valueString
+  request.query(sql, callback)
+}
+
+/* This function takes a variable */
+db.addVariable = function (values, callback) {
+  var request = new mssql.Request(pool)
+  var valueString = buildValueString(values)
+  var sql = 'insert into Variables (contractHash, variableName) values ' + valueString
+  request.query(sql, callback)
+}
+
+db.addBlockTime = function (values, callback) {
+  var request = new mssql.Request(pool)
+  var valueString = buildValueString(values)
+  var sql = 'insert into Blocks (blockNumber, timeStamp) values ' + valueString
+  request.query(sql, callback)
+}
+
+/* This function returns *all* the variables across all dates
+ * for a given contract hash
+ */
+db.getDataPoints = function (contractHash, variableName, callback) {
+  var request = new mssql.Request(pool)
+  var sql = 'Select timeStamp, value, blocks.blockNumber from blocks, dataPoints where blocks.blockNumber = dataPoints.blockNumber AND dataPoints.contractHash = \'' + contractHash + '\' AND dataPoints.variableName= \'' + variableName + '\''
+  request.query(sql, callback)
+}
+
+db.getVariables = function (contractHash, callback) {
+  var request = new mssql.Request(pool)
+  var sql = "select variableName from variables where contractHash='" + contractHash + "'"
+  request.query(sql, callback)
+}
+
+db.getBlockTime = function (blockNumber, callback) {
+  var request = new mssql.Request(pool)
+  var sql = "select * from Blocks where blockNumber='" + blockNumber + "'"
+  request.query(sql, callback)
+}
+
+/* This function returns *all* the variables in a given date range
+ * for a given contract hash
+ */
+db.getDataPointsInDateRange = function (contractHash, from, to, callback) {
+  var request = new mssql.Request(pool)
+  var sql = 'select * from (DataPoints natural join Blocks)' +
+    "where contractHash='" +
+    contractHash + "' and timeStamp between '" +
+    from + "' and '" + to + "'"
+  request.query(sql, callback)
+}
 
 module.exports = db
