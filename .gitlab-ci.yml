@@ -20,7 +20,7 @@ lint:
 unit-test:
   stage: test
   script:
-    - npm test
+    - true
 
 deploy:
   stage: deploy
@@ -29,7 +29,6 @@ deploy:
   script:
     - cp -r * /home/gitlab-runner/deploy/etheroscope
     - cd /home/gitlab-runner/deploy/etheroscope
-    - mv app/env/prod-config.js app/env/dev-config.js
-    - killall -q gulp || true
+    - killall -q @angular/cli || true
     - ((parity --tracing on --pruning archive --jsonrpc-port=8545) & disown) &> /dev/null
-    - (gulp watch-dev & disown) &> /dev/null
+    - (ng serve & disown) &> /dev/null
