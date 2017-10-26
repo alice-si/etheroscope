@@ -1,12 +1,13 @@
 const axios = require('axios')
 const Web3 = require('web3')
-const Promise = require('bluebird')
+var Promise = require('bluebird')
 const db = require('./db')
-const parityUrl = 'http://51.140.27.249:8545'
+
+const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
-const Parity = function () {
-  this.getContract = function (address) {
+const Parity = {
+  getContract: function (address) {
     return new Promise(function (resolve, reject) {
       db.getContractName(address.substr(2), function (err, res) {
         if (err) console.log('Error getting contract name from the db:\n' + err)
@@ -31,14 +32,14 @@ const Parity = function () {
           })
       })
     })
-  }
+  },
 
   // Obtaining Contract information from ABI and address
-  this.parseContract = function (desc, address) {
+  parseContract: function (desc, address) {
     var contractABI = JSON.parse(desc)
     var Contract = web3.eth.contract(contractABI)
     return Contract.at(address)
-  }
+  },
 
   getContractVariables: function (parsedContract) {
     return new Promise((resolve, reject) => {
@@ -73,7 +74,7 @@ const Parity = function () {
   },
 
   // Query value of variable at certain block
-  this.queryAtBlock = function (query, block) {
+  queryAtBlock: function (query, block) {
     var hex = '0x' + block.toString(16)
     web3.eth.defaultBlock = hex
     return new Promise(function (resolve, reject) {
@@ -81,7 +82,7 @@ const Parity = function () {
         return (err ? reject(err) : resolve(parseInt(result.valueOf())))
       })
     })
-  }
+  },
 
   getBlockTime: function (blockNumber) {
     return new Promise(function (resolve) {
@@ -104,21 +105,7 @@ const Parity = function () {
         return resolve(time)
       })
     })
-  }
-
-  // TODO: delete if dependencies not affected
-  // this.getMaxCachedBlock = function () {
-  //   var max = 0
-  //   return new Promise(function (resolve) {
-  //     blockCache.createReadStream()
-  //       .on('data', function (data) {
-  //         if (parseInt(data.key) > max) max = parseInt(data.key)
-  //       })
-  //       .on('end', function () {
-  //         return resolve(max)
-  //       })
-  //   })
-  // }
+  },
 
   getHistory: function (address) {
     let startBlock = 1240000
@@ -182,7 +169,6 @@ const Parity = function () {
             })
         }
       })
->>>>>>> fa56e4235fe469094636a32ef175d523c44e3f80
     })
   }
 }
