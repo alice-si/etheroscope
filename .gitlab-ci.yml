@@ -11,7 +11,6 @@ build:
   stage: build
   script:
     - npm install
-    - npm prune
 
 lint:
   stage: test
@@ -30,7 +29,7 @@ deploy:
   script:
     - cp -r * /home/gitlab-runner/deploy/etheroscope
     - cd /home/gitlab-runner/deploy/etheroscope
-    - killall -q @angular/cli || true
+    - killall -q node || true
     - ((parity --tracing on --pruning archive --jsonrpc-port=8545) & disown) &> /dev/null
-    - ./node_modules/.bin/ng build --prod
-    - (node server.js) &> /dev/null
+    - echo "Building Angular Frontend: " & ./node_modules/.bin/ng build --prod
+    - (node server.js & disown) &> /dev/null
