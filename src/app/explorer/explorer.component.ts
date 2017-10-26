@@ -1,8 +1,6 @@
 import { Component } from "@angular/core";
 import { ContractService } from "../_services/contract.service";
 
-import { multi } from "../data";
-
 @Component({
     styleUrls: ['./explorer.component.scss'],
     templateUrl: './explorer.component.html',
@@ -12,7 +10,12 @@ export class ExplorerComponent {
     single: any[];
     multi: any[];
 
-	 	variables: string[] = ["minTokensToCreate", "totalSupply", "divisor", "totalRewardToken", "actualBalance"];
+    curContractID: string;
+	 	methods: string[];
+    methodsLoaded: boolean;
+    datapoints: string[][];
+
+    timesValues: any[];
 
   	view: any[];
 
@@ -36,28 +39,57 @@ export class ExplorerComponent {
   
   	constructor(private contractService: ContractService) {
       this.single = [];
-
-    	Object.assign(this, {multi})   
+      this.multi = [];
+      this.methodsLoaded = false;
+      this.methods = [];
+      this.timesValues = [];
   	}
   
   	onSelect(event) {
     	console.log(event);
   	}
 
-  	alertExplore(value: string) {
-      var temp = [{ "name": "Alice", "series": [{ "name": new Date(1490278814), "value": 7300000 },
-                              { "name": new Date(1540278850), "value": 8940000},
-                              { "name": new Date(1590274534), "value": 9877000}] }]
-      this.multi = [...temp];
-  	}
+    exploreContract(contract: string) {
+      this.curContractID = contract;
+      this.contractService.exploreContract(contract).subscribe(
+            (methods) => { 
+              this.methods = methods;
+            },
+            (error) => { 
+              console.log(error); 
+            },
+            () => { 
+              console.log("completed contract exploring"); 
+              console.log(this.methods);
+              this.methodsLoaded = true;
+            }
+        );
+    }
 
-  	alertVariable(variable: string) {
-  		alert("TODO: Edit graph to display " + variable);
-  	}
-}
+    updateGraph() {
+      this.timesValues = [];
+      this.datapoints.forEach((point, index) => {
+        this.timesValues.push({"name": new Date(+point[0]), "value": +point[1]});
+      });
 
-export class Contract {
-    constructor(
-        name: string,
-        variables: string[]){ }
+      this.multi = [...[{ "name": "TODO: NAME", "series": this.timesValues}]];
+
+    }
+
+    generateDatapoints(method: string) {
+      this.contractService.generateDatapoints(this.curContractID, method).subscribe(
+            (datapoints) => { 
+              this.datapoints = datapoints;
+            },
+            (error) => { 
+              console.log(error); 
+            },
+            () => { 
+              console.log("completed data point generation"); 
+              this.updateGraph();
+            }
+      );
+    }
+
+
 }
