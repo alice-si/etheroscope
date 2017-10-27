@@ -134,7 +134,9 @@ const Parity = {
           return Promise.map(res.recordset, (dataObj) => {
             return [dataObj.timeStamp, dataObj.value, dataObj.blockNumber]
           }).then((triplets) => {
-            return resolve(triplets)
+            return resolve(triplets.sort(function (a, b) {
+              return a[0] - b[0]
+            }))
           })
         } else {
           console.log('generateDataPoints: Cache miss.')
