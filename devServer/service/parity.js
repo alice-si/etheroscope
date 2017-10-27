@@ -161,7 +161,9 @@ const Parity = {
               })
             })
             .then(function (events) {
-              resolve(events)
+              resolve(events.sort(function (a, b) {
+                return a[0] - b[0]
+              }))
             })
             .catch(function (err) {
               console.log('Data set generation error: ' + err)
