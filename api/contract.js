@@ -1,5 +1,5 @@
 // var Fs = require('fs')
-var Parity = require('../service/parity')
+var Parity = require('./parity')
 require('bluebird')
 // var Level = require('level')
 

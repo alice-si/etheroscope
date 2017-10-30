@@ -1,7 +1,7 @@
 const axios = require('axios')
 const Web3 = require('web3')
 var Promise = require('bluebird')
-const db = require('./db')
+const db = require('../db/db')
 
 const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
