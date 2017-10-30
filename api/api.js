@@ -1,10 +1,5 @@
-// var Fs = require('fs')
 var Parity = require('./parity')
 require('bluebird')
-// var Level = require('level')
-
-// var historyCache = Level('./db/history')
-
 module.exports = function (app) {
   app.get('/api/explore/:contractAddress', function (req, res) {
     return Parity.getContract(req.params.contractAddress)
