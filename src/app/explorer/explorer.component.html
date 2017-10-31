@@ -1,0 +1,30 @@
+<div class="search-area">
+    <div class="form-group">
+		<input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" placeholder="Enter a valid smart contract hash">
+        <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">Explore</button>
+    </div>
+</div>
+
+<div class="graph-area">
+	<ngx-charts-line-chart
+      	[view]="view"
+      	[scheme]="colorScheme"
+      	[results]="multi"
+      	[gradient]="gradient"
+      	[xAxis]="showXAxis"
+      	[yAxis]="showYAxis"
+      	[legend]="showLegend"
+      	[showXAxisLabel]="showXAxisLabel"
+      	[showYAxisLabel]="showYAxisLabel"
+      	[xAxisLabel]="xAxisLabel"
+      	[yAxisLabel]="yAxisLabel"
+      	[timeline]=true
+      	[autoScale]="autoScale"
+      	(select)="onSelect($event)">
+    </ngx-charts-line-chart>
+</div> 
+
+<div class="variables-area" *ngIf="methodsLoaded">
+	<h3 style="font-size: 120%">Select a method below:</h3>
+	<button type="button" class="btn btn-primary" *ngFor="let m of methods" (click)="generateDatapoints(m)">{{m}}</button>
+</div>
