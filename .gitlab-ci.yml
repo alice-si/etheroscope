@@ -15,14 +15,12 @@ build:
 lint:
   stage: test
   script:
-    - npm install
     - npm run-script lint
 
 unit-test:
   stage: test
   script:
-    - npm install
-    - npm test
+    - echo "TODO"
 
 deploy:
   stage: deploy
@@ -31,7 +29,7 @@ deploy:
   script:
     - cp -r * /home/gitlab-runner/deploy/etheroscope
     - cd /home/gitlab-runner/deploy/etheroscope
-    - mv app/env/prod-config.js app/env/dev-config.js
-    - killall -q gulp || true
+    - killall -q node || true
     - ((parity --tracing on --pruning archive --jsonrpc-port=8545) & disown) &> /dev/null
-    - (gulp watch-dev & disown) &> /dev/null
+    - ./node_modules/.bin/ng build --prod
+    - (node server.js & disown) &> /dev/null

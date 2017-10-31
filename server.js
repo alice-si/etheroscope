@@ -13,7 +13,7 @@ Promise.config({
 })
 
 var isProduction = process.env.NODE_ENV === 'production'
-var staticdir = isProduction ? 'dist.dev' : 'dist.dev' // get static files dir
+var staticdir = isProduction ? 'dist' : 'dist' // get static files dir
 
 process.on('uncaughtException', function (err) {
   console.error(err)
@@ -38,7 +38,7 @@ app.use(function (req, res, next) {
 app.use(morgan('dev'))
 
 // routes ==================================================
-require('./devServer/routes')(app) // configure our routes
+require('./api/contract.js')(app) // configure our routes
 
 // STATIC FILES
 
@@ -52,6 +52,7 @@ app.get('/*', function (req, res) {
 })
 
 // start app ===============================================
+require('./db/db').poolConnect()
 app.listen(port)                                    // startup our app at http://localhost:8080
 console.log('Starting server at: ' + port)          // shoutout to the user
 
