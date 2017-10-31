@@ -36,14 +36,14 @@ app.use(express.static(path.join(__dirname, '/', staticdir)))
 
 // contract.js handles endpoints
 require('./api/api')(app) // configure our routes
-require('./db/db').poolConnect() // kickstart db connection
+require('./db/db').poolConnect().then(() => {
+  // Home page endpoint
+  app.get('/*', function (req, res) {
+    res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
+  })
 
-// Home page endpoint
-app.get('/*', function (req, res) {
-  res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
-})
-
-// Start application
-app.listen(port)                                    // startup our app at http://localhost:8080
-console.log('Starting server at: ' + port)          // shoutout to the user
-exports = module.exports = app                        // expose app
+  // Start application
+  app.listen(port)                                    // startup our app at http://localhost:8080
+  console.log('Starting server at: ' + port)          // shoutout to the user
+  exports = module.exports = app                        // expose app
+}) // kickstart db connection
