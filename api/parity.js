@@ -75,12 +75,19 @@ const Parity = {
 
   // Query value of variable at certain block
   queryAtBlock: function (query, block) {
-    var hex = '0x' + block.toString(16)
+    let hex = '0x' + block.toString(16)
     web3.eth.defaultBlock = hex
     return new Promise((resolve, reject) => {
       return query((err, result) => {
         return (err ? reject(err) : resolve(parseInt(result.valueOf())))
       })
+    })
+  },
+
+  calculateBlockTime: function (blockNumber) {
+    return new Promise((resolve) => {
+      let time = web3.eth.getBlock(blockNumber).timestamp
+      return resolve(time)
     })
   },
 
@@ -93,16 +100,15 @@ const Parity = {
         if (res.recordset.length !== 0) {
           return resolve(res.recordset[0].timeStamp)
         }
-        var approx = Math.round(blockNumber / 1000) * 1000
-        var time = web3.eth.getBlock(approx).timestamp * 1000
-        console.log('Adding ' + blockNumber + ' with time ' + time)
-        db.addBlockTime([[blockNumber, time]], (err, res) => {
-          if (err) {
-            console.log('Error adding the time of a block to the db:\n' + err)
-          }
+        return this.calculateBlockTime(blockNumber).then((time) => {
+          console.log('Adding ' + blockNumber + ' with time ' + time)
+          db.addBlockTime([[blockNumber, time, 1]], function (err, res) {
+            if (err) {
+              console.log('Error adding the time of a block to the db:\n' + err)
+            }
+          })
+          return resolve(time)
         })
-        // cache into db
-        return resolve(time)
       })
     })
   },
