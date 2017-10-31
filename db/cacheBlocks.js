@@ -22,8 +22,8 @@ let generateBlockTimeMappings = async function (index) {
   console.log("Logging block number  " + index)
   getCurrentBlock().then((currentLatestBlock) => {
     if (index >= currentLatestBlock) {
-      console.log("Waiting for 1 second")
-      Promise.delay(1000).then(() => {
+      console.log("Waiting for 1 minute")
+      Promise.delay(1000 * 60).then(() => {
         generateBlockTimeMappings(index)
       })
     } else {
