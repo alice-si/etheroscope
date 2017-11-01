@@ -1,8 +1,15 @@
 <div class="search-area">
-    <div class="form-group">
 		<input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" placeholder="Enter a valid smart contract hash">
-        <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">Explore</button>
-    </div>
+    <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">Explore</button>
+</div>
+<div class="select-area">
+    <label for="select_company">or select a company from the list</label>
+    &nbsp;&nbsp;
+    <select class="select" #company (change)="selectCompany(company.value)">
+        <option></option>
+        <option *ngFor="let c of contractHash" [value]="c.hash">{{c.name}}</option>
+    </select>
+    &nbsp;&nbsp;
 </div>
 
 <div class="graph-area">
@@ -20,11 +27,15 @@
       	[yAxisLabel]="yAxisLabel"
       	[timeline]=true
       	[autoScale]="autoScale"
-      	(select)="onSelect($event)">
+      	(select)="onSelect($event)"
+        *ngIf="displayGraph">
     </ngx-charts-line-chart>
+    <div class="no-graph" *ngIf="!displayGraph">
+        Firstly enter a contract to explore, then select a method from the list to view.
+    </div>
 </div> 
 
-<div class="variables-area" *ngIf="methodsLoaded">
+<div class="variables-area" *ngIf="displayMethods">
 	<h3 style="font-size: 120%">Select a method below:</h3>
 	<button type="button" class="btn btn-primary" *ngFor="let m of methods" (click)="generateDatapoints(m)">{{m}}</button>
 </div>
