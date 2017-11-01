@@ -6,11 +6,11 @@ var morgan = require('morgan')
 var path = require('path')
 var db = require('./db/db.js')
 
-var server = app.listen(8080)
-var io = require('socket.io').listen(server)
-
 // Set port to 8080
 var port = process.env.PORT || 8080
+var server = app.listen(port)
+
+var io = require('socket.io').listen(server)
 
 var Promise = require('bluebird')
 Promise.config({

@@ -48,52 +48,98 @@ module.exports = function (app, db, io) {
   })
 
   function sendDataPointsFromParity (socket, contractAddress, method, from, to) {
+    console.log('Sending history from parity')
     // First we obtain the contract.
     let contract = null
-    Parity.getContract(contractAddress)
-    // Then, we get the history of transactions
-      .then(function (parsedContract) {
-        contract = parsedContract
-        console.log('Parsed Contract')
-        return Parity.getHistory(contractAddress, from, to)
-      })
-      .then(function (events) {
-        console.log('Obtained Transaction History')
-        return Parity.generateDataPoints(events, contract, method)
-      })
-      .then(function (results) {
-        console.log('generated data points: ' + results)
-        socket.emit('getHistoryResponse', { error: false, from: from, to: to, results: results })
-      })
-      .catch(function (err) {
-        console.log('Error in parity sending')
-        console.log(err)
-        socket.emit('getHistoryResponse', { error: true })
-      })
+    return new Promise((resolve, reject) => {
+      Parity.getContract(contractAddress)
+      // Then, we get the history of transactions
+        .then(function (parsedContract) {
+          contract = parsedContract
+          console.log('Parsed Contract')
+          return Parity.getHistory(contractAddress, from, to)
+        })
+        .then(function (events) {
+          console.log('Obtained Transaction History')
+          return Parity.generateDataPoints(events, contract, method)
+        })
+        .then(function (results) {
+          console.log('generated data points successfully')
+          socket.emit('getHistoryResponse', { error: false, from: from, to: to, results: results })
+          return resolve()
+        })
+        .catch(function (err) {
+          console.log('Error in parity sending')
+          console.log(err)
+          socket.emit('getHistoryResponse', { error: true })
+          return reject(err)
+        })
+    })
   }
 
-  function sendDataPointsFromDB (socket, address, start, end) {
-    const resultSize = 10000
-    /* Request the results from the database in blocks of 10000, and send them on to the user */
-    for (var i = start; i < end; i += resultSize) {
-      let to = i + resultSize - 1
-      if (to > end) {
-        to = end
+  function cacheRemainingPoints(contractAddress, method, from, to) {
+    // Don't do anything if we don't have to
+    return new Promise((resolve, reject) => {
+      if (from > to) {
+        return resolve()
       }
-      db.getDataPointsInRange(address, i, to).then((dataPoints) => {
-        socket.emit('getHistoryResponse', { error: false, from: i, to: to, results: dataPoints })
-      })
-      .catch(function (err) {
-        console.log('Error sending datapoints from DD')
-        console.log(err)
-        socket.emit('getHistoryResponse', { error: true })
-      })
-    }
+      console.log('Caching more points in db from parity')
+      // First we obtain the contract.
+      let contract = null
+      Parity.getContract(contractAddress)
+      // Then, we get the history of transactions
+        .then(function (parsedContract) {
+          contract = parsedContract
+          console.log('Parsed Contract')
+          return Parity.getHistory(contractAddress, from, to)
+        })
+        .then(function (events) {
+          console.log('Obtained Transaction History')
+          return Parity.generateDataPoints(events, contract, method)
+        })
+        .then(function (results) {
+          console.log('Successfully cached more points from parity')
+          return resolve()
+        })
+        .catch(function (err) {
+          console.log('Error caching remaining points from parity')
+          console.log(err)
+        })
+     })
+  }
+
+  function sendAllDataPointsFromDB (socket, address, method) {
+    console.log('Sending history from db')
+    db.getDataPoints(address.substr(2), method)
+    .then((dataPoints) => {
+      console.log('getting a response')
+      socket.emit('getHistoryResponse', { error: false, results: dataPoints })
+    })
+    .catch(function (err) {
+      console.log('Error sending datapoints from DD')
+      console.log(err)
+      socket.emit('getHistoryResponse', { error: true })
+    })
+  }
+
+
+  function sendDataPointsFromDB (socket, address, method, start, end) {
+    console.log('Sending history from db')
+    db.getDataPointsInDateRange(address.substr(2), method, start, end)
+    .then((dataPoints) => {
+      console.log('getting a response')
+      socket.emit('getHistoryResponse', { error: false, from: start, to: end, results: dataPoints })
+    })
+    .catch(function (err) {
+      console.log('Error sending datapoints from DD')
+      console.log(err)
+      socket.emit('getHistoryResponse', { error: true })
+    })
   }
 
   io.on('connection', function (socket) {
     socket.on('getHistory', (address, method, from, to) => {
-      sendHistory(socket, address, method, from, to)
+      sendHistory(socket, address, method, from, parseInt(to))
     })
   })
 
@@ -102,41 +148,66 @@ module.exports = function (app, db, io) {
   })
 
   function sendHistory (socket, address, method, from, to) {
-    return db.getCachedUpToBlock(address)
+    console.log('The address:')
+    console.log(address)
+    return db.getCachedUpToBlock(address.substring(2), method)
       .then((cachedUpToBlock) => {
         let dbStart
         let dbEnd
         let parityStart
-        let useDB = true
-        let useParity = true
+        let parityEnd
+        let useDB
+        let useParity
+
+        console.log('cached up to block is: ', cachedUpToBlock)
 
         // if from is less than cached block, start db search from here
-        if (from < cachedUpToBlock) {
-          dbStart = cachedUpToBlock
-        } else {
+        if (from >= cachedUpToBlock) {
+          useParity = true
           useDB = false
-        }
-
-        // if to is less than cached block, end db search there
-        if (to < cachedUpToBlock) {
-          dbEnd = to
-          useParity = false
+          parityStart = from
+          parityEnd = to
         } else {
-          dbEnd = cachedUpToBlock - 1
-          parityStart = cachedUpToBlock
+          useDB = true
+          if (to >= cachedUpToBlock) {
+            useParity = true
+            dbStart = from
+            dbEnd = cachedUpToBlock - 1
+            parityStart = cachedUpToBlock
+            parityEnd = to
+          } else {
+            useParity = false
+            dbStart = from
+            dbEnd = to
+          }
         }
 
         // have parity handle any points not in the db
         if (useParity) {
-          console.log('Sending data from parity')
-          sendDataPointsFromParity(socket, address, method, parityStart, to)
+          console.log('Sending data from parity', parityStart, 'and', to)
+          sendDataPointsFromParity(socket, address, method, parityStart, parityEnd)
+          .then( () => {
+            // Cache the points between cachedUpToBlock and from
+            return cacheRemainingPoints(address, method, cachedUpToBlock, parityStart - 1)
+          })
+          .then( () => {
+            // Update the cachedUpToBlock so we know to use db in future
+            console.log('Updating db cachedUpToBlock')
+            return db.updateCachedUpToBlock(address.substring(2), method, to + 1)
+          })
+          .then( () => {
+            console.log('Updated db cachedUpToBlock')
+          })
         }
 
         // have the db send all cached points
         if (useDB) {
           console.log('Sending data from db')
-          sendDataPointsFromDB(socket, address, method, dbStart, dbEnd)
+          sendAllDataPointsFromDB(socket, address, method) //, dbStart, dbEnd)
         }
+      })
+      .catch((err) => {
+        console.log('Here is the error!', err)
       })
   }
 }
