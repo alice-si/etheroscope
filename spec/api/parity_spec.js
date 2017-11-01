@@ -13,4 +13,12 @@ describe('Parity Unit Tests', function () {
       done()
     })
   })
+  describe('Parity Module loading', function () {
+    it('checks module is loaded', function (done) {
+      let address = '0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C'
+      Parity.getContract(address).then((result) => {
+        console.log(result)
+      })
+    })
+  })
 })
