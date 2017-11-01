@@ -4,6 +4,9 @@ var bodyParser = require('body-parser')
 var methodOverride = require('method-override')
 var morgan = require('morgan')
 var path = require('path')
+var db = require('db/db.js')
+var server = require('http').Server(app)
+var io = require('socket.io')(server)
 
 var port = process.env.PORT || 8080 // set our port
 
@@ -38,7 +41,7 @@ app.use(function (req, res, next) {
 app.use(morgan('dev'))
 
 // routes ==================================================
-require('./api/contract.js')(app) // configure our routes
+require('./api/contract.js')(app, db, io) // configure our routes
 
 // STATIC FILES
 

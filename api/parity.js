@@ -107,9 +107,21 @@ const Parity = {
     })
   },
 
-  getHistory: function (address) {
-    let startBlock = 1240000
-    let endBlock = 1245000
+  sendDataPointsInRange: function (address, start, end) {
+    const resultSize = 10000
+    /* Request the results from the database in blocks of 10000, and send them on to the user */
+    for (var i = start; i < end; i += resultSize) {
+      let to = i + resultSize - 1
+      if (to > end) {
+        to = end
+      }
+      db.getDataPointsInRange(address, i, to).then((dataPoints) => {
+        /* Send the results to the user */
+      })
+    }
+  },
+
+  getHistory: function (address, startBlock, endBlock) {
     let filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
     return new Promise(function (resolve, reject) {
       filter.get(function (error, result) {
@@ -122,7 +134,8 @@ const Parity = {
       })
     })
   },
-  generateDataPoints: function (eventsA, contract, method, res) {
+
+  generateDataPoints: function (eventsA, contract, method) {
     let i = 0
     let prevTime = 0
     return new Promise(function (resolve, reject) {
@@ -176,4 +189,5 @@ const Parity = {
     })
   }
 }
+
 module.exports = Parity
