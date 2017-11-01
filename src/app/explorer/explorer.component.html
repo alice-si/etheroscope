@@ -5,7 +5,7 @@
 <div class="select-area">
     <label for="select_company">or select a company from the list</label>
     &nbsp;&nbsp;
-    <select class="select" [ngModel]="curContractID">
+    <select class="select" #company (change)="selectCompany(company.value)">
         <option></option>
         <option *ngFor="let c of contractHash" [value]="c.hash">{{c.name}}</option>
     </select>
