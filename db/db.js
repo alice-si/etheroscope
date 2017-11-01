@@ -123,7 +123,7 @@ db.addVariable = function (values, callback) {
 db.addBlockTime = function (values, callback) {
   var request = new mssql.Request(pool)
   var valueString = buildValueString(values)
-  var sql = 'insert into Blocks (blockNumber, timeStamp) values ' + valueString
+  var sql = 'insert into Blocks (blockNumber, timeStamp, userLog) values ' + valueString
   request.query(sql, callback)
 }
 
@@ -157,6 +157,12 @@ db.getDataPointsInDateRange = function (contractHash, from, to, callback) {
     "where contractHash='" +
     contractHash + "' and timeStamp between '" +
     from + "' and '" + to + "'"
+  request.query(sql, callback)
+}
+
+db.getLatestCachedBlockTime = function (callback) {
+  var request = new mssql.Request(pool)
+  var sql = 'select MAX(blockNumber) from blocks where userLog=0'
   request.query(sql, callback)
 }
 
