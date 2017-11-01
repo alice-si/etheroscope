@@ -105,4 +105,8 @@ export class ExplorerComponent {
   exploreCompany() {
     this.exploreContract(this.selectedCompany.hash);
   }
+
+  selectCompany(hash: string) {
+    this.exploreContract(hash);
+  }
 }
