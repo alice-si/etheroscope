@@ -78,7 +78,9 @@ export class ExplorerComponent {
   updateGraph() {
     this.timesValues = [];
     this.datapoints.forEach((point, index) => {
-      this.timesValues.push({"name": new Date(+point[0]), "value": +point[1]});
+      var date = new Date(0);
+      date.setUTCSeconds(+point[0]);
+      this.timesValues.push({"name": date, "value": +point[1]});
     });
     this.displayGraph = true;
     this.multi = [...[{ "name": "TODO: NAME", "series": this.timesValues}]];
