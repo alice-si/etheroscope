@@ -120,13 +120,6 @@ db.addVariable = function (values, callback) {
   request.query(sql, callback)
 }
 
-db.addBlockTime = function (values, callback) {
-  var request = new mssql.Request(pool)
-  var valueString = buildValueString(values)
-  var sql = 'insert into Blocks (blockNumber, timeStamp) values ' + valueString
-  request.query(sql, callback)
-}
-
 /* This function returns *all* the variables across all dates
  * for a given contract hash
  */
@@ -142,22 +135,64 @@ db.getVariables = function (contractHash, callback) {
   request.query(sql, callback)
 }
 
-db.getBlockTime = function (blockNumber, callback) {
-  var request = new mssql.Request(pool)
-  var sql = "select * from Blocks where blockNumber='" + blockNumber + "'"
-  request.query(sql, callback)
+db.getBlockTime = function (blockNumber) {
+  return new Promise(function (resolve, reject) {
+    var request = new mssql.Request(pool)
+    var sql = "select * from Blocks where blockNumber='" + blockNumber + "'"
+    request.query(sql, (err, result) => {
+      if (err) {
+        reject(err)
+      }
+      resolve(result)
+    })
+  })
+}
+
+db.addBlockTime = function (values, callback) {
+  return new Promise(function (resolve, reject) {
+    var request = new mssql.Request(pool)
+    var valueString = buildValueString(values)
+    var sql = 'insert into Blocks (blockNumber, timeStamp) values ' + valueString
+    request.query(sql, (err, result) => {
+      if (err) {
+        reject(err)
+      }
+      resolve(result)
+    })
+  })
 }
 
 /* This function returns *all* the variables in a given date range
  * for a given contract hash
  */
-db.getDataPointsInDateRange = function (contractHash, from, to, callback) {
-  var request = new mssql.Request(pool)
-  var sql = 'select * from (DataPoints natural join Blocks)' +
-    "where contractHash='" +
-    contractHash + "' and timeStamp between '" +
-    from + "' and '" + to + "'"
-  request.query(sql, callback)
+db.getDataPointsInDateRange = function (contractHash, from, to) {
+  return new Promise(function (resolve, reject) {
+    var request = new mssql.Request(pool)
+    var sql = 'select * from (DataPoints natural join Blocks)' +
+      "where contractHash='" +
+      contractHash + "' and timeStamp between '" +
+      from + "' and '" + to + "'"
+    request.query(sql, (err, result) => {
+      if (err) {
+        reject(err)
+      }
+      resolve(result)
+    })
+  })
+}
+
+db.getCachedUpToBlock = function (contractHash) {
+  return new Promise(function (resolve, reject) {
+    var request = new mssql.Request(pool)
+    var sql = 'select cachedUpTo from contracts ' +
+      'where contractHash=' + contractHash + "'"
+    request.query(sql, (err, result) => {
+      if (err) {
+        reject(err)
+      }
+      resolve(result)
+    })
+  })
 }
 
 module.exports = db
