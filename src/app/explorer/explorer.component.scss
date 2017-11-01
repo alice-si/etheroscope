@@ -1,27 +1,39 @@
 .search-area {
-	margin: auto;
-    padding: 30px;
-    width: 100vw;
-    font-weight:100;
+    width: 60vw;
+    float: left;
+    font-weight: 100;
 }
 
 .search-bar {
 	max-width: 600px;
-	width: 60vw;
+	width: 50vw;
  	padding: 15px;
 	margin: 30px;
 	align: center;
 }
 
+.select-area{
+	width: 40vw;
+	float: left;
+	padding-top: 20px;
+	font-weight: 100;
+}
+
 .graph-area {
 	float: left;
-	height: 40vw;
+	height: 50vw;
 	width: 80vw;
+}
+
+.no-graph {
+	align-content: center;
+	line-height: 50vw;
+	text-align: center;
 }
 
 .variables-area {
 	float: left;
-	height: 40vw;
+	height: 50vw;
 	width: 20vw;
 }
 
@@ -34,3 +46,4 @@
 .btn-primary:hover {
 	background-color: #11686e;
 }
+
