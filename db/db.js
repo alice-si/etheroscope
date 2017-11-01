@@ -120,6 +120,13 @@ db.addVariable = function (values, callback) {
   request.query(sql, callback)
 }
 
+db.addBlockTime = function (values, callback) {
+  var request = new mssql.Request(pool)
+  var valueString = buildValueString(values)
+  var sql = 'insert into Blocks (blockNumber, timeStamp, userLog) values ' + valueString
+  request.query(sql, callback)
+}
+
 /* This function returns *all* the variables across all dates
  * for a given contract hash
  */
@@ -193,6 +200,12 @@ db.getCachedUpToBlock = function (contractHash) {
       resolve(result)
     })
   })
+}
+
+db.getLatestCachedBlockTime = function (callback) {
+  var request = new mssql.Request(pool)
+  var sql = 'select MAX(blockNumber) from blocks where userLog=0'
+  request.query(sql, callback)
 }
 
 module.exports = db

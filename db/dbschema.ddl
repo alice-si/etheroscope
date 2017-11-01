@@ -8,6 +8,7 @@ create table contracts(
 create table blocks(
     blockNumber BIGINT   not null,
     timeStamp   BIGINT   not null,
+    userLog     BIT      not null,
     primary key (blockNumber)
 );
 
