@@ -8,9 +8,6 @@ var db = require('./db/db.js')
 
 // Set port to 8080
 var port = process.env.PORT || 8080
-var server = app.listen(port)
-
-var io = require('socket.io').listen(server)
 
 var Promise = require('bluebird')
 Promise.config({
@@ -41,13 +38,15 @@ app.use(express.static(path.join(__dirname, '/', staticdir)))
 
 db.poolConnect().then(() => {
   // Home page endpoint
-  require('./api/api.js')(app, db, io) // configure our routes
   app.get('/test', function (req, res) {
     res.sendFile(path.join(__dirname, '/', staticdir, '/test.html'))
   })
   app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
+  var server = app.listen(port)
+  var io = require('socket.io').listen(server)
+  require('./api/api.js')(app, db, io) // configure our routes
 
   // Start application
   // app.listen(port)                                    // startup our app at http://localhost:8080
