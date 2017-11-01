@@ -95,23 +95,23 @@ const Parity = {
   getBlockTime: function (blockNumber) {
     return new Promise((resolve) => {
       db.getBlockTime(blockNumber)
-      .then((result) => {
-        console.log('Getting block time')
-        if (result.recordset.length !== 0) {
-          console.log('Got block time')
-          return resolve(result.recordset[0].timeStamp)
-        }
-        return this.calculateBlockTime(blockNumber).then((time) => {
-          console.log('Adding ' + blockNumber + ' with time ' + time)
-          db.addBlockTime([[blockNumber, time, 1]], function (err, res) {
-            if (err) {
-              console.log('Error adding the time of a block to the db:\n' + err)
-            }
+        .then((result) => {
+          console.log('Getting block time')
+          if (result.recordset.length !== 0) {
+            console.log('Got block time')
+            return resolve(result.recordset[0].timeStamp)
+          }
+          return this.calculateBlockTime(blockNumber).then((time) => {
+            console.log('Adding ' + blockNumber + ' with time ' + time)
+            db.addBlockTime([[blockNumber, time, 1]], function (err, res) {
+              if (err) {
+                console.log('Error adding the time of a block to the db:\n' + err)
+              }
+            })
+            console.log('Got block time 2')
+            return resolve(time)
           })
-          console.log('Got block time 2')
-          return resolve(time)
         })
-      })
     })
   },
 

@@ -8,7 +8,7 @@ module.exports = function (app, db, io) {
         return Parity.getContractVariables(contract)
       })
       .then((variables) => {
-        console.log('vars??????: ' + JSON.stringify(variables))
+        console.log('vars: ' + JSON.stringify(variables))
         return res.status(200).json(variables)
       })
       .catch((err) => {
@@ -77,7 +77,7 @@ module.exports = function (app, db, io) {
     })
   }
 
-  function cacheRemainingPoints(contractAddress, method, from, to) {
+  function cacheRemainingPoints (contractAddress, method, from, to) {
     // Don't do anything if we don't have to
     return new Promise((resolve, reject) => {
       if (from > to) {
@@ -105,40 +105,39 @@ module.exports = function (app, db, io) {
           console.log('Error caching remaining points from parity')
           console.log(err)
         })
-     })
+    })
   }
 
   function sendAllDataPointsFromDB (socket, address, method) {
     console.log('Sending history from db')
     db.getDataPoints(address.substr(2), method)
-    .then((dataPoints) => {
-      console.log('getting a response')
-      socket.emit('getHistoryResponse', { error: false, results: dataPoints })
-    })
-    .catch(function (err) {
-      console.log('Error sending datapoints from DD')
-      console.log(err)
-      socket.emit('getHistoryResponse', { error: true })
-    })
+      .then((dataPoints) => {
+        console.log('getting a response')
+        socket.emit('getHistoryResponse', { error: false, results: dataPoints })
+      })
+      .catch(function (err) {
+        console.log('Error sending datapoints from DD')
+        console.log(err)
+        socket.emit('getHistoryResponse', { error: true })
+      })
   }
-
 
   function sendDataPointsFromDB (socket, address, method, start, end) {
     console.log('Sending history from db')
     db.getDataPointsInDateRange(address.substr(2), method, start, end)
-    .then((dataPoints) => {
-      console.log('getting a response')
-      socket.emit('getHistoryResponse', { error: false, from: start, to: end, results: dataPoints })
-    })
-    .catch(function (err) {
-      console.log('Error sending datapoints from DD')
-      console.log(err)
-      socket.emit('getHistoryResponse', { error: true })
-    })
+      .then((dataPoints) => {
+        console.log('getting a response')
+        socket.emit('getHistoryResponse', { error: false, from: start, to: end, results: dataPoints })
+      })
+      .catch(function (err) {
+        console.log('Error sending datapoints from DD')
+        console.log(err)
+        socket.emit('getHistoryResponse', { error: true })
+      })
   }
 
   io.on('connection', function (socket) {
-    socket.on('getHistory', (address, method, from, to) => {
+    socket.on('getHistory', ([address, method, from, to]) => {
       sendHistory(socket, address, method, from, parseInt(to))
     })
   })
@@ -186,18 +185,18 @@ module.exports = function (app, db, io) {
         if (useParity) {
           console.log('Sending data from parity', parityStart, 'and', to)
           sendDataPointsFromParity(socket, address, method, parityStart, parityEnd)
-          .then( () => {
-            // Cache the points between cachedUpToBlock and from
-            return cacheRemainingPoints(address, method, cachedUpToBlock, parityStart - 1)
-          })
-          .then( () => {
-            // Update the cachedUpToBlock so we know to use db in future
-            console.log('Updating db cachedUpToBlock')
-            return db.updateCachedUpToBlock(address.substring(2), method, to + 1)
-          })
-          .then( () => {
-            console.log('Updated db cachedUpToBlock')
-          })
+            .then(() => {
+              // Cache the points between cachedUpToBlock and from
+              return cacheRemainingPoints(address, method, cachedUpToBlock, parityStart - 1)
+            })
+            .then(() => {
+              // Update the cachedUpToBlock so we know to use db in future
+              console.log('Updating db cachedUpToBlock')
+              return db.updateCachedUpToBlock(address.substring(2), method, to + 1)
+            })
+            .then(() => {
+              console.log('Updated db cachedUpToBlock')
+            })
         }
 
         // have the db send all cached points
