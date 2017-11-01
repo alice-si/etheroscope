@@ -44,8 +44,7 @@ const Parity = {
   getContractVariables: function (parsedContract) {
     return new Promise((resolve, reject) => {
       let address = parsedContract.address
-      db.getVariables(address, (err, res) => {
-        if (err) console.log('variable retrieval error: ' + err)
+      db.getVariables(address).then((res) => {
         if (res.recordset.length === 0) {
           console.log('Caching variables for contract: ')
           var abi = parsedContract.abi

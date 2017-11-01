@@ -142,13 +142,13 @@ db.getDataPoints = function (contractHash, method) {
 }
 
 
-db.getVariables = function (contractHash, callback) {
+db.getVariables = function (contractHash) {
   return new Promise(function (resolve, reject) {
     var request = new mssql.Request(pool)
     var sql = "select variableName from variables where contractHash='" + contractHash + "'"
     request.query(sql)
       .then((results) => {
-        return resolve(results.recordsets)
+        return resolve(results)
       })
   })
 }
