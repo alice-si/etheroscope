@@ -1,6 +1,7 @@
 import { Component } from "@angular/core";
 import { ContractService } from "../_services/contract.service";
 
+
 @Component({
   styleUrls: ['./explorer.component.scss'],
   templateUrl: './explorer.component.html',
@@ -10,10 +11,17 @@ export class ExplorerComponent {
   single: any[];
   multi: any[];
 
+  contractHash: any[] = [{"name": "Alice.si", "hash": "0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C"},
+                {"name": "The DAO", "hash": "0xbb9bc244d798123fde783fcc1c72d3bb8c189413"},
+                {"name": "DigixCrowdSale", "hash": "0xf0160428a8552ac9bb7e050d90eeade4ddd52843"}];
+
   curContractID: string;
   methods: string[];
-  methodsLoaded: boolean;
+  displayMethods: boolean;
+  displayGraph: boolean;
   datapoints: string[][];
+
+  selectedCompany: any;
 
   timesValues: any[];
 
@@ -31,16 +39,18 @@ export class ExplorerComponent {
   timeline = true;
 
   colorScheme = {
-    domain: ['#5AA454', '#A10A28', '#C7B42C', '#AAAAAA']
+    domain: ['#1998a2', '#A10A28', '#C7B42C', '#AAAAAA']
   };
 
   // line, area
   autoScale = true;
 
   constructor(private contractService: ContractService) {
+    this.curContractID = '';
     this.single = [];
     this.multi = [];
-    this.methodsLoaded = false;
+    this.displayMethods = false;
+    this.displayGraph = false;
     this.methods = [];
     this.timesValues = [];
   }
@@ -60,8 +70,7 @@ export class ExplorerComponent {
       },
       () => {
         console.log("completed contract exploring");
-        console.log(this.methods);
-        this.methodsLoaded = true;
+        this.displayMethods = true;
       }
     );
   }
@@ -69,9 +78,11 @@ export class ExplorerComponent {
   updateGraph() {
     this.timesValues = [];
     this.datapoints.forEach((point, index) => {
-      this.timesValues.push({"name": new Date(+point[0]), "value": +point[1]});
+      let date = new Date(0);
+      date.setUTCSeconds(+point[0]);
+      this.timesValues.push({"name": date, "value": +point[1]});
     });
-
+    this.displayGraph = true;
     this.multi = [...[{ "name": "TODO: NAME", "series": this.timesValues}]];
 
   }
@@ -91,5 +102,11 @@ export class ExplorerComponent {
     );
   }
 
+  exploreCompany() {
+    this.exploreContract(this.selectedCompany.hash);
+  }
 
+  selectCompany(hash: string) {
+    this.exploreContract(hash);
+  }
 }

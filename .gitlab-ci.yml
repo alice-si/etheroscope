@@ -20,7 +20,7 @@ lint:
 unit-test:
   stage: test
   script:
-    - echo "TODO"
+    - npm run test
 
 deploy:
   stage: deploy
