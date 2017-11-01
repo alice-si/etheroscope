@@ -8,8 +8,8 @@ const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
 const Parity = {
   getContract: function (address) {
-    return new Promise(function (resolve, reject) {
-      db.getContractName(address.substr(2), function (err, res) {
+    return new Promise((resolve, reject) => {
+      db.getContractName(address.substr(2), (err, res) => {
         if (err) console.log('Error getting contract name from the db:\n' + err)
         // Caching new contract
         if (res.rowsAffected[0] === 0) {
@@ -22,11 +22,11 @@ const Parity = {
         const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
         const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
         return axios.get(axiosGET + address + axiosAPI)
-          .then(function (res) {
+          .then((res) => {
             let parsedContract = Parity.parseContract(res.data.result, address)
             return resolve(parsedContract)
           })
-          .catch(function (err) {
+          .catch((err) => {
             console.log('Etherscan.io API error: ' + err)
             return reject(err)
           })
@@ -75,34 +75,40 @@ const Parity = {
 
   // Query value of variable at certain block
   queryAtBlock: function (query, block) {
-    var hex = '0x' + block.toString(16)
+    let hex = '0x' + block.toString(16)
     web3.eth.defaultBlock = hex
-    return new Promise(function (resolve, reject) {
-      return query(function (err, result) {
+    return new Promise((resolve, reject) => {
+      return query((err, result) => {
         return (err ? reject(err) : resolve(parseInt(result.valueOf())))
       })
     })
   },
 
+  calculateBlockTime: function (blockNumber) {
+    return new Promise((resolve) => {
+      let time = web3.eth.getBlock(blockNumber).timestamp
+      return resolve(time)
+    })
+  },
+
   getBlockTime: function (blockNumber) {
-    return new Promise(function (resolve) {
-      db.getBlockTime(blockNumber, function (err, res) {
+    return new Promise((resolve) => {
+      db.getBlockTime(blockNumber, (err, res) => {
         if (err) {
           console.log('Error getting the time of a block from db:\n' + err)
         }
         if (res.recordset.length !== 0) {
           return resolve(res.recordset[0].timeStamp)
         }
-        var approx = Math.round(blockNumber / 1000) * 1000
-        var time = web3.eth.getBlock(approx).timestamp * 1000
-        console.log('Adding ' + blockNumber + ' with time ' + time)
-        db.addBlockTime([[blockNumber, time]], function (err, res) {
-          if (err) {
-            console.log('Error adding the time of a block to the db:\n' + err)
-          }
+        return this.calculateBlockTime(blockNumber).then((time) => {
+          console.log('Adding ' + blockNumber + ' with time ' + time)
+          db.addBlockTime([[blockNumber, time, 1]], function (err, res) {
+            if (err) {
+              console.log('Error adding the time of a block to the db:\n' + err)
+            }
+          })
+          return resolve(time)
         })
-        // cache into db
-        return resolve(time)
       })
     })
   },
@@ -123,8 +129,8 @@ const Parity = {
 
   getHistory: function (address, startBlock, endBlock) {
     let filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
-    return new Promise(function (resolve, reject) {
-      filter.get(function (error, result) {
+    return new Promise((resolve, reject) => {
+      filter.get((error, result) => {
         if (!error) {
           console.log('[I] Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
           return resolve(result)
@@ -138,8 +144,8 @@ const Parity = {
   generateDataPoints: function (eventsA, contract, method) {
     let i = 0
     let prevTime = 0
-    return new Promise(function (resolve, reject) {
-      db.getDataPoints(contract.address.substr(2), method, function (err, res) {
+    return new Promise((resolve, reject) => {
+      db.getDataPoints(contract.address.substr(2), method, (err, res) => {
         if (err) console.log('Error getting datapoint from the db:\n' + err)
         if (res.recordset.length !== 0) {
           console.log('generateDataPoints: Cache hit: ' + contract.address)
@@ -147,13 +153,13 @@ const Parity = {
           return Promise.map(res.recordset, (dataObj) => {
             return [dataObj.timeStamp, dataObj.value, dataObj.blockNumber]
           }).then((triplets) => {
-            return resolve(triplets.sort(function (a, b) {
+            return resolve(triplets.sort((a, b) => {
               return a[0] - b[0]
             }))
           })
         } else {
           console.log('generateDataPoints: Cache miss.')
-          Promise.map(eventsA, function (event) {
+          Promise.map(eventsA, (event) => {
             console.log('mapping...: ' + i)
             i++
             // [(t,v,b)]
@@ -175,12 +181,12 @@ const Parity = {
                 }
               })
             })
-            .then(function (events) {
-              resolve(events.sort(function (a, b) {
+            .then((events) => {
+              resolve(events.sort((a, b) => {
                 return a[0] - b[0]
               }))
             })
-            .catch(function (err) {
+            .catch((err) => {
               console.log('Data set generation error: ' + err)
               return reject(err)
             })
