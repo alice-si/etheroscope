@@ -119,13 +119,6 @@ db.addVariable = function (values, callback) {
   request.query(sql, callback)
 }
 
-db.addBlockTime = function (values, callback) {
-  var request = new mssql.Request(pool)
-  var valueString = buildValueString(values)
-  var sql = 'insert into Blocks (blockNumber, timeStamp, userLog) values ' + valueString
-  request.query(sql, callback)
-}
-
 /* This function returns *all* the variables in a given date range
  * for a given contract hash
  */
@@ -139,12 +132,12 @@ db.getDataPoints = function (contractHash, method) {
 
     console.log(sql)
     request.query(sql)
-    .then((results) => {
-      return resolve(results.recordsets)
-    })
-    .catch((err) => { 
-      console.log(err)
-    })
+      .then((results) => {
+        return resolve(results.recordsets)
+      })
+      .catch((err) => { 
+        console.log(err)
+      })
   })
 }
 
@@ -154,9 +147,9 @@ db.getVariables = function (contractHash, callback) {
     var request = new mssql.Request(pool)
     var sql = "select variableName from variables where contractHash='" + contractHash + "'"
     request.query(sql)
-    .then((results) => {
-      return resolve(results.recordsets)
-    })
+      .then((results) => {
+        return resolve(results.recordsets)
+      })
   })
 }
 
@@ -165,25 +158,31 @@ db.getBlockTime = function (blockNumber) {
     var request = new mssql.Request(pool)
     var sql = "select * from Blocks where blockNumber='" + blockNumber + "'"
     request.query(sql)
-    .then((results) => {
-      return resolve(results)
-    })
+      .then((results) => {
+        return resolve(results)
+      })
   })
+}
+db.addBlockTime = function (values, callback) {
+  var request = new mssql.Request(pool)
+  var valueString = buildValueString(values)
+  var sql = 'insert into Blocks (blockNumber, timeStamp, userLog) values ' + valueString
+  request.query(sql, callback)
 }
 
-db.addBlockTime = function (values, callback) {
-  return new Promise(function (resolve, reject) {
-    var request = new mssql.Request(pool)
-    var valueString = buildValueString(values)
-    var sql = 'insert into Blocks (blockNumber, timeStamp) values ' + valueString
-    request.query(sql, (err, result) => {
-      if (err) {
-        reject(err)
-      }
-      resolve(result)
-    })
-  })
-}
+// db.addBlockTime = function (values, callback) {
+//   return new Promise(function (resolve, reject) {
+//     var request = new mssql.Request(pool)
+//     var valueString = buildValueString(values)
+//     var sql = 'insert into Blocks (blockNumber, timeStamp, userLog) values ' + valueString
+//     request.query(sql, (err, result) => {
+//       if (err) {
+//         reject(err)
+//       }
+//       resolve(result)
+//     })
+//   })
+// }
 
 /* This function returns *all* the variables in a given date range
  * for a given contract hash
@@ -199,12 +198,12 @@ db.getDataPointsInDateRange = function (contractHash, method, from, to) {
 
     console.log(sql)
     request.query(sql)
-    .then((results) => {
-      return resolve(results.recordsets)
-    })
-    .catch((err) => { 
-      console.log(err)
-    })
+      .then((results) => {
+        return resolve(results.recordsets)
+      })
+      .catch((err) => { 
+        console.log(err)
+      })
   })
 }
 
@@ -217,10 +216,10 @@ db.updateCachedUpToBlock = function (contractHash, method, value) {
       "where contractHash='" + contractHash + "' " +
       "and variableName='" + method + "'"
     request.query(sql)
-    .then((result) => {
-      console.log('Update cachedUpToblock result was:', result)
-      return resolve()
-    })
+      .then((result) => {
+        console.log('Update cachedUpToblock result was:', result)
+        return resolve()
+      })
   })
 }
 
@@ -231,9 +230,9 @@ db.getCachedUpToBlock = function (contractHash, method) {
       "where contractHash='" + contractHash + "' " +
       "and variableName='" + method + "'"
     request.query(sql)
-    .then((results) => {
-      return resolve(results.recordset[0].cachedUpTo)
-    })
+      .then((results) => {
+        return resolve(results.recordset[0].cachedUpTo)
+      })
   })
 }
 
