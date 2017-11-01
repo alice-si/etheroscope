@@ -66,6 +66,7 @@ module.exports = function (app, db, io) {
         socket.emit('getHistoryResponse', { error: false, from: from, to: to, results: results })
       })
       .catch(function (err) {
+        console.log('Error in parity sending')
         console.log(err)
         socket.emit('getHistoryResponse', { error: true })
       })
@@ -83,6 +84,7 @@ module.exports = function (app, db, io) {
         socket.emit('getHistoryResponse', { error: false, from: i, to: to, results: dataPoints })
       })
       .catch(function (err) {
+        console.log('Error sending datapoints from DD')
         console.log(err)
         socket.emit('getHistoryResponse', { error: true })
       })
@@ -91,9 +93,12 @@ module.exports = function (app, db, io) {
 
   io.on('connection', function (socket) {
     socket.on('getHistory', (address, method, from, to) => {
-      console.log('Received:', address, method, from, to)
       sendHistory(socket, address, method, from, to)
     })
+  })
+
+  io.on('disconnect', function (socket) {
+    console.log('User has disconnected')
   })
 
   function sendHistory (socket, address, method, from, to) {
@@ -123,11 +128,13 @@ module.exports = function (app, db, io) {
 
         // have parity handle any points not in the db
         if (useParity) {
+          console.log('Sending data from parity')
           sendDataPointsFromParity(socket, address, method, parityStart, to)
         }
 
         // have the db send all cached points
         if (useDB) {
+          console.log('Sending data from db')
           sendDataPointsFromDB(socket, address, method, dbStart, dbEnd)
         }
       })
