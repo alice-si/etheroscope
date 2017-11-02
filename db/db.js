@@ -102,12 +102,19 @@ db.getContractName = function (contractHash, callback) {
  * values = ['0x0123456789', 'id', blockNumber, 'value']
  * and a callback function (err, result)
  */
-db.addDataPoints = function (values, callback) {
+db.addDataPoints = function (values, from, to, callback) {
   var request = new mssql.Request(pool)
   var valueString = buildValueString(values)
-  var sql = 'insert into DataPoints ' +
+  var sql =
+    'begin transaction addDataPoints;' +
+    'insert into DataPoints ' +
     '(contractHash, variableName, blockNumber, value) values ' +
-    valueString
+    valueString + ';' +
+    "update variables set cachedFrom='" + from + "' where contractHash='" + values[0][0] + "' and variableName='" + values[0][1] + "';" +
+    "update variables set cachedUpTo='" + to + "' where contractHash='" + values[0][0] + "' and variableName='" + values[0][1] + "';" +
+    'commit transaction addDataPoints;'
+  console.log('Sql inbound')
+  console.log(sql)
   request.query(sql, callback)
 }
 
@@ -129,18 +136,15 @@ db.getDataPoints = function (contractHash, method) {
       'select timeStamp, value from (DataPoints inner join Blocks on DataPoints.blockNumber = Blocks.blockNumber) ' +
       "where DataPoints.contractHash='" + contractHash +
       "' and (DataPoints.variableName='" + method + "')"
-
-    console.log(sql)
     request.query(sql)
       .then((results) => {
         return resolve(results.recordsets)
       })
-      .catch((err) => { 
+      .catch((err) => {
         console.log(err)
       })
   })
 }
-
 
 db.getVariables = function (contractHash) {
   return new Promise(function (resolve, reject) {
@@ -201,7 +205,7 @@ db.getDataPointsInDateRange = function (contractHash, method, from, to) {
       .then((results) => {
         return resolve(results.recordsets)
       })
-      .catch((err) => { 
+      .catch((err) => {
         console.log(err)
       })
   })
@@ -223,15 +227,18 @@ db.updateCachedUpToBlock = function (contractHash, method, value) {
   })
 }
 
-db.getCachedUpToBlock = function (contractHash, method) {
+db.getCachedFromTo = function (contractHash, method) {
   return new Promise(function (resolve, reject) {
     var request = new mssql.Request(pool)
-    var sql = 'select cachedUpTo from variables ' +
+    var sql = 'select cachedFrom, cachedUpTo from variables ' +
       "where contractHash='" + contractHash + "' " +
       "and variableName='" + method + "'"
     request.query(sql)
       .then((results) => {
-        return resolve(results.recordset[0].cachedUpTo)
+        return resolve({
+          cachedFrom: results.recordset[0].cachedFrom,
+          cachedUpTo: results.recordset[0].cachedUpTo
+        })
       })
   })
 }

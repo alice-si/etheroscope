@@ -7,6 +7,10 @@ const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
 const Parity = {
+  getLatestBlock: function () {
+    return web3.eth.getBlockNumber()
+  },
+
   getContract: function (address) {
     return new Promise((resolve, reject) => {
       db.getContractName(address.substr(2), (err, res) => {
@@ -14,6 +18,7 @@ const Parity = {
         // Caching new contract
         if (res.rowsAffected[0] === 0) {
           console.log('Caching new contract: ' + address)
+          console.log(res)
           db.addContracts([[address.substr(2), null]], (err, res) => {
             if (err) console.log('Error adding contract name to the db')
           })
@@ -24,6 +29,10 @@ const Parity = {
         return axios.get(axiosGET + address + axiosAPI)
           .then((res) => {
             let parsedContract = Parity.parseContract(res.data.result, address)
+            console.log('Pepe the frog:', parsedContract)
+            // db.addContracts([[address.substr(2), null]], (err, res) => {
+            //   if (err) console.log('Error adding contract name to the db')
+            // })
             return resolve(parsedContract)
           })
           .catch((err) => {
@@ -138,7 +147,7 @@ const Parity = {
     })
   },
 
-  generateDataPoints: function (eventsA, contract, method) {
+  generateDataPoints: function (eventsA, contract, method, from, to) {
     let prevTime = 0
     return new Promise((resolve, reject) => {
       console.log('Generating data points')
@@ -151,7 +160,7 @@ const Parity = {
           return Promise.filter(events, ([time, val, blockNum]) => {
             if (time !== prevTime) {
               prevTime = time
-              db.addDataPoints([[contract.address.substr(2), method, blockNum, val]],
+              db.addDataPoints([[contract.address.substr(2), method, blockNum, val]], from, to,
                 (err, res) => {
                   if (err) console.log('Error adding datapoint to db:\n' + err)
                 })

@@ -1,6 +1,8 @@
 var Parity = require('./parity')
 let Promise = require('bluebird')
 
+var methodCachesInProgress = new Set()
+
 module.exports = function (app, db, io) {
   app.get('/api/explore/:contractAddress', (req, res) => {
     return Parity.getContract(req.params.contractAddress)
@@ -53,7 +55,7 @@ module.exports = function (app, db, io) {
     let contract = null
     return new Promise((resolve, reject) => {
       Parity.getContract(contractAddress)
-      // Then, we get the history of transactions
+        // Then, we get the history of transactions
         .then(function (parsedContract) {
           contract = parsedContract
           console.log('Parsed Contract')
@@ -61,7 +63,7 @@ module.exports = function (app, db, io) {
         })
         .then(function (events) {
           console.log('Obtained Transaction History')
-          return Parity.generateDataPoints(events, contract, method)
+          return Parity.generateDataPoints(events, contract, method, from, to)
         })
         .then(function (results) {
           console.log('generated data points successfully')
@@ -73,37 +75,6 @@ module.exports = function (app, db, io) {
           console.log(err)
           socket.emit('getHistoryResponse', { error: true })
           return reject(err)
-        })
-    })
-  }
-
-  function cacheRemainingPoints (contractAddress, method, from, to) {
-    // Don't do anything if we don't have to
-    return new Promise((resolve, reject) => {
-      if (from > to) {
-        return resolve()
-      }
-      console.log('Caching more points in db from parity')
-      // First we obtain the contract.
-      let contract = null
-      Parity.getContract(contractAddress)
-      // Then, we get the history of transactions
-        .then(function (parsedContract) {
-          contract = parsedContract
-          console.log('Parsed Contract')
-          return Parity.getHistory(contractAddress, from, to)
-        })
-        .then(function (events) {
-          console.log('Obtained Transaction History')
-          return Parity.generateDataPoints(events, contract, method)
-        })
-        .then(function (results) {
-          console.log('Successfully cached more points from parity')
-          return resolve()
-        })
-        .catch(function (err) {
-          console.log('Error caching remaining points from parity')
-          console.log(err)
         })
     })
   }
@@ -127,28 +98,9 @@ module.exports = function (app, db, io) {
       })
   }
 
-  function sendDataPointsFromDB (socket, address, method, start, end) {
-    console.log('Sending history from db')
-    db.getDataPointsInDateRange(address.substr(2), method, start, end)
-      .then((dataPoints) => {
-        return Promise.map(dataPoints[0], (elem) => {
-          return [elem.timeStamp, elem.value]
-        })
-      })
-      .then((dataPoints) => {
-        console.dir(dataPoints)
-        socket.emit('getHistoryResponse', { error: false, contract: address, method: method, from: start, to: end, results: dataPoints })
-      })
-      .catch(function (err) {
-        console.log('Error sending datapoints from DD')
-        console.log(err)
-        socket.emit('getHistoryResponse', { error: true })
-      })
-  }
-
   io.on('connection', function (socket) {
-    socket.on('getHistory', ([address, method, from, to]) => {
-      sendHistory(socket, address, method, from, parseInt(to))
+    socket.on('getHistory', ([address, method]) => {
+      sendHistory(socket, address, method)
     })
   })
 
@@ -156,67 +108,50 @@ module.exports = function (app, db, io) {
     console.log('User has disconnected')
   })
 
-  function sendHistory (socket, address, method, from, to) {
-    console.log('The address:')
-    console.log(address)
-    return db.getCachedUpToBlock(address.substring(2), method)
-      .then((cachedUpToBlock) => {
-        let dbStart
-        let dbEnd
-        let parityStart
-        let parityEnd
-        let useDB
-        let useParity
+  function sendHistory (socket, address, method) {
+    // Send every point we have in the db so far
+    sendAllDataPointsFromDB(socket, address, method)
 
-        console.log('cached up to block is: ', cachedUpToBlock)
+    // If there is already a caching process, we don't need to set one up
+    if (methodCachesInProgress.has(address + method)) {
+      return
+    }
 
-        // if from is less than cached block, start db search from here
-        if (from >= cachedUpToBlock) {
-          useParity = true
-          useDB = false
-          parityStart = from
-          parityEnd = to
-        } else {
-          useDB = true
-          if (to >= cachedUpToBlock) {
-            useParity = true
-            dbStart = from
-            dbEnd = cachedUpToBlock - 1
-            parityStart = cachedUpToBlock
-            parityEnd = to
-          } else {
-            useParity = false
-            dbStart = from
-            dbEnd = to
-          }
+    db.getCachedFromTo(address.substring(2), method)
+    .then((result) => {
+      console.log('Result is:', result)
+      let latestBlock = Parity.getLatestBlock()
+      .then(() => {
+        if (result.cachedFrom === null || result.CachedUpTo === null) {
+          result.cachedFrom = latestBlock
+          result.cachedUpTo = latestBlock
         }
-
-        // have parity handle any points not in the db
-        if (useParity) {
-          console.log('Sending data from parity', parityStart, 'and', to)
-          sendDataPointsFromParity(socket, address, method, parityStart, parityEnd)
-            .then(() => {
-              // Cache the points between cachedUpToBlock and from
-              return cacheRemainingPoints(address, method, cachedUpToBlock, parityStart - 1)
-            })
-            .then(() => {
-              // Update the cachedUpToBlock so we know to use db in future
-              console.log('Updating db cachedUpToBlock')
-              return db.updateCachedUpToBlock(address.substring(2), method, to + 1)
-            })
-            .then(() => {
-              console.log('Updated db cachedUpToBlock')
-            })
-        }
-
-        // have the db send all cached points
-        if (useDB) {
-          console.log('Sending data from db')
-          sendAllDataPointsFromDB(socket, address, method) //, dbStart, dbEnd)
-        }
+        cacheMorePoints(socket, address, method, result.cachedFrom, result.cachedUpTo, latestBlock)
       })
-      .catch((err) => {
-        console.log('Error getting datapoints:', err)
+    })
+    .catch((err) => {
+      console.log('Error caching more points:', err)
+    })
+  }
+
+  // from, to and latestBlock are exclusive
+  function cacheMorePoints (socket, address, method, from, to, latestBlock) {
+    const chunkSize = 1000
+    if (to === latestBlock) {
+      if (from === 1) {
+        return
+      }
+      let newFrom = Math.max(from - chunkSize, 1)
+      sendDataPointsFromParity(socket, address, method, newFrom, from - 1)
+      .then(() => {
+        cacheMorePoints(socket, address, method, newFrom, to, latestBlock)
       })
+    } else {
+      let newTo = Math.min(to + chunkSize, latestBlock)
+      sendDataPointsFromParity(socket, address, method, to + 1, newTo)
+      .then(() => {
+        cacheMorePoints(socket, address, method, from, newTo, latestBlock)
+      })
+    }
   }
 }
