@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {Http, Headers, Response, RequestOptions} from '@angular/http';
 import { Observable } from "rxjs/Observable";
 import 'rxjs/add/operator/map';
-import { Socket } from 'ng-socket-io';
+import { SocketIoModule, SocketIoConfig, Socket } from 'ng-socket-io';
 
 @Injectable()
 export class ContractService {
@@ -19,8 +19,8 @@ export class ContractService {
 
   generateDatapoints(contract: string, method: string) {
     console.log("Retrieving History...");
-    return this.socket.emit('getHistory', [contract, method, 1240000, 1245000]);
-    // return this.http.get(this.apiUrl + 'api/getHistory/' + contract + '/' + method).map(this.extractData);
+    this.socket.emit('getHistory', [contract, method, 1240000, 1245000]);
+    return this.socket.fromEvent('getHistoryResponse');
   }
 
   private extractData(res: Response) {
