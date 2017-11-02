@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { ClarityModule } from 'clarity-angular';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { SelectModule } from 'ng2-select';
 
 import { AppComponent } from './app.component';
 import { ROUTING } from "./app.routing";
