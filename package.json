@@ -51,7 +51,6 @@
     "e2e": "protractor protractor.config.js"
   },
   "dependencies": {
-    "web3": "git+https://github.com/gobitfly/web3.js.git#develop",
     "@angular/animations": "^4.4.6",
     "@angular/common": "^4.4.6",
     "@angular/compiler": "^4.4.6",
@@ -74,11 +73,14 @@
     "ip": "^1.1.5",
     "mssql": "^4.1.0",
     "mutationobserver-shim": "^0.3.2",
+    "ng-socket-io": "^0.2.0",
     "rxjs": "^5.5.2",
+    "socket.io": "^2.0.4",
     "spinkit": "^1.2.5",
     "standard": "^10.0.3",
     "ts-helpers": "^1.1.2",
     "web-animations-js": "^2.3.1",
+    "web3": "git+https://github.com/gobitfly/web3.js.git#develop",
     "webpack-sources": "^1.0.1",
     "zone.js": "^0.8.18"
   }
