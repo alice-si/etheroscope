@@ -74,7 +74,6 @@ const Parity = {
 
   // Query value of variable at certain block
   queryAtBlock: function (query, block) {
-    console.log('In queryAtBlock')
     let hex = '0x' + block.toString(16)
     web3.eth.defaultBlock = hex
     return new Promise((resolve, reject) => {
@@ -95,19 +94,15 @@ const Parity = {
     return new Promise((resolve) => {
       db.getBlockTime(blockNumber)
         .then((result) => {
-          console.log('Getting block time')
           if (result.recordset.length !== 0) {
-            console.log('Got block time')
             return resolve(result.recordset[0].timeStamp)
           }
           return this.calculateBlockTime(blockNumber).then((time) => {
-            console.log('Adding ' + blockNumber + ' with time ' + time)
             db.addBlockTime([[blockNumber, time, 1]], function (err, res) {
               if (err) {
                 console.log('Error adding the time of a block to the db:\n' + err)
               }
             })
-            console.log('Got block time 2')
             return resolve(time)
           })
         })
@@ -144,21 +139,16 @@ const Parity = {
   },
 
   generateDataPoints: function (eventsA, contract, method) {
-    let i = 0
     let prevTime = 0
     return new Promise((resolve, reject) => {
       console.log('Generating data points')
       Promise.map(eventsA, (event) => {
-        console.log('mapping...: ' + i)
-        i++
         // [(t,v,b)]
         return Promise.all([Parity.getBlockTime(event.blockNumber.valueOf()),
           Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()), event.blockNumber.valueOf()])
       })
         .then((events) => {
-          console.log('WE are here')
           return Promise.filter(events, ([time, val, blockNum]) => {
-            console.log('filtering...')
             if (time !== prevTime) {
               prevTime = time
               db.addDataPoints([[contract.address.substr(2), method, blockNum, val]],

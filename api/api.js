@@ -113,13 +113,12 @@ module.exports = function (app, db, io) {
     db.getDataPoints(address.substr(2), method)
       .then((dataPoints) => {
         return Promise.map(dataPoints[0], (elem) => {
-          console.log('getting a response')
           return [elem.timeStamp, elem.value]
         })
       })
       .then((dataPoints) => {
         console.dir(dataPoints)
-        socket.emit('getHistoryResponse', { error: false, results: dataPoints})
+        socket.emit('getHistoryResponse', { error: false, results: dataPoints })
       })
       .catch(function (err) {
         console.log('Error sending datapoints from DD')
@@ -133,7 +132,6 @@ module.exports = function (app, db, io) {
     db.getDataPointsInDateRange(address.substr(2), method, start, end)
       .then((dataPoints) => {
         return Promise.map(dataPoints[0], (elem) => {
-          console.log('getting a response')
           return [elem.timeStamp, elem.value]
         })
       })
@@ -150,7 +148,6 @@ module.exports = function (app, db, io) {
 
   io.on('connection', function (socket) {
     socket.on('getHistory', ([address, method, from, to]) => {
-      console.log("preparing to send")
       sendHistory(socket, address, method, from, parseInt(to))
     })
   })
@@ -219,7 +216,7 @@ module.exports = function (app, db, io) {
         }
       })
       .catch((err) => {
-        console.log('Here is the error!', err)
+        console.log('Error getting datapoints:', err)
       })
   }
 }
