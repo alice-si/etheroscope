@@ -1,7 +1,6 @@
 create table contracts(
     contractHash VARCHAR(40)  not null,
     name         VARCHAR(128),
-    cachedUpTo   BIGINT not null default 0,
     primary key (contractHash)
 );
 
@@ -15,6 +14,8 @@ create table blocks(
 create table variables(
     contractHash VARCHAR(40) not null,
     variableName VARCHAR(50) not null,
+    cachedFrom   BIGINT,
+    cachedUpTo   BIGINT,
     primary key (contractHash, variableName)
 );
 
