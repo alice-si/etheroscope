@@ -1,5 +1,5 @@
 var Parity = require('./parity')
-require('bluebird')
+let Promise = require('bluebird')
 
 module.exports = function (app, db, io) {
   app.get('/api/explore/:contractAddress', (req, res) => {
@@ -112,8 +112,14 @@ module.exports = function (app, db, io) {
     console.log('Sending history from db')
     db.getDataPoints(address.substr(2), method)
       .then((dataPoints) => {
-        console.log('getting a response')
-        socket.emit('getHistoryResponse', { error: false, results: dataPoints })
+        return Promise.map(dataPoints[0], (elem) => {
+          console.log('getting a response')
+          return [elem.timeStamp, elem.value]
+        })
+      })
+      .then((dataPoints) => {
+        console.dir(dataPoints)
+        socket.emit('getHistoryResponse', { error: false, results: dataPoints})
       })
       .catch(function (err) {
         console.log('Error sending datapoints from DD')
@@ -126,7 +132,13 @@ module.exports = function (app, db, io) {
     console.log('Sending history from db')
     db.getDataPointsInDateRange(address.substr(2), method, start, end)
       .then((dataPoints) => {
-        console.log('getting a response')
+        return Promise.map(dataPoints[0], (elem) => {
+          console.log('getting a response')
+          return [elem.timeStamp, elem.value]
+        })
+      })
+      .then((dataPoints) => {
+        console.dir(dataPoints)
         socket.emit('getHistoryResponse', { error: false, from: start, to: end, results: dataPoints })
       })
       .catch(function (err) {
@@ -138,6 +150,7 @@ module.exports = function (app, db, io) {
 
   io.on('connection', function (socket) {
     socket.on('getHistory', ([address, method, from, to]) => {
+      console.log("preparing to send")
       sendHistory(socket, address, method, from, parseInt(to))
     })
   })
