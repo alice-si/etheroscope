@@ -19,7 +19,7 @@ export class ExplorerComponent {
   methods: string[];
   displayMethods: boolean;
   displayGraph: boolean;
-  datapoints: string[][];
+  datapoints: any;
 
   selectedCompany: any;
 
@@ -77,7 +77,8 @@ export class ExplorerComponent {
 
   updateGraph() {
     this.timesValues = [];
-    this.datapoints.forEach((point, index) => {
+    console.log(this.datapoints.error);
+    this.datapoints.results.forEach((point, index) => {
       let date = new Date(0);
       date.setUTCSeconds(+point[0]);
       this.timesValues.push({"name": date, "value": +point[1]});
@@ -91,6 +92,7 @@ export class ExplorerComponent {
     this.contractService.generateDatapoints(this.curContractID, method).subscribe(
       (datapoints) => {
         this.datapoints = datapoints;
+        this.updateGraph();
       },
       (error) => {
         console.log(error);

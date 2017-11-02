@@ -20,12 +20,13 @@ export class ContractService {
   generateDatapoints(contract: string, method: string) {
     console.log("Retrieving History...");
     this.socket.emit('getHistory', [contract, method, 1240000, 1245000]);
-    return this.socket.fromEvent('getHistory').map(this.extractData);
+    return this.socket.fromEvent('getHistoryResponse');
   }
 
   private extractData(res: Response) {
     console.log("Extracting... ");
     let body = res.json();
+    console.log(body)
     return body || [];
   }
 }
