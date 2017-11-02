@@ -38,9 +38,6 @@ app.use(express.static(path.join(__dirname, '/', staticdir)))
 
 db.poolConnect().then(() => {
   // Home page endpoint
-  app.get('/test', function (req, res) {
-    res.sendFile(path.join(__dirname, '/', staticdir, '/test.html'))
-  })
   app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
