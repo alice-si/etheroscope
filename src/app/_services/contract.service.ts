@@ -26,7 +26,6 @@ export class ContractService {
   private extractData(res: Response) {
     console.log("Extracting... ");
     let body = res.json();
-    console.log(body)
     return body || [];
   }
 }
