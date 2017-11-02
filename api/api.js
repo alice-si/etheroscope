@@ -65,7 +65,7 @@ module.exports = function (app, db, io) {
         })
         .then(function (results) {
           console.log('generated data points successfully')
-          socket.emit('getHistoryResponse', { error: false, from: from, to: to, results: results })
+          socket.emit('getHistoryResponse', { error: false, contract: contractAddress, method: method, from: from, to: to, results: results })
           return resolve()
         })
         .catch(function (err) {
@@ -118,7 +118,7 @@ module.exports = function (app, db, io) {
       })
       .then((dataPoints) => {
         console.dir(dataPoints)
-        socket.emit('getHistoryResponse', { error: false, results: dataPoints })
+        socket.emit('getHistoryResponse', { error: false, contract: address, method: method, results: dataPoints })
       })
       .catch(function (err) {
         console.log('Error sending datapoints from DD')
@@ -137,7 +137,7 @@ module.exports = function (app, db, io) {
       })
       .then((dataPoints) => {
         console.dir(dataPoints)
-        socket.emit('getHistoryResponse', { error: false, from: start, to: end, results: dataPoints })
+        socket.emit('getHistoryResponse', { error: false, contract: address, method: method, from: start, to: end, results: dataPoints })
       })
       .catch(function (err) {
         console.log('Error sending datapoints from DD')
