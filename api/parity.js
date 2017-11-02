@@ -8,7 +8,11 @@ const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
 const Parity = {
   getLatestBlock: function () {
-    return web3.eth.getBlockNumber()
+    return new Promise((resolve, reject) => {
+      return web3.eth.getBlockNumber((error, block) => {
+        return resolve(block)
+      })
+    })
   },
 
   getContract: function (address) {
@@ -29,7 +33,6 @@ const Parity = {
         return axios.get(axiosGET + address + axiosAPI)
           .then((res) => {
             let parsedContract = Parity.parseContract(res.data.result, address)
-            console.log('Pepe the frog:', parsedContract)
             // db.addContracts([[address.substr(2), null]], (err, res) => {
             //   if (err) console.log('Error adding contract name to the db')
             // })
