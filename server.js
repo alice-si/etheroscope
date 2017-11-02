@@ -4,6 +4,7 @@ var bodyParser = require('body-parser')
 var methodOverride = require('method-override')
 var morgan = require('morgan')
 var path = require('path')
+var db = require('./db/db.js')
 
 // Set port to 8080
 var port = process.env.PORT || 8080
@@ -23,6 +24,7 @@ app.use(bodyParser.json()) // parse application/json
 app.use(bodyParser.json({ type: 'application/vnd.api+json' })) // parse application/vnd.api+json as json
 app.use(bodyParser.urlencoded({ extended: true })) // parse application/x-www-form-urlencoded
 app.use(methodOverride('X-HTTP-Method-Override')) // override with the X-HTTP-Method-Override header in the request. simulate DELETE/PUT
+
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
@@ -34,16 +36,20 @@ app.use(morgan('dev'))
 var staticdir = 'dist'
 app.use(express.static(path.join(__dirname, '/', staticdir)))
 
-// contract.js handles endpoints
-require('./api/api')(app) // configure our routes
-require('./db/db').poolConnect().then(() => {
+db.poolConnect().then(() => {
   // Home page endpoint
-  app.get('/*', function (req, res) {
+  app.get('/test', function (req, res) {
+    res.sendFile(path.join(__dirname, '/', staticdir, '/test.html'))
+  })
+  app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
+  var server = app.listen(port)
+  var io = require('socket.io').listen(server)
+  require('./api/api.js')(app, db, io) // configure our routes
 
   // Start application
-  app.listen(port)                                    // startup our app at http://localhost:8080
+  // app.listen(port)                                    // startup our app at http://localhost:8080
   console.log('Starting server at: ' + port)          // shoutout to the user
   exports = module.exports = app                        // expose app
 }) // kickstart db connection

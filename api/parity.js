@@ -44,8 +44,7 @@ const Parity = {
   getContractVariables: function (parsedContract) {
     return new Promise((resolve, reject) => {
       let address = parsedContract.address
-      db.getVariables(address, (err, res) => {
-        if (err) console.log('variable retrieval error: ' + err)
+      db.getVariables(address).then((res) => {
         if (res.recordset.length === 0) {
           console.log('Caching variables for contract: ')
           var abi = parsedContract.abi
@@ -75,6 +74,7 @@ const Parity = {
 
   // Query value of variable at certain block
   queryAtBlock: function (query, block) {
+    console.log('In queryAtBlock')
     let hex = '0x' + block.toString(16)
     web3.eth.defaultBlock = hex
     return new Promise((resolve, reject) => {
@@ -93,34 +93,48 @@ const Parity = {
 
   getBlockTime: function (blockNumber) {
     return new Promise((resolve) => {
-      db.getBlockTime(blockNumber, (err, res) => {
-        if (err) {
-          console.log('Error getting the time of a block from db:\n' + err)
-        }
-        if (res.recordset.length !== 0) {
-          return resolve(res.recordset[0].timeStamp)
-        }
-        return this.calculateBlockTime(blockNumber).then((time) => {
-          console.log('Adding ' + blockNumber + ' with time ' + time)
-          db.addBlockTime([[blockNumber, time, 1]], function (err, res) {
-            if (err) {
-              console.log('Error adding the time of a block to the db:\n' + err)
-            }
+      db.getBlockTime(blockNumber)
+        .then((result) => {
+          console.log('Getting block time')
+          if (result.recordset.length !== 0) {
+            console.log('Got block time')
+            return resolve(result.recordset[0].timeStamp)
+          }
+          return this.calculateBlockTime(blockNumber).then((time) => {
+            console.log('Adding ' + blockNumber + ' with time ' + time)
+            db.addBlockTime([[blockNumber, time, 1]], function (err, res) {
+              if (err) {
+                console.log('Error adding the time of a block to the db:\n' + err)
+              }
+            })
+            console.log('Got block time 2')
+            return resolve(time)
           })
-          return resolve(time)
         })
-      })
     })
   },
 
-  getHistory: function (address) {
-    let startBlock = 1240000
-    let endBlock = 1245000
+  sendDataPointsInRange: function (address, start, end) {
+    const resultSize = 10000
+    /* Request the results from the database in blocks of 10000, and send them on to the user */
+    for (var i = start; i < end; i += resultSize) {
+      let to = i + resultSize - 1
+      if (to > end) {
+        to = end
+      }
+      db.getDataPointsInRange(address, i, to).then((dataPoints) => {
+        /* Send the results to the user */
+      })
+    }
+  },
+
+  getHistory: function (address, startBlock, endBlock) {
     let filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
     return new Promise((resolve, reject) => {
       filter.get((error, result) => {
         if (!error) {
           console.log('[I] Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
+          console.log('From', startBlock, 'to', endBlock)
           return resolve(result)
         } else {
           return reject(error)
@@ -128,58 +142,46 @@ const Parity = {
       })
     })
   },
-  generateDataPoints: function (eventsA, contract, method, res) {
+
+  generateDataPoints: function (eventsA, contract, method) {
     let i = 0
     let prevTime = 0
     return new Promise((resolve, reject) => {
-      db.getDataPoints(contract.address.substr(2), method, (err, res) => {
-        if (err) console.log('Error getting datapoint from the db:\n' + err)
-        if (res.recordset.length !== 0) {
-          console.log('generateDataPoints: Cache hit: ' + contract.address)
-          // TODO: verify this
-          return Promise.map(res.recordset, (dataObj) => {
-            return [dataObj.timeStamp, dataObj.value, dataObj.blockNumber]
-          }).then((triplets) => {
-            return resolve(triplets.sort((a, b) => {
-              return a[0] - b[0]
-            }))
-          })
-        } else {
-          console.log('generateDataPoints: Cache miss.')
-          Promise.map(eventsA, (event) => {
-            console.log('mapping...: ' + i)
-            i++
-            // [(t,v,b)]
-            return Promise.all([Parity.getBlockTime(event.blockNumber.valueOf()),
-              Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()), event.blockNumber.valueOf()])
-          }, {concurrency: 20})
-            .then((events) => {
-              return Promise.filter(events, ([time, val, blockNum]) => {
-                console.log('filtering...')
-                if (time !== prevTime) {
-                  prevTime = time
-                  db.addDataPoints([[contract.address.substr(2), method, blockNum, val]],
-                    (err, res) => {
-                      if (err) console.log('Error adding datapoint to db:\n' + err)
-                    })
-                  return true
-                } else {
-                  return false
-                }
-              })
-            })
-            .then((events) => {
-              resolve(events.sort((a, b) => {
-                return a[0] - b[0]
-              }))
-            })
-            .catch((err) => {
-              console.log('Data set generation error: ' + err)
-              return reject(err)
-            })
-        }
+      console.log('Generating data points')
+      Promise.map(eventsA, (event) => {
+        console.log('mapping...: ' + i)
+        i++
+        // [(t,v,b)]
+        return Promise.all([Parity.getBlockTime(event.blockNumber.valueOf()),
+          Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()), event.blockNumber.valueOf()])
       })
+        .then((events) => {
+          console.log('WE are here')
+          return Promise.filter(events, ([time, val, blockNum]) => {
+            console.log('filtering...')
+            if (time !== prevTime) {
+              prevTime = time
+              db.addDataPoints([[contract.address.substr(2), method, blockNum, val]],
+                (err, res) => {
+                  if (err) console.log('Error adding datapoint to db:\n' + err)
+                })
+              return true
+            } else {
+              return false
+            }
+          })
+        })
+        .then((events) => {
+          resolve(events.sort((a, b) => {
+            return a[0] - b[0]
+          }))
+        })
+        .catch((err) => {
+          console.log('Data set generation error: ' + err)
+          return reject(err)
+        })
     })
   }
 }
+
 module.exports = Parity
