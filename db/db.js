@@ -133,7 +133,7 @@ db.getDataPoints = function (contractHash, method) {
   return new Promise(function (resolve, reject) {
     var request = new mssql.Request(pool)
     var sql =
-      'select timeStamp, value, DataPoints.blockNumber from (DataPoints inner join Blocks on DataPoints.blockNumber = Blocks.blockNumber) ' +
+      'select timeStamp, value from (DataPoints inner join Blocks on DataPoints.blockNumber = Blocks.blockNumber) ' +
       "where DataPoints.contractHash='" + contractHash +
       "' and (DataPoints.variableName='" + method + "')"
     request.query(sql)
@@ -195,7 +195,7 @@ db.getDataPointsInDateRange = function (contractHash, method, from, to) {
   return new Promise(function (resolve, reject) {
     var request = new mssql.Request(pool)
     var sql =
-      'select timeStamp, value, DataPoints.blockNumber from (DataPoints inner join Blocks on DataPoints.blockNumber = Blocks.blockNumber) ' +
+      'select timeStamp, value from (DataPoints inner join Blocks on DataPoints.blockNumber = Blocks.blockNumber) ' +
       "where DataPoints.contractHash='" + contractHash +
       "' and (DataPoints.blockNumber between '" + from + "' and '" + to + "')" +
       " and (DataPoints.variableName='" + method + "')"
