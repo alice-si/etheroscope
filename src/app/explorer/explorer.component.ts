@@ -77,7 +77,6 @@ export class ExplorerComponent {
 
   updateGraph() {
     this.timesValues = [];
-    console.log(this.datapoints.error);
     this.datapoints.results.forEach((point, index) => {
       let date = new Date(0);
       date.setUTCSeconds(+point[0]);
@@ -92,6 +91,7 @@ export class ExplorerComponent {
     this.contractService.generateDatapoints(this.curContractID, method).subscribe(
       (datapoints) => {
         this.datapoints = datapoints;
+        console.log(this.datapoints);
         this.updateGraph();
       },
       (error) => {
