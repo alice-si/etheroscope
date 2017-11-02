@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import {Http, Headers, Response, RequestOptions} from '@angular/http';
 import { Observable } from "rxjs/Observable";
 import 'rxjs/add/operator/map';
+import { Socket } from 'ng-socket-io';
 
 @Injectable()
 export class ContractService {
   private apiUrl: string = 'http://etheroscope.uksouth.cloudapp.azure.com:8080/';
 
-  constructor(private http: Http) {
+  constructor(private http: Http, private socket: Socket) {
 
   }
 
@@ -18,7 +19,8 @@ export class ContractService {
 
   generateDatapoints(contract: string, method: string) {
     console.log("Retrieving History...");
-    return this.http.get(this.apiUrl + 'api/getHistory/' + contract + '/' + method).map(this.extractData);
+    return this.socket.emit('getHistory', [contract, method, 1240000, 1245000]);
+    // return this.http.get(this.apiUrl + 'api/getHistory/' + contract + '/' + method).map(this.extractData);
   }
 
   private extractData(res: Response) {
