@@ -1,6 +1,17 @@
 <div class="search-area">
 		<input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" placeholder="Enter a valid smart contract hash">
     <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">Explore</button>
+
+		<ng-select
+							[allowClear]="true"
+              [items]="items"
+              [disabled]="disabled"
+              (data)="refreshValue($event)"
+              (selected)="selected($event)"
+              (removed)="removed($event)"
+              (typed)="typed($event)"
+              placeholder="No contract selected">
+  	</ng-select>
 </div>
 <div class="select-area">
     <label for="select_company">or select a company from the list</label>
@@ -33,7 +44,7 @@
     <div class="no-graph" *ngIf="!displayGraph">
         Firstly enter a contract to explore, then select a method from the list to view.
     </div>
-</div> 
+</div>
 
 <div class="variables-area" *ngIf="displayMethods">
 	<h3 style="font-size: 120%">Select a method below:</h3>
