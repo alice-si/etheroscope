@@ -23,6 +23,10 @@ export class ContractService {
     return this.socket.fromEvent('getHistoryResponse');
   }
 
+  leaveMethod(contract: string, method: string) {
+    this.socket.emit('unsubcribe', [contract, method]);
+  }
+
   private extractData(res: Response) {
     console.log("Extracting... ");
     let body = res.json();
