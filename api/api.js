@@ -105,10 +105,15 @@ module.exports = function (app, db, io) {
       socket.join(address+method)
       sendHistory(address, method)
     })
+    socket.on('unsubscribe', ([address, method]) => {
+      socket.leave(address+method)
+    })
   })
 
   io.on('disconnect', function (socket) {
     console.log('User has disconnected')
+    x = {}
+    x.lengthof()
   })
 
   function sendHistory (address, method) {
