@@ -134,7 +134,8 @@ export class ExplorerComponent {
 
   generateDatapoints(method: string) {
     if (this.lastMethod !== null) {
-      this.contractService.leaveMethod(lastContract, lastMethod)
+      this.contractService.leaveMethod(this.lastContract, this.lastMethod);
+      console.log("leaving " + this.lastContract + this.lastMethod);
     }
     this.contractService.generateDatapoints(this.curContractID, method).subscribe(
       (datapoints: any) => {
