@@ -102,17 +102,21 @@ db.getContractName = function (contractHash, callback) {
  * values = ['0x0123456789', 'id', blockNumber, 'value']
  * and a callback function (err, result)
  */
-db.addDataPoints = function (values, from, to, callback) {
+db.addDataPoints = function (values, callback) {
   var request = new mssql.Request(pool)
   var valueString = buildValueString(values)
   var sql =
-    'begin transaction addDataPoints;' +
     'insert into DataPoints ' +
     '(contractHash, variableName, blockNumber, value) values ' +
-    valueString + ';' +
-    "update variables set cachedFrom='" + from + "' where contractHash='" + values[0][0] + "' and variableName='" + values[0][1] + "';" +
-    "update variables set cachedUpTo='" + to + "' where contractHash='" + values[0][0] + "' and variableName='" + values[0][1] + "';" +
-    'commit transaction addDataPoints;'
+    valueString + ';'
+  request.query(sql, callback)
+}
+
+db.updateFromTo = function (contractHash, method, from, to, callback) {
+  console.log("updating db?")
+  var request = new mssql.Request(pool)
+  var sql = "update variables set cachedFrom='" + from + "' where contractHash='" + contractHash + "' and variableName='" + method + "';" +
+  "update variables set cachedUpTo='" + to + "' where contractHash='" + contractHash + "' and variableName='" + method + "';"
   console.log('Sql inbound')
   console.log(sql)
   request.query(sql, callback)
