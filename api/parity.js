@@ -135,19 +135,19 @@ const Parity = {
     }
   },
 
-  getHistory: function (address, method, startBlock, endBlock) {
+  getHistory: function (address, method, startBlock, endBlock, totalFrom, totalTo) {
     let filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
     return new Promise((resolve, reject) => {
       filter.get((error, result) => {
         if (!error) {
           console.log('[I] Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
           console.log('From', startBlock, 'to', endBlock)
-          db.updateFromTo(address.substr(2), method, startBlock, endBlock, (err, res) => {
+          db.updateFromTo(address.substr(2), method, totalFrom, totalTo, (err, res) => {
             if (err) {
-              console.log('db update error: ', err) 
+              console.log('db update error: ', err)
               return reject(err)
             }
-            console.log("Updating cached address")
+            console.log('Updating cached address')
             return resolve(result)
           })
         } else {
