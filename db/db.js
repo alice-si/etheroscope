@@ -28,6 +28,7 @@ const pool = new mssql.ConnectionPool({
 })
 
 var db = {}
+const printErrs = false
 
 db.poolConnect = function () {
   return new Promise(function (resolve, reject) {
@@ -113,12 +114,9 @@ db.addDataPoints = function (values, callback) {
 }
 
 db.updateFromTo = function (contractHash, method, from, to, callback) {
-  console.log("updating db?")
   var request = new mssql.Request(pool)
   var sql = "update variables set cachedFrom='" + from + "' where contractHash='" + contractHash + "' and variableName='" + method + "';" +
   "update variables set cachedUpTo='" + to + "' where contractHash='" + contractHash + "' and variableName='" + method + "';"
-  console.log('Sql inbound')
-  console.log(sql)
   request.query(sql, callback)
 }
 
@@ -145,7 +143,7 @@ db.getDataPoints = function (contractHash, method) {
         return resolve(results.recordsets)
       })
       .catch((err) => {
-        console.log(err)
+        if(printErrs) console.log(err)
       })
   })
 }
@@ -204,19 +202,17 @@ db.getDataPointsInDateRange = function (contractHash, method, from, to) {
       "' and (DataPoints.blockNumber between '" + from + "' and '" + to + "')" +
       " and (DataPoints.variableName='" + method + "')"
 
-    console.log(sql)
     request.query(sql)
       .then((results) => {
         return resolve(results.recordsets)
       })
       .catch((err) => {
-        console.log(err)
+        if(printErrs) console.log(err)
       })
   })
 }
 
 db.updateCachedUpToBlock = function (contractHash, method, value) {
-  console.log('Thingys', contractHash, method, value)
   return new Promise(function (resolve, reject) {
     var request = new mssql.Request(pool)
     var sql = 'update variables ' +
@@ -225,7 +221,6 @@ db.updateCachedUpToBlock = function (contractHash, method, value) {
       "and variableName='" + method + "'"
     request.query(sql)
       .then((result) => {
-        console.log('Update cachedUpToblock result was:', result)
         return resolve()
       })
   })
