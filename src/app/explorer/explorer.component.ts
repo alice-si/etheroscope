@@ -4,8 +4,7 @@ import { ContractService } from "../_services/contract.service";
 
 @Component({
   styleUrls: ['./explorer.component.scss'],
-  templateUrl: './explorer.component.html',
-  //selector: 'explorer'
+  templateUrl: './explorer.component.html'
 })
 
 export class ExplorerComponent {
