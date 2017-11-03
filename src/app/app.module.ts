@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { ClarityModule } from 'clarity-angular';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
-import { SelectModule } from 'ng2-select';
+import { SelectModule } from 'ng2-select-compat';
 
 import { AppComponent } from './app.component';
 import { ROUTING } from "./app.routing";
@@ -29,6 +29,7 @@ const config: SocketIoConfig = { url: 'http://etheroscope.uksouth.cloudapp.azure
         BrowserAnimationsModule,
         BrowserModule,
         FormsModule,
+        SelectModule,
         HttpModule,
         ClarityModule,
         NgxChartsModule,
