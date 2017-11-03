@@ -133,11 +133,12 @@ export class ExplorerComponent {
   }
 
   generateDatapoints(method: string) {
-    if (this.lastMethod !== null) {
-      this.contractService.leaveMethod(this.lastContract, this.lastMethod);
-      console.log("leaving " + this.lastContract + this.lastMethod);
-    }
-    this.contractService.generateDatapoints(this.curContractID, method).subscribe(
+    //if (this.lastMethod !== null) {
+    //  this.contractService.leaveMethod(this.lastContract, this.lastMethod);
+    //  console.log("leaving " + this.lastContract + this.lastMethod);
+    //}
+    this.contractService.generateDatapoints(this.curContractID, method,
+      this.lastContract, this.lastMethod).subscribe(
       (datapoints: any) => {
         if (this.lastMethod !== null && this.lastMethod === method && datapoints !== this.datapoints) {
           console.log("updating?")
