@@ -24,7 +24,7 @@ export class ContractService {
   }
 
   leaveMethod(contract: string, method: string) {
-    this.socket.emit('unsubcribe', [contract, method]);
+    this.socket.emit('unsubscribe', [contract, method]);
   }
 
   private extractData(res: Response) {
