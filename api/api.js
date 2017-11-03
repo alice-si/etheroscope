@@ -49,7 +49,8 @@ module.exports = function (app, db, io) {
       })
   })
 
-  function sendDataPointsFromParity (socket, contractAddress, method, from, to) {
+  function sendDataPointsFromParity (socket, contractAddress, method, from, to,
+    totalFrom, totalTo) {
     console.log('Sending history from parity')
     // First we obtain the contract.
     let contract = null
@@ -63,7 +64,8 @@ module.exports = function (app, db, io) {
         })
         .then(function (events) {
           console.log('Obtained Transaction History')
-          return Parity.generateDataPoints(events, contract, method, from, to)
+          return Parity.generateDataPoints(events, contract, method, from, to,
+            totalFrom, totalTo)
         })
         .then(function (results) {
           console.log('generated data points successfully')
@@ -116,17 +118,21 @@ module.exports = function (app, db, io) {
     if (methodCachesInProgress.has(address + method)) {
       return
     }
+    methodCachesInProgress.add(address + method)
 
     db.getCachedFromTo(address.substring(2), method)
     .then((result) => {
       console.log('Result is:', result)
-      let latestBlock = Parity.getLatestBlock()
-      .then(() => {
-        if (result.cachedFrom === null || result.CachedUpTo === null) {
-          result.cachedFrom = latestBlock
-          result.cachedUpTo = latestBlock
+      Parity.getLatestBlock()
+      .then((latestBlock) => {
+        console.log('Result is', result)
+        let from = result.cachedFrom
+        let to = result.cachedUpTo
+        if (result.cachedFrom === null || result.cachedUpTo === null) {
+          from = latestBlock
+          to = latestBlock
         }
-        cacheMorePoints(socket, address, method, result.cachedFrom, result.cachedUpTo, latestBlock)
+        cacheMorePoints(socket, address, method, from, to, latestBlock)
       })
     })
     .catch((err) => {
@@ -139,16 +145,17 @@ module.exports = function (app, db, io) {
     const chunkSize = 1000
     if (to === latestBlock) {
       if (from === 1) {
+        methodCachesInProgress.delete(address + method)
         return
       }
       let newFrom = Math.max(from - chunkSize, 1)
-      sendDataPointsFromParity(socket, address, method, newFrom, from - 1)
+      sendDataPointsFromParity(socket, address, method, newFrom, from - 1, newFrom, to)
       .then(() => {
         cacheMorePoints(socket, address, method, newFrom, to, latestBlock)
       })
     } else {
       let newTo = Math.min(to + chunkSize, latestBlock)
-      sendDataPointsFromParity(socket, address, method, to + 1, newTo)
+      sendDataPointsFromParity(socket, address, method, to + 1, newTo, from, newTo)
       .then(() => {
         cacheMorePoints(socket, address, method, from, newTo, latestBlock)
       })

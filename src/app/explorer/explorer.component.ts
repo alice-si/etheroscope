@@ -52,14 +52,15 @@ export class ExplorerComponent {
   multi: any[];
 
   contractHash: any[] = [{"name": "Alice.si", "hash": "0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C"},
-                {"name": "The DAO", "hash": "0xbb9bc244d798123fde783fcc1c72d3bb8c189413"},
-                {"name": "DigixCrowdSale", "hash": "0xf0160428a8552ac9bb7e050d90eeade4ddd52843"}];
+    {"name": "The DAO", "hash": "0xbb9bc244d798123fde783fcc1c72d3bb8c189413"},
+    {"name": "DigixCrowdSale", "hash": "0xf0160428a8552ac9bb7e050d90eeade4ddd52843"}];
 
   curContractID: string;
   methods: string[];
   displayMethods: boolean;
   displayGraph: boolean;
-  datapoints: any;
+  datapoints: number[][];
+  curMethod: string;
 
   selectedCompany: any;
 
@@ -93,6 +94,8 @@ export class ExplorerComponent {
     this.displayGraph = false;
     this.methods = [];
     this.timesValues = [];
+    this.curMethod = null;
+    this.datapoints = [];
   }
 
   onSelect(event) {
@@ -117,21 +120,32 @@ export class ExplorerComponent {
 
   updateGraph() {
     this.timesValues = [];
-    this.datapoints.results.forEach((point, index) => {
-      let date = new Date(0);
-      date.setUTCSeconds(+point[0]);
-      this.timesValues.push({"name": date, "value": +point[1]});
-    });
-    this.displayGraph = true;
-    this.multi = [...[{ "name": "TODO: NAME", "series": this.timesValues}]];
+    if (this.datapoints !== null && this.datapoints !== undefined) {
+      this.datapoints.sort((a, b) => {
+        return a[0] - b[0]
+      })
+      this.datapoints.forEach((elem) => {
+        let date = new Date(0);
+        date.setUTCSeconds(+elem[0]);
+        this.timesValues.push({"name": date, "value": +elem[1]});
+      })
+      this.displayGraph = true;
+      this.multi = [...[{ "name": "TODO: NAME", "series": this.timesValues}]];
+    }
 
   }
 
   generateDatapoints(method: string) {
     this.contractService.generateDatapoints(this.curContractID, method).subscribe(
-      (datapoints) => {
-        this.datapoints = datapoints;
-        console.log(this.datapoints);
+      (datapoints: any) => {
+        if (this.curMethod !== null && this.curMethod === method && datapoints !== this.datapoints) {
+          if (datapoints.results.length !== 0) {
+            this.datapoints = this.datapoints.concat(datapoints.results);
+          }
+        } else {
+          this.curMethod = method
+          this.datapoints = datapoints.results
+        }
         this.updateGraph();
       },
       (error) => {
