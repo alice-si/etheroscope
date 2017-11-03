@@ -150,7 +150,8 @@ const Parity = {
     })
   },
 
-  generateDataPoints: function (eventsA, contract, method, from, to) {
+  generateDataPoints: function (eventsA, contract, method, from, to,
+    totalFrom, totalTo) {
     let prevTime = 0
     return new Promise((resolve, reject) => {
       console.log('Generating data points')
@@ -163,7 +164,8 @@ const Parity = {
           return Promise.filter(events, ([time, val, blockNum]) => {
             if (time !== prevTime) {
               prevTime = time
-              db.addDataPoints([[contract.address.substr(2), method, blockNum, val]], from, to,
+              db.addDataPoints([[contract.address.substr(2), method, blockNum, val]],
+                totalFrom, totalTo,
                 (err, res) => {
                   if (err) console.log('Error adding datapoint to db:\n' + err)
                 })
