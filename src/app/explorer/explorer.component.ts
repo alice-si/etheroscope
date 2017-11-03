@@ -8,16 +8,9 @@ import { ContractService } from "../_services/contract.service";
 })
 
 export class ExplorerComponent {
-  public items:Array<string> = ['Amsterdam', 'Antwerp', 'Athens', 'Barcelona',
-    'Berlin', 'Birmingham', 'Bradford', 'Bremen', 'Brussels', 'Bucharest',
-    'Budapest', 'Cologne', 'Copenhagen', 'Dortmund', 'Dresden', 'Dublin',
-    'Düsseldorf', 'Essen', 'Frankfurt', 'Genoa', 'Glasgow', 'Gothenburg',
-    'Hamburg', 'Hannover', 'Helsinki', 'Kraków', 'Leeds', 'Leipzig', 'Lisbon',
-    'London', 'Madrid', 'Manchester', 'Marseille', 'Milan', 'Munich', 'Málaga',
-    'Naples', 'Palermo', 'Paris', 'Poznań', 'Prague', 'Riga', 'Rome',
-    'Rotterdam', 'Seville', 'Sheffield', 'Sofia', 'Stockholm', 'Stuttgart',
-    'The Hague', 'Turin', 'Valencia', 'Vienna', 'Vilnius', 'Warsaw', 'Wrocław',
-    'Zagreb', 'Zaragoza', 'Łódź'];
+  public items:Array<string> = ["Alice.si", "0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C",
+  "The DAO", "0xbb9bc244d798123fde783fcc1c72d3bb8c189413",
+  "DigixCrowdSale", "0xf0160428a8552ac9bb7e050d90eeade4ddd52843"];
 
   private value:any = {};
   private _disabledV:string = '0';
