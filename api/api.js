@@ -60,7 +60,7 @@ module.exports = function (app, db, io) {
         .then(function (parsedContract) {
           contract = parsedContract
           console.log('Parsed Contract')
-          return Parity.getHistory(contractAddress, method, from, to)
+          return Parity.getHistory(contractAddress, method, from, to, totalFrom, totalTo)
         })
         .then(function (events) {
           console.log('Obtained Transaction History')
