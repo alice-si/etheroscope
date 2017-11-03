@@ -134,6 +134,7 @@ export class ExplorerComponent {
     this.contractService.generateDatapoints(this.curContractID, method).subscribe(
       (datapoints: any) => {
         if (this.curMethod !== null && this.curMethod === method && datapoints !== this.datapoints) {
+          console.log("updating?")
           if (datapoints.results.length !== 0) {
             this.datapoints = this.datapoints.concat(datapoints.results);
           }
