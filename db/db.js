@@ -29,27 +29,29 @@ const pool = new mssql.ConnectionPool({
 
 var db = {}
 
+function loadSchema () {
+  var fs = require('fs')
+  fs.readFile(path.join(__dirname, '/dbschema.ddl'), function (err, data) {
+    if (err) {
+      console.log('db.js: Error loading database file')
+    }
+    var request = new mssql.Request(pool)
+    request.query(data.toString(), (err, result) => {
+      if (err) {
+        console.log('db.js: Error creating tables - perhaps they already exist')
+      }
+    })
+  })
+}
+
 db.poolConnect = function () {
   return new Promise(function (resolve, reject) {
     pool.connect(err => {
       if (err) {
-        console.log('Error connecting to database pool:')
-        console.log(err)
+        console.log('db.js: Error connecting to pool:', err)
       } else {
-        console.log('Successfully connected to pool')
-        var fs = require('fs')
-        fs.readFile(path.join(__dirname, '/dbschema.ddl'), function (err, data) {
-          if (err) {
-            throw err
-          }
-          var request = new mssql.Request(pool)
-          request.query(data.toString(), (err, result) => {
-            if (err) {
-              console.log('Error creating tables - perhaps they already exist')
-            }
-            resolve()
-          })
-        })
+        console.log('db.js: Successfully connected to pool')
+        return resolve()
       }
     })
   })
@@ -82,52 +84,89 @@ function buildValueString (valuesArray) {
 /* This function takes in an array of arrays of the form:
  * values = ['0x0123456789', 'name'], and returns a promise
  */
-db.addContracts = function (values, callback) {
-  var request = new mssql.Request(pool)
-  var valueString = buildValueString(values)
-  var sql = 'insert into Contracts (contractHash, name) values ' + valueString
-  request.query(sql, callback)
+db.addContracts = function (values) {
+  return new Promise(function (resolve, reject) {
+    var request = new mssql.Request(pool)
+    var valueString = buildValueString(values)
+    var sql = 'insert into Contracts (contractHash, name) values ' + valueString
+    request.query(sql)
+    .then(() => {
+      return resolve()
+    })
+    .catch((err) => {
+      console.log('db.js: Error adding contracts:', err)
+    })
+  })
 }
 
 /* This function takes in a contract hash
  * and returns a promise
  */
-db.getContractName = function (contractHash, callback) {
-  var request = new mssql.Request(pool)
-  var sql = "select * from Contracts where contractHash='" + contractHash + "'"
-  request.query(sql, callback)
+db.getContractName = function (contractHash) {
+  return new Promise(function (resolve, reject) {
+    var request = new mssql.Request(pool)
+    var sql = "select * from Contracts where contractHash='" + contractHash + "'"
+    request.query(sql)
+    .then((result) => {
+      return resolve()
+    })
+    .catch((err) => {
+      console.log('db.js: Error getting contract name:', err)
+    })
+  })
 }
 
 /* This function takes in an array of arrays of the form:
  * values = ['0x0123456789', 'id', blockNumber, 'value']
  * and a callback function (err, result)
  */
-db.addDataPoints = function (values, callback) {
-  var request = new mssql.Request(pool)
-  var valueString = buildValueString(values)
-  var sql =
-    'insert into DataPoints ' +
-    '(contractHash, variableName, blockNumber, value) values ' +
-    valueString + ';'
-  request.query(sql, callback)
+db.addDataPoints = function (values) {
+  return new Promise(function (resolve, reject) {
+    var request = new mssql.Request(pool)
+    var valueString = buildValueString(values)
+    var sql =
+      'insert into DataPoints ' +
+      '(contractHash, variableName, blockNumber, value) values ' +
+      valueString + ';'
+    request.query(sql)
+    .then(() => {
+      return resolve()
+    })
+    .catch((err) => {
+      console.log('db.js: Error adding data points:', err)
+    })
+  })
 }
 
-db.updateFromTo = function (contractHash, method, from, to, callback) {
-  console.log("updating db?")
-  var request = new mssql.Request(pool)
-  var sql = "update variables set cachedFrom='" + from + "' where contractHash='" + contractHash + "' and variableName='" + method + "';" +
-  "update variables set cachedUpTo='" + to + "' where contractHash='" + contractHash + "' and variableName='" + method + "';"
-  console.log('Sql inbound')
-  console.log(sql)
-  request.query(sql, callback)
+db.updateFromTo = function (contractHash, method, from, to) {
+  return new Promise(function (resolve, reject) {
+    var request = new mssql.Request(pool)
+    var sql = "update variables set cachedFrom='" + from + "' where contractHash='" + contractHash + "' and variableName='" + method + "';" +
+    "update variables set cachedUpTo='" + to + "' where contractHash='" + contractHash + "' and variableName='" + method + "';"
+    request.query(sql)
+    .then(() => {
+      return resolve()
+    })
+    .catch((err) => {
+      console.log('db.js: Error updating from and to:', err)
+    })
+  })
 }
 
 /* This function takes a variable */
-db.addVariable = function (values, callback) {
-  var request = new mssql.Request(pool)
-  var valueString = buildValueString(values)
-  var sql = 'insert into Variables (contractHash, variableName) values ' + valueString
-  request.query(sql, callback)
+db.addVariable = function (values) {
+  return new Promise(function (resolve, reject) {
+    var request = new mssql.Request(pool)
+    var valueString = buildValueString(values)
+    var sql = 'insert into Variables (contractHash, variableName) values ' + valueString
+    request.query(sql)
+    .then(() => {
+      return resolve()
+    })
+    .catch((err) => {
+      console.log('db.js: Error adding variable to db:', err)
+    })
+  })
 }
 
 /* This function returns *all* the variables in a given date range
@@ -141,12 +180,12 @@ db.getDataPoints = function (contractHash, method) {
       "where DataPoints.contractHash='" + contractHash +
       "' and (DataPoints.variableName='" + method + "')"
     request.query(sql)
-      .then((results) => {
-        return resolve(results.recordsets)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
+    .then((results) => {
+      return resolve(results.recordsets)
+    })
+    .catch((err) => {
+      console.log('db.js: Error getting data points', err)
+    })
   })
 }
 
@@ -155,9 +194,12 @@ db.getVariables = function (contractHash) {
     var request = new mssql.Request(pool)
     var sql = "select variableName from variables where contractHash='" + contractHash + "'"
     request.query(sql)
-      .then((results) => {
-        return resolve(results)
-      })
+    .then((results) => {
+      return resolve(results)
+    })
+    .catch((err) => {
+      console.log('db.js: Error variables', err)
+    })
   })
 }
 
@@ -166,31 +208,29 @@ db.getBlockTime = function (blockNumber) {
     var request = new mssql.Request(pool)
     var sql = "select * from Blocks where blockNumber='" + blockNumber + "'"
     request.query(sql)
-      .then((results) => {
-        return resolve(results)
-      })
+    .then((results) => {
+      return resolve(results)
+    })
+    .catch((err) => {
+      console.log('db.js: Error getting block time', err)
+    })
   })
 }
-db.addBlockTime = function (values, callback) {
-  var request = new mssql.Request(pool)
-  var valueString = buildValueString(values)
-  var sql = 'insert into Blocks (blockNumber, timeStamp, userLog) values ' + valueString
-  request.query(sql, callback)
-}
 
-// db.addBlockTime = function (values, callback) {
-//   return new Promise(function (resolve, reject) {
-//     var request = new mssql.Request(pool)
-//     var valueString = buildValueString(values)
-//     var sql = 'insert into Blocks (blockNumber, timeStamp, userLog) values ' + valueString
-//     request.query(sql, (err, result) => {
-//       if (err) {
-//         reject(err)
-//       }
-//       resolve(result)
-//     })
-//   })
-// }
+db.addBlockTime = function (values, callback) {
+  return new Promise(function (resolve, reject) {
+    var request = new mssql.Request(pool)
+    var valueString = buildValueString(values)
+    var sql = 'insert into Blocks (blockNumber, timeStamp, userLog) values ' + valueString
+    request.query(sql)
+    .then((results) => {
+      return resolve(results)
+    })
+    .catch((err) => {
+      console.log('db.js: Error adding block time', err)
+    })
+  })
+}
 
 /* This function returns *all* the variables in a given date range
  * for a given contract hash
@@ -204,30 +244,13 @@ db.getDataPointsInDateRange = function (contractHash, method, from, to) {
       "' and (DataPoints.blockNumber between '" + from + "' and '" + to + "')" +
       " and (DataPoints.variableName='" + method + "')"
 
-    console.log(sql)
     request.query(sql)
-      .then((results) => {
-        return resolve(results.recordsets)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-  })
-}
-
-db.updateCachedUpToBlock = function (contractHash, method, value) {
-  console.log('Thingys', contractHash, method, value)
-  return new Promise(function (resolve, reject) {
-    var request = new mssql.Request(pool)
-    var sql = 'update variables ' +
-      "set cachedUpTo='" + value + "' " +
-      "where contractHash='" + contractHash + "' " +
-      "and variableName='" + method + "'"
-    request.query(sql)
-      .then((result) => {
-        console.log('Update cachedUpToblock result was:', result)
-        return resolve()
-      })
+    .then((results) => {
+      return resolve(results.recordsets)
+    })
+    .catch((err) => {
+      console.log('db.js: Error getting data points in range', err)
+    })
   })
 }
 
@@ -238,19 +261,30 @@ db.getCachedFromTo = function (contractHash, method) {
       "where contractHash='" + contractHash + "' " +
       "and variableName='" + method + "'"
     request.query(sql)
-      .then((results) => {
-        return resolve({
-          cachedFrom: results.recordset[0].cachedFrom,
-          cachedUpTo: results.recordset[0].cachedUpTo
-        })
+    .then((results) => {
+      return resolve({
+        cachedFrom: results.recordset[0].cachedFrom,
+        cachedUpTo: results.recordset[0].cachedUpTo
       })
+    })
+    .catch((err) => {
+      console.log('db.js: Error getting cached from and to', err)
+    })
   })
 }
 
 db.getLatestCachedBlockTime = function (callback) {
-  var request = new mssql.Request(pool)
-  var sql = 'select MAX(blockNumber) from blocks where userLog=0'
-  request.query(sql, callback)
+  return new Promise(function (resolve, reject) {
+    var request = new mssql.Request(pool)
+    var sql = 'select max(blockNumber) from blocks where userLog=0'
+    request.query(sql)
+    .then((result) => {
+      resolve(result.recordset[0][''])
+    })
+    .catch((err) => {
+      console.log('db.js: Error getting latest cached block time', err)
+    })
+  })
 }
 
 module.exports = db
