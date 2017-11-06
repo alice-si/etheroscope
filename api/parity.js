@@ -17,15 +17,12 @@ const Parity = {
 
   getContract: function (address) {
     return new Promise((resolve, reject) => {
-      db.getContractName(address.substr(2), (err, res) => {
-        if (err) console.log('Error getting contract name from the db:\n' + err)
+      db.getContractName(address.substr(2))
+      .then((result) => {
+        if (err) console.log('parity.js: Error getting contract name from the db:\n' + err)
         // Caching new contract
-        if (res.rowsAffected[0] === 0) {
-          console.log('Caching new contract: ' + address)
-          console.log(res)
-          db.addContracts([[address.substr(2), null]], (err, res) => {
-            if (err) console.log('Error adding contract name to the db')
-          })
+        if (result.rowsAffected[0] === 0) {
+          db.addContracts([[address.substr(2), null]])
         }
         // TODO: Queuing System for Etherscan API
         const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
@@ -39,7 +36,7 @@ const Parity = {
             return resolve(parsedContract)
           })
           .catch((err) => {
-            console.log('Etherscan.io API error: ' + err)
+            console.log('parity.js: Etherscan.io API error: ' + err)
             return reject(err)
           })
       })
@@ -58,7 +55,7 @@ const Parity = {
       let address = parsedContract.address
       db.getVariables(address).then((res) => {
         if (res.recordset.length === 0) {
-          console.log('Caching variables for contract: ')
+          console.log('parity.js: Caching variables for contract: ')
           var abi = parsedContract.abi
           let variableNames = []
           return Promise.each(abi, (item) => {
@@ -68,16 +65,14 @@ const Parity = {
               variableNames.push(item.name)
             }
           })
-            .then((results) => {
-              return Promise.each(variableNames, (variableName) => {
-                db.addVariable([[address.substr(2), variableName]], (err, res) => {
-                  if (err) console.log('Error with caching variables: ' + err)
-                })
-              })
+          .then((results) => {
+            return Promise.each(variableNames, (variableName) => {
+              db.addVariable([[address.substring(2), variableName]])
             })
-            .then((results) => {
-              return resolve(variableNames)
-            })
+          })
+          .then((results) => {
+            return resolve(variableNames)
+          })
         }
         return resolve(res)
       })
@@ -112,7 +107,7 @@ const Parity = {
           return this.calculateBlockTime(blockNumber).then((time) => {
             db.addBlockTime([[blockNumber, time, 1]], function (err, res) {
               if (err) {
-                console.log('Error adding the time of a block to the db:\n' + err)
+                console.log('parity.js: Error adding the time of a block to the db:\n' + err)
               }
             })
             return resolve(time)
@@ -140,14 +135,11 @@ const Parity = {
     return new Promise((resolve, reject) => {
       filter.get((error, result) => {
         if (!error) {
-          console.log('[I] Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
-          console.log('From', startBlock, 'to', endBlock)
-          db.updateFromTo(address.substr(2), method, totalFrom, totalTo, (err, res) => {
-            if (err) {
-              console.log('db update error: ', err)
-              return reject(err)
-            }
-            console.log('Updating cached address')
+          console.log('parity.js: [I] Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
+          console.log('parity.js: From', startBlock, 'to', endBlock)
+          db.updateFromTo(address.substr(2), method, totalFrom, totalTo)
+          .then(() => {
+            console.log('parity.js: Updating cached address')
             return resolve(result)
           })
         } else {
@@ -161,35 +153,31 @@ const Parity = {
     totalFrom, totalTo) {
     let prevTime = 0
     return new Promise((resolve, reject) => {
-      console.log('Generating data points')
+      console.log('parity.js: Generating data points')
       Promise.map(eventsA, (event) => {
         // [(t,v,b)]
         return Promise.all([Parity.getBlockTime(event.blockNumber.valueOf()),
           Parity.queryAtBlock(contract[method], event.blockNumber.valueOf()), event.blockNumber.valueOf()])
       })
-        .then((events) => {
-          return Promise.filter(events, ([time, val, blockNum]) => {
-            if (time !== prevTime) {
-              prevTime = time
-              db.addDataPoints([[contract.address.substr(2), method, blockNum, val]],
-                (err, res) => {
-                  if (err) console.log('Error adding datapoint to db:\n' + err)
-                })
-              return true
-            } else {
-              return false
-            }
-          })
+      .then((events) => {
+        return Promise.filter(events, ([time, val, blockNum]) => {
+          let updates = time !== prevTime
+          if (updates) {
+            prevTime = time
+            db.addDataPoints([[contract.address.substr(2), method, blockNum, val]])
+          }
+          return updates
         })
-        .then((events) => {
-          resolve(events.sort((a, b) => {
-            return a[0] - b[0]
-          }))
-        })
-        .catch((err) => {
-          console.log('Data set generation error: ' + err)
-          return reject(err)
-        })
+      })
+      .then((events) => {
+        resolve(events.sort((a, b) => {
+          return a[0] - b[0]
+        }))
+      })
+      .catch((err) => {
+        console.log('parity.js: Data set generation error: ' + err)
+        return reject(err)
+      })
     })
   }
 }
