@@ -55,7 +55,8 @@ export class ExplorerComponent {
   displayMethods: boolean;
   displayGraph: boolean;
   datapoints: number[][];
-  curMethod: string;
+  lastMethod: string;
+  lastContract: string;
 
   selectedCompany: any;
 
@@ -89,7 +90,8 @@ export class ExplorerComponent {
     this.displayGraph = false;
     this.methods = [];
     this.timesValues = [];
-    this.curMethod = null;
+    this.lastMethod = null;
+    this.lastContract = null;
     this.datapoints = [];
   }
 
@@ -131,15 +133,20 @@ export class ExplorerComponent {
   }
 
   generateDatapoints(method: string) {
-    this.contractService.generateDatapoints(this.curContractID, method).subscribe(
+    //if (this.lastMethod !== null) {
+    //  this.contractService.leaveMethod(this.lastContract, this.lastMethod);
+    //  console.log("leaving " + this.lastContract + this.lastMethod);
+    //}
+    this.contractService.generateDatapoints(this.curContractID, method,
+      this.lastContract, this.lastMethod).subscribe(
       (datapoints: any) => {
-        if (this.curMethod !== null && this.curMethod === method && datapoints !== this.datapoints) {
+        if (this.lastMethod !== null && this.lastMethod === method && datapoints !== this.datapoints) {
           console.log("updating?")
           if (datapoints.results.length !== 0) {
             this.datapoints = this.datapoints.concat(datapoints.results);
           }
         } else {
-          this.curMethod = method
+          this.lastMethod = method
           this.datapoints = datapoints.results
         }
         this.updateGraph();
@@ -152,6 +159,7 @@ export class ExplorerComponent {
         this.updateGraph();
       }
     );
+    this.lastContract = this.curContractID;
   }
 
   exploreCompany() {
