@@ -142,6 +142,10 @@ const Parity = {
             console.log('parity.js: Updating cached address')
             return resolve(result)
           })
+          .catch((err) => {
+            console.log('parity.js: Error updating cached address')
+            return reject(err)
+          })
         } else {
           return reject(error)
         }

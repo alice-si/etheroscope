@@ -28,6 +28,7 @@ const pool = new mssql.ConnectionPool({
 })
 
 var db = {}
+const printErrs = false
 
 function loadSchema () {
   var fs = require('fs')
