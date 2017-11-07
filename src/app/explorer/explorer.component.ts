@@ -134,8 +134,8 @@ export class ExplorerComponent {
 
   generateDatapoints(method: string) {
     this.contractService.leaveMethod(this.lastContract, this.lastMethod).subscribe(
-      (error: any) => {
-        if (error !== null) {
+      (unSubError: any) => {
+        if (unSubError !== null) {
           console.log("Error unsubscribing from last method...")
         }
         this.lastContract = this.curContractID;
