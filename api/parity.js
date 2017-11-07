@@ -1,12 +1,11 @@
 const axios = require('axios')
 const Web3 = require('web3')
 var Promise = require('bluebird')
-const db = require('../db/db')
 
 const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
-module.exports = function (log) {
+module.exports = function (db, log) {
   const parity = {}
 
   parity.getLatestBlock = function () {
@@ -60,10 +59,10 @@ module.exports = function (log) {
 
   parity.getContractVariables = function (parsedContract) {
     return new Promise((resolve, reject) => {
-      let address = parsedContract.address
+      let address = parsedContract.address.substr(2)
       db.getVariables(address).then((res) => {
         if (res.recordset.length === 0) {
-          log.trace('Caching variables for contract')
+          log.debug('Caching variables for contract')
           var abi = parsedContract.abi
           let variableNames = []
           return Promise.each(abi, (item) => {
@@ -75,7 +74,7 @@ module.exports = function (log) {
           })
             .then((results) => {
               return Promise.each(variableNames, (variableName) => {
-                db.addVariable([[address.substr(2), variableName]], (err, res) => {
+                db.addVariable([[address, variableName]], (err, res) => {
                   if (err) log.error('Error with caching variables: ' + err)
                 })
               })
@@ -83,8 +82,14 @@ module.exports = function (log) {
             .then((results) => {
               return resolve(variableNames)
             })
+        } else {
+          let variableNames = []
+          Promise.map(res.recordset, (elem) => {
+            variableNames.push(elem.variableName)
+          }).then(() => {
+            return resolve(variableNames)
+          })
         }
-        return resolve(res)
       })
     })
   }
@@ -152,7 +157,7 @@ module.exports = function (log) {
               log.error('db update error: ', err)
               return reject(err)
             }
-            log.trace('Updating cached address')
+            log.debug('Updating cached address')
             return resolve(result)
           })
         } else {
@@ -166,7 +171,7 @@ module.exports = function (log) {
     totalFrom, totalTo) {
     let prevTime = 0
     return new Promise((resolve, reject) => {
-      log.trace('Generating data points')
+      log.debug('Generating data points')
       Promise.map(eventsA, (event) => {
         // [(t,v,b)]
         return Promise.all([parity.getBlockTime(event.blockNumber.valueOf()),
