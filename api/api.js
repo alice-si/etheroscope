@@ -1,9 +1,8 @@
-var Parity = require('./parity')
-let Promise = require('bluebird')
+module.exports = function (app, db, io, log) {
+  var Parity = require('./parity')(log)
+  let Promise = require('bluebird')
+  var methodCachesInProgress = new Set()
 
-var methodCachesInProgress = new Set()
-
-module.exports = function (app, db, io) {
   app.get('/api/explore/:contractAddress', (req, res) => {
     return Parity.getContract(req.params.contractAddress)
       .then((contract) => {
