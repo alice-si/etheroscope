@@ -21,7 +21,7 @@ const pool = new mssql.ConnectionPool({
     encrypt: true
   },
   pool: {
-    max: 10,
+    max: 100,
     min: 0,
     idleTimeoutMillis: 30000
   }
