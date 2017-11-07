@@ -53,7 +53,7 @@ const Parity = {
 
   getContractVariables: function (parsedContract) {
     return new Promise((resolve, reject) => {
-      let address = parsedContract.address
+      let address = parsedContract.address.substr(2)
       db.getVariables(address).then((res) => {
         if (res.recordset.length === 0) {
           var abi = parsedContract.abi
@@ -67,16 +67,22 @@ const Parity = {
           })
             .then((results) => {
               return Promise.each(variableNames, (variableName) => {
-                db.addVariable([[address.substr(2), variableName]], (err, res) => {
-                  if (err) console.log('Error with caching variables: ')
+                db.addVariable([[address, variableName]], (err, res) => {
+                  if (err) console.log('Error with caching variables: ', err)
                 })
               })
             })
             .then((results) => {
               return resolve(variableNames)
             })
+        } else {
+          let variableNames = []
+          Promise.map(res.recordset, (elem) => {
+            variableNames.push(elem.variableName)
+          }).then(() => {
+            return resolve(variableNames)
+          })
         }
-        return resolve(res)
       })
     })
   },

@@ -18,33 +18,6 @@ module.exports = function (app, db, io) {
       })
   })
 
-  app.get('/api/getHistory/:contractAddress/:method', (req, res) => {
-    const contractAddress = req.params.contractAddress
-    const method = req.params.method
-    let contract = null
-    res.setTimeout(300000, () => {
-      // TODO: Solve this computational problem
-      console.log('Response timeout.')
-    })
-    // First we obtain the contract.
-    return Parity.getContract(contractAddress)
-    // Then, we get the history of transactions
-      .then((parsedContract) => {
-        contract = parsedContract
-        return Parity.getHistory(contractAddress, 1240000, 1245000)
-      })
-      .then((events) => {
-        return Parity.generateDataPoints(events, contract, method)
-      })
-      .then((results) => {
-        res.status(200).json(results)
-      })
-      .catch((err) => {
-        console.log(err)
-        return res.status(400).json(err.message)
-      })
-  })
-
   function sendDataPointsFromParity (contractAddress, method, from, to,
     totalFrom, totalTo) {
     // First we obtain the contract.
@@ -93,12 +66,14 @@ module.exports = function (app, db, io) {
 
   io.on('connection', function (socket) {
     socket.on('getHistory', ([address, method]) => {
-      socket.join(address+method)
+      let room = address + method
+      socket.join(room)
+      console.log('Joined room:', room)
       sendHistory(address, method)
     })
     socket.on('unsubscribe', ([address, method]) => {
       if (address !== null && method !== null) {
-        console.log('Unsubbing...')
+        console.log('Unsubbing')
         socket.leave(address+method, (err) => {
           console.log('unsubbed!!')
           socket.emit('unsubscribed', { error: err })
