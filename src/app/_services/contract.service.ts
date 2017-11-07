@@ -17,16 +17,17 @@ export class ContractService {
     return this.http.get(this.apiUrl + 'api/explore/' + contract).map(this.extractData);
   }
 
-  generateDatapoints(contract: string, method: string, lastContract: string,
-    lastMethod: string) {
+  generateDatapoints(contract: string, method: string) {
     console.log("Retrieving History...");
-    this.socket.emit('getHistory', [contract, method, lastContract, lastMethod]);
+    this.socket.emit('getHistory', [contract, method]);
     return this.socket.fromEvent('getHistoryResponse');
   }
 
-  //leaveMethod(contract: string, method: string) {
-  //  this.socket.emit('unsubscribe', [contract, method]);
-  //}
+  leaveMethod(contract: string, method: string) {
+    console.log("Unsubscribing from method " + method + "...");
+    this.socket.emit('unsubscribe', [contract, method]);
+    return this.socket.fromEvent('unsubscribed');
+  }
 
   private extractData(res: Response) {
     console.log("Extracting... ");

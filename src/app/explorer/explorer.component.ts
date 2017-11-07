@@ -133,33 +133,33 @@ export class ExplorerComponent {
   }
 
   generateDatapoints(method: string) {
-    //if (this.lastMethod !== null) {
-    //  this.contractService.leaveMethod(this.lastContract, this.lastMethod);
-    //  console.log("leaving " + this.lastContract + this.lastMethod);
-    //}
-    this.contractService.generateDatapoints(this.curContractID, method,
-      this.lastContract, this.lastMethod).subscribe(
-      (datapoints: any) => {
-        if (this.lastMethod !== null && this.lastMethod === method && datapoints !== this.datapoints) {
-          console.log("updating?")
-          if (datapoints.results.length !== 0) {
-            this.datapoints = this.datapoints.concat(datapoints.results);
+    this.contractService.leaveMethod(this.lastContract, this.lastMethod).subscribe(
+      (error: any) => {
+        //TODO handle error from backend
+        this.lastContract = this.curContractID;
+        this.contractService.generateDatapoints(this.curContractID, method).subscribe(
+          (datapoints: any) => {
+            if (this.lastMethod !== null && this.lastMethod === method && datapoints !== this.datapoints) {
+              console.log("updating?")
+              if (datapoints.results.length !== 0) {
+                this.datapoints = this.datapoints.concat(datapoints.results);
+              }
+            } else {
+              this.lastMethod = method
+              this.datapoints = datapoints.results
+            }
+            this.updateGraph();
+          },
+          (error) => {
+            console.log(error);
+          },
+          () => {
+            console.log("completed data point generation");
+            this.updateGraph();
           }
-        } else {
-          this.lastMethod = method
-          this.datapoints = datapoints.results
-        }
-        this.updateGraph();
-      },
-      (error) => {
-        console.log(error);
-      },
-      () => {
-        console.log("completed data point generation");
-        this.updateGraph();
+        );
       }
     );
-    this.lastContract = this.curContractID;
   }
 
   exploreCompany() {
