@@ -92,27 +92,24 @@ module.exports = function (app, db, io) {
   }
 
   io.on('connection', function (socket) {
-    socket.on('getHistory', ([address, method, prevAddress, prevMethod]) => {
-      console.log("sub " + address+method)
-      if (prevAddress !== null) {
-        socket.leave(prevAddress+prevMethod, (err) => {
-          socket.join(address+method)
-          sendHistory(address, method)
+    socket.on('getHistory', ([address, method]) => {
+      socket.join(address+method)
+      sendHistory(address, method)
+    })
+    socket.on('unsubscribe', ([address, method]) => {
+      if (address !== null && method !== null) {
+        console.log('Unsubbing...')
+        socket.leave(address+method, (err) => {
+          console.log('unsubbed!!')
+          socket.emit('unsubscribed', { error: err })
         })
       } else {
-        socket.join(address+method)
-        sendHistory(address, method)
+        socket.emit('unsubscribed', { error: null })
       }
     })
-    //socket.on('unsubscribe', ([address, method]) => {
-    //  console.log("unsub " + address+method)
-    //  socket.leave(address+method)
-    //})
   })
 
   io.on('disconnect', function (socket) {
-    x = {}
-    x.lengthof()
   })
 
   function sendHistory (address, method) {
