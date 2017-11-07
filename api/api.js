@@ -1,19 +1,19 @@
-var Parity = require('./parity')
-let Promise = require('bluebird')
+module.exports = function (app, db, io, log) {
+  var parity = require('./parity')(log)
+  let Promise = require('bluebird')
+  var methodCachesInProgress = new Set()
 
-var methodCachesInProgress = new Set()
-
-module.exports = function (app, db, io) {
   app.get('/api/explore/:contractAddress', (req, res) => {
-    return Parity.getContract(req.params.contractAddress)
+    return parity.getContract(req.params.contractAddress)
       .then((contract) => {
-        return Parity.getContractVariables(contract)
+        return parity.getContractVariables(contract)
       })
       .then((variables) => {
+        log.debug('vars: ' + JSON.stringify(variables))
         return res.status(200).json(variables)
       })
       .catch((err) => {
-        console.log(err)
+        log.error(err)
         return res.status(400).json(err.message)
       })
   })
@@ -24,50 +24,53 @@ module.exports = function (app, db, io) {
     let contract = null
     res.setTimeout(300000, () => {
       // TODO: Solve this computational problem
-      console.log('Response timeout.')
+      log.warn('Response timeout.')
     })
     // First we obtain the contract.
-    return Parity.getContract(contractAddress)
+    return parity.getContract(contractAddress)
     // Then, we get the history of transactions
       .then((parsedContract) => {
         contract = parsedContract
-        return Parity.getHistory(contractAddress, 1240000, 1245000)
+        log.trace('Parsed Contract')
+        return parity.getHistory(contractAddress, 1240000, 1245000)
       })
       .then((events) => {
-        return Parity.generateDataPoints(events, contract, method)
+        log.trace('Obtained Transaction History')
+        return parity.generateDataPoints(events, contract, method)
       })
       .then((results) => {
+        log.trace('Generated data points: ' + results)
         res.status(200).json(results)
       })
       .catch((err) => {
-        console.log(err)
+        log.error('Error getting contract from parity.js' + err)
         return res.status(400).json(err.message)
       })
   })
 
   function sendDataPointsFromParity (contractAddress, method, from, to,
     totalFrom, totalTo) {
+    log.trace('Sending history from parity')
     // First we obtain the contract.
     let contract = null
     return new Promise((resolve, reject) => {
-      Parity.getContract(contractAddress)
+      parity.getContract(contractAddress)
         // Then, we get the history of transactions
         .then(function (parsedContract) {
           contract = parsedContract
-          return Parity.getHistory(contractAddress, method, from, to, totalFrom, totalTo)
+          return parity.getHistory(contractAddress, method, from, to, totalFrom, totalTo)
         })
         .then(function (events) {
-          return Parity.generateDataPoints(events, contract, method, from, to,
+          return parity.generateDataPoints(events, contract, method, from, to,
             totalFrom, totalTo)
         })
         .then(function (results) {
-          io.sockets.in(contractAddress+method).emit('getHistoryResponse', { error: false, contract: contractAddress, method: method, from: from, to: to, results: results })
+          io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: false, contract: contractAddress, method: method, from: from, to: to, results: results })
           return resolve()
         })
         .catch(function (err) {
-          console.log('Error in parity sending')
-          console.log(err)
-          io.sockets.in(contractAddress+method).emit('getHistoryResponse', { error: true })
+          log.error('Error in parity sending' + err)
+          io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: true })
           return reject(err)
         })
     })
@@ -75,44 +78,46 @@ module.exports = function (app, db, io) {
 
   function sendAllDataPointsFromDB (address, method) {
     db.getDataPoints(address.substr(2), method)
-      .then((dataPoints) => {
-        return Promise.map(dataPoints[0], (elem) => {
-          return [elem.timeStamp, elem.value]
-        })
+    .then((dataPoints) => {
+      return Promise.map(dataPoints[0], (elem) => {
+        return [elem.timeStamp, elem.value]
       })
-      .then((dataPoints) => {
-        console.dir(dataPoints)
-        io.sockets.in(address+method).emit('getHistoryResponse', { error: false, contract: address, method: method, results: dataPoints })
-      })
-      .catch(function (err) {
-        //console.log('Error sending datapoints from DD')
-        //console.log(err)
-        io.sockets.in(address+method).emit('getHistoryResponse', { error: true })
-      })
+    })
+    .then((dataPoints) => {
+      console.dir(dataPoints)
+      io.sockets.in(address + method).emit('getHistoryResponse', { error: false, contract: address, method: method, results: dataPoints })
+    })
+    .catch(function (err) {
+      log.error('Error sending datapoints from DD')
+      log.error(err)
+      io.sockets.in(address + method).emit('getHistoryResponse', { error: true })
+    })
   }
 
   io.on('connection', function (socket) {
     socket.on('getHistory', ([address, method, prevAddress, prevMethod]) => {
-      console.log("sub " + address+method)
+      console.log('sub ' + address + method)
       if (prevAddress !== null) {
-        socket.leave(prevAddress+prevMethod, (err) => {
-          socket.join(address+method)
+        socket.leave(prevAddress + prevMethod, (err) => {
+          if (err) {
+            log.error('Error leaving socket: ' + err)
+          }
+          socket.join(address + method)
           sendHistory(address, method)
         })
       } else {
-        socket.join(address+method)
+        socket.join(address + method)
         sendHistory(address, method)
       }
     })
-    //socket.on('unsubscribe', ([address, method]) => {
-    //  console.log("unsub " + address+method)
-    //  socket.leave(address+method)
-    //})
+    // socket.on('unsubscribe', ([address, method]) => {
+    //   log.debug("unsub " + address+method)
+    //   socket.leave(address+method)
+    // })
   })
 
   io.on('disconnect', function (socket) {
-    x = {}
-    x.lengthof()
+    log.trace('User has disconnected')
   })
 
   function sendHistory (address, method) {
@@ -127,8 +132,10 @@ module.exports = function (app, db, io) {
 
     db.getCachedFromTo(address.substring(2), method)
     .then((result) => {
-      Parity.getLatestBlock()
+      log.debug('Result is:', result)
+      parity.getLatestBlock()
       .then((latestBlock) => {
+        log.debug('Result is', result)
         let from = result.cachedFrom
         let to = result.cachedUpTo
         if (result.cachedFrom === null || result.cachedUpTo === null) {
@@ -139,7 +146,7 @@ module.exports = function (app, db, io) {
       })
     })
     .catch((err) => {
-      //console.log('Error caching more points:', err)
+      log.error('Error caching more points:', err)
     })
   }
 

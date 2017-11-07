@@ -71,6 +71,7 @@
     "event-stream": "^3.3.4",
     "gulp-load-plugins": "^1.5.0",
     "ip": "^1.1.5",
+    "loglevel": "^1.5.1",
     "mssql": "^4.1.0",
     "mutationobserver-shim": "^0.3.2",
     "ng-socket-io": "^0.2.0",
