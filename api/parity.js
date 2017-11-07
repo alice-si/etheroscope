@@ -6,7 +6,7 @@ const db = require('../db/db')
 const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
-const Parity = {
+const Parity(log) = {
   getLatestBlock: function () {
     return new Promise((resolve, reject) => {
       return web3.eth.getBlockNumber((error, block) => {
