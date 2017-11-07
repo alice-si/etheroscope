@@ -23,13 +23,13 @@ module.exports = function (log) {
   parity.getContract = function (address) {
     return new Promise((resolve, reject) => {
       db.getContractName(address.substr(2), (err, res) => {
-        if (err) console.log('Error getting contract name from the db:\n' + err)
+        if (err) log.error('Error getting contract name from the db:\n' + err)
         // Caching new contract
         if (res.rowsAffected[0] === 0) {
-          console.log('Caching new contract: ' + address)
-          console.log(res)
+          log.debug('Caching new contract: ' + address)
+          log.debug(res)
           db.addContracts([[address.substr(2), null]], (err, res) => {
-            if (err) console.log('Error adding contract name to the db')
+            if (err) log.error('Error adding contract name to the db')
           })
         }
         // TODO: Queuing System for Etherscan API
@@ -39,12 +39,12 @@ module.exports = function (log) {
           .then((res) => {
             let parsedContract = parity.parseContract(res.data.result, address)
             // db.addContracts([[address.substr(2), null]], (err, res) => {
-            //   if (err) console.log('Error adding contract name to the db')
+            //   if (err) log.error('Error adding contract name to the db')
             // })
             return resolve(parsedContract)
           })
           .catch((err) => {
-            console.log('Etherscan.io API error: ' + err)
+            log.error('Etherscan.io API error: ' + err)
             return reject(err)
           })
       })
@@ -63,7 +63,7 @@ module.exports = function (log) {
       let address = parsedContract.address
       db.getVariables(address).then((res) => {
         if (res.recordset.length === 0) {
-          console.log('Caching variables for contract: ')
+          log.trace('Caching variables for contract: ')
           var abi = parsedContract.abi
           let variableNames = []
           return Promise.each(abi, (item) => {
@@ -76,7 +76,7 @@ module.exports = function (log) {
             .then((results) => {
               return Promise.each(variableNames, (variableName) => {
                 db.addVariable([[address.substr(2), variableName]], (err, res) => {
-                  if (err) console.log('Error with caching variables: ' + err)
+                  if (err) log.error('Error with caching variables: ' + err)
                 })
               })
             })
@@ -117,7 +117,7 @@ module.exports = function (log) {
           return this.calculateBlockTime(blockNumber).then((time) => {
             db.addBlockTime([[blockNumber, time, 1]], function (err, res) {
               if (err) {
-                console.log('Error adding the time of a block to the db:\n' + err)
+                log.error('Error adding the time of a block to the db:\n' + err)
               }
             })
             return resolve(time)
@@ -145,14 +145,14 @@ module.exports = function (log) {
     return new Promise((resolve, reject) => {
       filter.get((error, result) => {
         if (!error) {
-          console.log('[I] Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
-          console.log('From', startBlock, 'to', endBlock)
+          log.debug('[I] Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
+          log.debug('From', startBlock, 'to', endBlock)
           db.updateFromTo(address.substr(2), method, totalFrom, totalTo, (err, res) => {
             if (err) {
-              console.log('db update error: ', err)
+              log.error('db update error: ', err)
               return reject(err)
             }
-            console.log('Updating cached address')
+            log.trace('Updating cached address')
             return resolve(result)
           })
         } else {
@@ -166,7 +166,7 @@ module.exports = function (log) {
     totalFrom, totalTo) {
     let prevTime = 0
     return new Promise((resolve, reject) => {
-      console.log('Generating data points')
+      log.trace('Generating data points')
       Promise.map(eventsA, (event) => {
         // [(t,v,b)]
         return Promise.all([parity.getBlockTime(event.blockNumber.valueOf()),
@@ -178,7 +178,7 @@ module.exports = function (log) {
             prevTime = time
             db.addDataPoints([[contract.address.substr(2), method, blockNum, val]],
               (err, res) => {
-                if (err) console.log('Error adding datapoint to db:\n' + err)
+                if (err) log.error('Error adding datapoint to db:\n' + err)
               })
             return true
           } else {
@@ -192,7 +192,7 @@ module.exports = function (log) {
         }))
       })
       .catch((err) => {
-        console.log('Data set generation error: ' + err)
+        log.error('Data set generation error: ' + err)
         return reject(err)
       })
     })

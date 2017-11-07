@@ -1,19 +1,19 @@
 module.exports = function (app, db, io, log) {
-  var Parity = require('./parity')(log)
+  var parity = require('./parity')(log)
   let Promise = require('bluebird')
   var methodCachesInProgress = new Set()
 
   app.get('/api/explore/:contractAddress', (req, res) => {
-    return Parity.getContract(req.params.contractAddress)
+    return parity.getContract(req.params.contractAddress)
       .then((contract) => {
-        return Parity.getContractVariables(contract)
+        return parity.getContractVariables(contract)
       })
       .then((variables) => {
-        console.log('vars: ' + JSON.stringify(variables))
+        log.debug('vars: ' + JSON.stringify(variables))
         return res.status(200).json(variables)
       })
       .catch((err) => {
-        console.log(err)
+        log.error(err)
         return res.status(400).json(err.message)
       })
   })
@@ -24,56 +24,55 @@ module.exports = function (app, db, io, log) {
     let contract = null
     res.setTimeout(300000, () => {
       // TODO: Solve this computational problem
-      console.log('Response timeout.')
+      log.warn('Response timeout.')
     })
     // First we obtain the contract.
-    return Parity.getContract(contractAddress)
+    return parity.getContract(contractAddress)
     // Then, we get the history of transactions
       .then((parsedContract) => {
         contract = parsedContract
-        console.log('Parsed Contract')
-        return Parity.getHistory(contractAddress, 1240000, 1245000)
+        log.trace('Parsed Contract')
+        return parity.getHistory(contractAddress, 1240000, 1245000)
       })
       .then((events) => {
-        console.log('Obtained Transaction History')
-        return Parity.generateDataPoints(events, contract, method)
+        log.trace('Obtained Transaction History')
+        return parity.generateDataPoints(events, contract, method)
       })
       .then((results) => {
-        console.log('generated data points: ' + results)
+        log.trace('Generated data points: ' + results)
         res.status(200).json(results)
       })
       .catch((err) => {
-        console.log(err)
+        log.error('Error getting contract from parity.js' + err)
         return res.status(400).json(err.message)
       })
   })
 
   function sendDataPointsFromParity (socket, contractAddress, method, from, to,
     totalFrom, totalTo) {
-    console.log('Sending history from parity')
+    log('Sending history from parity')
     // First we obtain the contract.
     let contract = null
     return new Promise((resolve, reject) => {
-      Parity.getContract(contractAddress)
+      parity.getContract(contractAddress)
         // Then, we get the history of transactions
         .then(function (parsedContract) {
           contract = parsedContract
-          console.log('Parsed Contract')
-          return Parity.getHistory(contractAddress, method, from, to, totalFrom, totalTo)
+          log.trace('Parsed Contract')
+          return parity.getHistory(contractAddress, method, from, to, totalFrom, totalTo)
         })
         .then(function (events) {
-          console.log('Obtained Transaction History')
-          return Parity.generateDataPoints(events, contract, method, from, to,
+          log.trace('Obtained Transaction History')
+          return parity.generateDataPoints(events, contract, method, from, to,
             totalFrom, totalTo)
         })
         .then(function (results) {
-          console.log('generated data points successfully')
+          log.trace('Generated data points successfully')
           socket.emit('getHistoryResponse', { error: false, contract: contractAddress, method: method, from: from, to: to, results: results })
           return resolve()
         })
         .catch(function (err) {
-          console.log('Error in parity sending')
-          console.log(err)
+          log.error('Error in parity sending' + err)
           socket.emit('getHistoryResponse', { error: true })
           return reject(err)
         })
@@ -81,22 +80,21 @@ module.exports = function (app, db, io, log) {
   }
 
   function sendAllDataPointsFromDB (socket, address, method) {
-    console.log('Sending history from db')
+    log.trace('Sending history from db')
     db.getDataPoints(address.substr(2), method)
-      .then((dataPoints) => {
-        return Promise.map(dataPoints[0], (elem) => {
-          return [elem.timeStamp, elem.value]
-        })
+    .then((dataPoints) => {
+      return Promise.map(dataPoints[0], (elem) => {
+        return [elem.timeStamp, elem.value]
       })
-      .then((dataPoints) => {
-        console.dir(dataPoints)
-        socket.emit('getHistoryResponse', { error: false, contract: address, method: method, results: dataPoints })
-      })
-      .catch(function (err) {
-        console.log('Error sending datapoints from DD')
-        console.log(err)
-        socket.emit('getHistoryResponse', { error: true })
-      })
+    })
+    .then((dataPoints) => {
+      console.dir(dataPoints)
+      socket.emit('getHistoryResponse', { error: false, contract: address, method: method, results: dataPoints })
+    })
+    .catch(function (err) {
+      log.error('Error sending datapoints from DD' + err)
+      socket.emit('getHistoryResponse', { error: true })
+    })
   }
 
   io.on('connection', function (socket) {
@@ -106,7 +104,7 @@ module.exports = function (app, db, io, log) {
   })
 
   io.on('disconnect', function (socket) {
-    console.log('User has disconnected')
+    log.trace('User has disconnected')
   })
 
   function sendHistory (socket, address, method) {
@@ -121,10 +119,10 @@ module.exports = function (app, db, io, log) {
 
     db.getCachedFromTo(address.substring(2), method)
     .then((result) => {
-      console.log('Result is:', result)
-      Parity.getLatestBlock()
+      log.debug('Result is:', result)
+      parity.getLatestBlock()
       .then((latestBlock) => {
-        console.log('Result is', result)
+        log.debug('Result is', result)
         let from = result.cachedFrom
         let to = result.cachedUpTo
         if (result.cachedFrom === null || result.cachedUpTo === null) {
@@ -135,7 +133,7 @@ module.exports = function (app, db, io, log) {
       })
     })
     .catch((err) => {
-      console.log('Error caching more points:', err)
+      log.error('Error caching more points:', err)
     })
   }
 
