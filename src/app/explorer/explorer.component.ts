@@ -135,18 +135,18 @@ export class ExplorerComponent {
   generateDatapoints(method: string) {
     this.contractService.leaveMethod(this.lastContract, this.lastMethod).subscribe(
       (error: any) => {
-        //TODO handle error from backend
+        if (error !== null) {
+          console.log("Error unsubscribing from last method...")
+        }
         this.lastContract = this.curContractID;
+        this.lastMethod = method;
+        // flush the current datapoints
+        this.datapoints = [];
         this.contractService.generateDatapoints(this.curContractID, method).subscribe(
           (datapoints: any) => {
-            if (this.lastMethod !== null && this.lastMethod === method && datapoints !== this.datapoints) {
-              console.log("updating?")
-              if (datapoints.results.length !== 0) {
-                this.datapoints = this.datapoints.concat(datapoints.results);
-              }
-            } else {
-              this.lastMethod = method
-              this.datapoints = datapoints.results
+            console.log("updating...")
+            if (datapoints.results.length !== 0) {
+              this.datapoints = this.datapoints.concat(datapoints.results);
             }
             this.updateGraph();
           },
