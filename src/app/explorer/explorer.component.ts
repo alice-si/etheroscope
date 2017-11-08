@@ -54,7 +54,8 @@ export class ExplorerComponent {
   methods: string[];
   displayMethods: boolean;
   displayGraph: boolean;
-  datapoints: number[][];
+  graphDatapoints: number[][];
+  methodDatapoints: number[][];
   lastMethod: string;
   lastContract: string;
 
@@ -92,7 +93,8 @@ export class ExplorerComponent {
     this.timesValues = [];
     this.lastMethod = null;
     this.lastContract = null;
-    this.datapoints = [];
+    this.graphDatapoints = [];
+    this.methodDatapoints = [];
   }
 
   onSelect(event) {
@@ -117,11 +119,11 @@ export class ExplorerComponent {
 
   updateGraph() {
     this.timesValues = [];
-    if (this.datapoints !== null && this.datapoints !== undefined) {
-      this.datapoints.sort((a, b) => {
+    if (this.graphDatapoints !== null && this.graphDatapoints !== undefined) {
+      this.graphDatapoints.sort((a, b) => {
         return a[0] - b[0]
       })
-      this.datapoints.forEach((elem) => {
+      this.graphDatapoints.forEach((elem) => {
         let date = new Date(0);
         date.setUTCSeconds(+elem[0]);
         this.timesValues.push({"name": date, "value": +elem[1]});
@@ -140,14 +142,23 @@ export class ExplorerComponent {
         }
         this.lastContract = this.curContractID;
         this.lastMethod = method;
-        // flush the current datapoints
-        this.datapoints = [];
+        // flush the current method datapoints
+        this.methodDatapoints = [];
         this.contractService.generateDatapoints(this.curContractID, method).subscribe(
           (datapoints: any) => {
             console.log("updating...")
+            this.graphDatapoints = [];
             if (datapoints.results.length !== 0) {
-              this.datapoints = this.datapoints.concat(datapoints.results);
+              this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
+              console.log(this.methodDatapoints.length + " method datapoints");
+              let samples = 100;
+              let intervals = Math.floor(this.methodDatapoints.length / samples);
+              for (let i = 0; i < samples; i++) {
+                this.graphDatapoints[i] = this.methodDatapoints[i * intervals];
+              }
+              console.log(this.graphDatapoints.length + " graph datapoints");
             }
+            console.log("Updating graph");
             this.updateGraph();
           },
           (error) => {
