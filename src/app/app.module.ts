@@ -10,7 +10,6 @@ import { SelectModule } from 'ng2-select-compat';
 import { AppComponent } from './app.component';
 import { ROUTING } from "./app.routing";
 import { HomeComponent } from "./home/home.component";
-import { AboutComponent } from "./about/about.component";
 import { ExplorerComponent } from "./explorer/explorer.component";
 
 import { ContractService } from "./_services/contract.service";
@@ -21,7 +20,6 @@ const config: SocketIoConfig = { url: 'http://etheroscope.uksouth.cloudapp.azure
 @NgModule({
     declarations: [
         AppComponent,
-        AboutComponent,
         HomeComponent,
         ExplorerComponent
         ],
