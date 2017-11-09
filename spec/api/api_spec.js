@@ -3,7 +3,8 @@ let api = require('../../api/api')
 describe('API endpoint Unit Tests', function () {
   describe('APISanityCheck', function () {
     it('checks test library is functioning', function (done) {
-      expect(1).toBe(1)
+      // Intentionally fail
+      expect(1).toBe(2)
       done()
     })
   })
