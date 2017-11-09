@@ -105,7 +105,7 @@ module.exports = function (app, db, io, log) {
         log.debug('Result is', result)
         let from = result.cachedFrom
         let to = result.cachedUpTo
-        if (result.cachedFrom === null || result.cachedUpTo === null) {
+        if (from === null || to === null) {
           from = latestBlock
           to = latestBlock
         }
