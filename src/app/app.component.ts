@@ -7,6 +7,18 @@ import { Router } from '@angular/router';
     styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+
+	helpModalOpen: boolean;
+
     constructor(private router: Router) {
+    	this.helpModalOpen = false;
+    }
+
+    openModal() {
+    	this.helpModalOpen = true;
+    }
+
+    closeModal() {
+    	this.helpModalOpen = false;
     }
 }

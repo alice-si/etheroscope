@@ -10,9 +10,19 @@
           <a class="nav-link" href="http://etheroscope.alice.si/"><span class="nav-text">Alice.si mockup</span></a>
       </div>
     <div class="header-actions">
+        <button type="button" class="button btn-primary" (click)="openModal()">
+          <clr-icon shape="info-circle" size="36" style="color:white"></clr-icon>
+        </button>
     </div>
   </clr-header>
   <div class="content-container" style="width:100%">
       <router-outlet></router-outlet>
   </div>
+
+  <clr-modal [(clrModalOpen)]="helpModalOpen">
+    <h3 class="modal-title">I have a nice title</h3>
+    <div class="modal-body">
+        <p>But not much to say...</p>
+    </div>
+  </clr-modal>
 </clr-main-container>
