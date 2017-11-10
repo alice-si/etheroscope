@@ -117,9 +117,9 @@ export class ExplorerComponent {
             this.graphDatapoints[i] = this.methodDatapoints[i * intervals];
           }
           console.log(this.graphDatapoints.length + " graph datapoints");
+          console.log("Updating graph");
+          this.updateGraph();
         }
-        console.log("Updating graph");
-        this.updateGraph();
       },
       (error) => {
         console.log(error);
