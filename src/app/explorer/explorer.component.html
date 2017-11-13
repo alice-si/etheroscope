@@ -1,6 +1,6 @@
 <div class="contractVarSelect">
     <div class="search-area">
-        <input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" placeholder="Enter Your Smart Contract Hash Here!">
+        <input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" autofocus>
         <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
         <clr-icon shape="search" size="24"></clr-icon>
       </button>
@@ -24,16 +24,29 @@
             <ngx-charts-line-chart [view]="view" [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]=true [autoScale]="autoScale" (select)="onSelect($event)">
             </ngx-charts-line-chart>
         </td>
-        <td class="variables-area" align="right">
-            <div id="var-w">
-                <p> Select a variable to track </p>
-                <div class="btnBoard">
-                    <button type="button" class="btn btn-primary" *ngFor="let m of methods" (click)="generateDatapoints(m)">{{m}}</button>
+        <td class="variables-area" align="right" style="max-width: 20%;">
+            <div class="card" id="var-w">
+                <div class="card-header">
+                    Select a variable to track
+                </div>
+                <div class="card-block">
+                    <div class="card-text">
+                        <button type="button" class="btn btn-primary btn-sm" *ngFor="let m of methods" (click)="generateDatapoints(m)">{{m}}</button>
+                    </div>
+                </div>
+            </div>
+            <div class="currViewing" *ngIf="displayGraph">
+                <div class="card">
+                    <div class="card-header">
+                        Currently Viewing...
+                    </div>
+                    <div class="card-block">
+                        <div class="card-text">
+                            Variable: {{this.lastMethod}}
+                        </div>
+                    </div>
                 </div>
             </div>
         </td>
     </tr>
 </table>
-
-<!-- <div class="variables-area" *ngIf="displayMethods"> -->
-<!-- </div> -->
