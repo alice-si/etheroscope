@@ -1,28 +1,39 @@
 <div class="contractVarSelect">
     <div class="search-area">
-        <input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" placeholder="Enter a valid smart contract hash">
-        <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">Explore</button>
-    </div>
-    <div class="select-area">
-        <label for="select_company">or select a company from the list</label> &nbsp;&nbsp;
-        <select class="select" #company (change)="selectCompany(company.value)">
-          <option></option>
-          <option *ngFor="let c of contractHash" [value]="c.hash">{{c.name}}</option>
-      </select> &nbsp;&nbsp;
+        <input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" placeholder="Enter Your Smart Contract Hash Here!">
+        <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
+        <clr-icon shape="search" size="24"></clr-icon>
+      </button>
     </div>
 </div>
 
-<div class="graph-area">
-    <ngx-charts-line-chart [view]="view" [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]=true [autoScale]="autoScale" (select)="onSelect($event)" *ngIf="displayGraph">
-    </ngx-charts-line-chart>
-    <div class="no-graph" *ngIf="!displayGraph">
-        Firstly enter a contract to explore, then select a method from the list to view.
-    </div>
+<div class="no-graph" *ngIf="!displayGraph && !displayMethods">
+    <p>
+        <clr-icon shape="arrow" size="36"></clr-icon><br> First, enter a contract to explore. This must be a contract hash.<br> Click <u><a (click)="exploreContract(contractHash[0].hash)">here</a></u> to see an example!
+    </p>
+    <br>
 </div>
 
-<div class="variables-area" *ngIf="displayMethods">
-    <p> Select a variable to track </p>
-    <div class="btnBoard">
-        <button type="button" class="btn btn-primary" *ngFor="let m of methods" (click)="generateDatapoints(m)">{{m}}</button>
-    </div>
-</div>
+<table *ngIf="displayMethods">
+    <tr>
+        <td class="no-graph-but-var" *ngIf="!displayGraph">
+            <p> Then choose a variable you want to look at
+                <clr-icon shape="arrow" size="36" dir="right"></clr-icon><br> </p>
+        </td>
+        <td class="graph-area" *ngIf="displayGraph">
+            <ngx-charts-line-chart [view]="view" [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]=true [autoScale]="autoScale" (select)="onSelect($event)">
+            </ngx-charts-line-chart>
+        </td>
+        <td class="variables-area" align="right">
+            <div id="var-w">
+                <p> Select a variable to track </p>
+                <div class="btnBoard">
+                    <button type="button" class="btn btn-primary" *ngFor="let m of methods" (click)="generateDatapoints(m)">{{m}}</button>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<!-- <div class="variables-area" *ngIf="displayMethods"> -->
+<!-- </div> -->

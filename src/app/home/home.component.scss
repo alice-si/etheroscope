@@ -1,36 +1,52 @@
+.btn {
+  background-color: #1998a2;
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
 .wrapper {
   width: 100vw;
   height: 100%;
-  .landing {
-    width: 100%;
-    margin: 0 auto;
-    text-align: center;
+  .landing-w {
+    height: auto;
     position: relative;
     top: 50%;
     transform: translateY(-50%);
   }
-  h1 {
-    margin: 0;
-    padding: 0;
-    font-weight: 100;
-    color: #1998a2;
-    font-size: 5vw;
-    margin-bottom: 2vh;
+  .landing {
+    width: 50%;
+    margin: 0 auto;
+    text-align: center;
+    h1 {
+      margin: 0;
+      padding: 0;
+      font-weight: 100;
+      color: #1998a2;
+      font-size: 4vw;
+      height: 4vw; // padding-bottom: 2vh;
+    }
+    #tag {
+      font-size: 1.5vw;
+      font-weight: 600;
+      height: 1.5vw;
+    }
   }
-  .btn {
-    margin: 0;
-    margin-top: 2vh;
-    background-color: #1998a2;
-    border: 0px;
-    box-shadow: none;
-  }
+  .subLanding {
+    width: 50%;
+    margin: 0 auto;
+    table {
+      width: 100%;
+    }
+    table,
+    th,
+    td {
+      padding: 1vw;
+    }
 
-  #text {
-    margin-top: 5vh;
-  }
-  #tag {
-    font-size: 1.5vw;
-    margin-top: 1vh;
-    font-weight: 600;
+    #text {
+      margin: 0;
+      padding: 0;
+    }
   }
 }
