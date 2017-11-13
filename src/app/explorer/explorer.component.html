@@ -1,7 +1,4 @@
 <div class="search-area">
-		<input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" placeholder="Enter a valid smart contract hash">
-    <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">Explore</button>
-
 		<ng-select
 							[allowClear]="true"
               [items]="items"
@@ -12,15 +9,7 @@
               (typed)="typed($event)"
               placeholder="No contract selected">
   	</ng-select>
-</div>
-<div class="select-area">
-    <label for="select_company">or select a company from the list</label>
-    &nbsp;&nbsp;
-    <select class="select" #company (change)="selectCompany(company.value)">
-        <option></option>
-        <option *ngFor="let c of contractHash" [value]="c.hash">{{c.name}}</option>
-    </select>
-    &nbsp;&nbsp;
+		<button type="button" class="btn btn-primary" (click)="exploreContract(value.id)">Explore</button>
 </div>
 
 <div class="graph-area">

@@ -3,7 +3,7 @@ import { ContractService } from "../_services/contract.service";
 
 
 @Component({
-  styleUrls: ['./explorer.component.scss'],
+  styleUrls: ['./explorer.component.scss', './ng2-select.css'],
   templateUrl: './explorer.component.html'
 })
 
@@ -77,6 +77,7 @@ export class ExplorerComponent {
 
   public selected(value: any): void {
     console.log('Selected value is: ', value);
+    this.exploreContract(value.id);
   }
 
   public removed(value: any): void {
@@ -164,13 +165,5 @@ export class ExplorerComponent {
         this.updateGraph();
       }
     );
-  }
-
-  exploreCompany() {
-    this.exploreContract(this.selectedCompany.hash);
-  }
-
-  selectCompany(hash: string) {
-    this.exploreContract(hash);
   }
 }
