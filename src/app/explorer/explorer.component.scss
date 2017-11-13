@@ -48,14 +48,28 @@
 .no-graph {
   text-align: center;
   height: 100%;
-  width: 100vw;
+  width: 80vw;
+  float: left;
 }
 
 .variables-area {
   // background-color: #F5F5F5;
-  float: left;
-  height: 85%;
+  float: right;
+  height: 80%;
   width: 20vw;
+  padding: 1vw 1vw;
+  border: 1px solid #bdbdbd;
+  border-radius: 5px;
+  background-color: #e0e0e0;
+  p {
+    margin: 0;
+    padding: 0; // font-size: 15vw;
+  }
+  .btnBoard {
+    .btn {
+      margin: 5px;
+    }
+  }
 }
 
 .btn-primary {

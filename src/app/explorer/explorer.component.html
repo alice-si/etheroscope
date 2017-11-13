@@ -21,6 +21,8 @@
 </div>
 
 <div class="variables-area" *ngIf="displayMethods">
-    <h3 style="font-size: 120%">Select a method below:</h3>
-    <button type="button" class="btn btn-primary" *ngFor="let m of methods" (click)="generateDatapoints(m)">{{m}}</button>
+    <p> Select a variable to track </p>
+    <div class="btnBoard">
+        <button type="button" class="btn btn-primary" *ngFor="let m of methods" (click)="generateDatapoints(m)">{{m}}</button>
+    </div>
 </div>
