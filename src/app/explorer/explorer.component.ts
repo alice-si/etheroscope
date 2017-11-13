@@ -111,11 +111,12 @@ export class ExplorerComponent {
             return true;
           });
           console.log(this.methodDatapoints.length + " method datapoints");
-          let samples = 100;
-          let intervals = Math.floor(this.methodDatapoints.length / samples);
-          for (let i = 0; i < samples; i++) {
-            this.graphDatapoints[i] = this.methodDatapoints[i * intervals];
-          }
+          // let samples = 100;
+          // let intervals = Math.floor(this.methodDatapoints.length / samples);
+          // for (let i = 0; i < samples; i++) {
+          //   this.graphDatapoints[i] = this.methodDatapoints[i * intervals];
+          // }
+          this.graphDatapoints = this.methodDatapoints;
           console.log(this.graphDatapoints.length + " graph datapoints");
           console.log("Updating graph");
           this.updateGraph();

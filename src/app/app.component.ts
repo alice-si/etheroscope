@@ -2,23 +2,23 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
-    selector: 'my-app',
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.scss']
+  selector: 'my-app',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
 
-	helpModalOpen: boolean;
+  helpModalOpen: boolean;
 
-    constructor(private router: Router) {
-    	this.helpModalOpen = false;
-    }
+  constructor(private router: Router) {
+    this.helpModalOpen = false;
+  }
 
-    openModal() {
-    	this.helpModalOpen = true;
-    }
+  openModal() {
+    this.helpModalOpen = true;
+  }
 
-    closeModal() {
-    	this.helpModalOpen = false;
-    }
+  closeModal() {
+    this.helpModalOpen = false;
+  }
 }

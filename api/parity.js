@@ -150,7 +150,7 @@ module.exports = function (db, log) {
     return new Promise((resolve, reject) => {
       filter.get((error, result) => {
         if (!error) {
-          log.debug('[I] Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
+          log.debug('Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
           log.debug('From', startBlock, 'to', endBlock)
           db.updateFromTo(address.substr(2), method, totalFrom, totalTo, (err, res) => {
             if (err) {
