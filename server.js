@@ -44,7 +44,7 @@ db.poolConnect().then(() => {
   app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
-  app.get('/*', function (req, res) {
+  app.get('/explorer', function (req, res) {
     res.redirect('/')
   })
   var server = app.listen(port)
