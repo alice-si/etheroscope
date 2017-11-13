@@ -1,5 +1,5 @@
 <clr-main-container>
-    <clr-header class="header-4">
+    <clr-header class="header-4" style="height: 20%;">
         <div class="branding">
             <a href="#" class="nav-link">
         <span class="title">
@@ -19,7 +19,7 @@
           </button>
         </div>
     </clr-header>
-    <div class="content-container" style="width:100%">
+    <div class="content-container" style="max-width:100% height: 80%;">
         <router-outlet></router-outlet>
     </div>
     <clr-modal [(clrModalOpen)]="helpModalOpen">
