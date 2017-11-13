@@ -95,6 +95,40 @@ export class ExplorerComponent {
     this.lastContract = null;
     this.graphDatapoints = [];
     this.methodDatapoints = [];
+    this.contractService.getHistoryEvent().subscribe(
+      (datapoints: any) => {
+        console.log("updating...")
+        this.graphDatapoints = [];
+        if (datapoints.results.length !== 0) {
+          this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
+          // get rid of datapoints with duplicate times
+          let seenTime = {};
+          this.methodDatapoints.filter( (point) => {
+            if (seenTime.hasOwnProperty(point[0])) {
+              return false;
+            }
+            seenTime[point[0]] = true;
+            return true;
+          });
+          console.log(this.methodDatapoints.length + " method datapoints");
+          let samples = 100;
+          let intervals = Math.floor(this.methodDatapoints.length / samples);
+          for (let i = 0; i < samples; i++) {
+            this.graphDatapoints[i] = this.methodDatapoints[i * intervals];
+          }
+          console.log(this.graphDatapoints.length + " graph datapoints");
+          console.log("Updating graph");
+          this.updateGraph();
+        }
+      },
+      (error) => {
+        console.log(error);
+      },
+      () => {
+        console.log("completed data point generation");
+        this.updateGraph();
+      }
+    );
   }
 
   onSelect(event) {
@@ -121,8 +155,9 @@ export class ExplorerComponent {
     this.timesValues = [];
     if (this.graphDatapoints !== null && this.graphDatapoints !== undefined) {
       this.graphDatapoints.sort((a, b) => {
-        return a[0] - b[0]
+        return a[0] - b[0];
       })
+      this.timesValues = [];
       this.graphDatapoints.forEach((elem) => {
         let date = new Date(0);
         date.setUTCSeconds(+elem[0]);
@@ -135,42 +170,15 @@ export class ExplorerComponent {
   }
 
   generateDatapoints(method: string) {
-    this.contractService.leaveMethod(this.lastContract, this.lastMethod).subscribe(
-      (unSubError: any) => {
-        if (unSubError !== null) {
-          console.log("Error unsubscribing from last method...")
-        }
-        this.lastContract = this.curContractID;
-        this.lastMethod = method;
-        // flush the current method datapoints
-        this.methodDatapoints = [];
-        this.contractService.generateDatapoints(this.curContractID, method).subscribe(
-          (datapoints: any) => {
-            console.log("updating...")
-            this.graphDatapoints = [];
-            if (datapoints.results.length !== 0) {
-              this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
-              console.log(this.methodDatapoints.length + " method datapoints");
-              let samples = 100;
-              let intervals = Math.floor(this.methodDatapoints.length / samples);
-              for (let i = 0; i < samples; i++) {
-                this.graphDatapoints[i] = this.methodDatapoints[i * intervals];
-              }
-              console.log(this.graphDatapoints.length + " graph datapoints");
-            }
-            console.log("Updating graph");
-            this.updateGraph();
-          },
-          (error) => {
-            console.log(error);
-          },
-          () => {
-            console.log("completed data point generation");
-            this.updateGraph();
-          }
-        );
-      }
-    );
+    if (method !== this.lastMethod || this.curContractID !== this.lastContract ||
+      this.lastContract === null || this.lastMethod === null) {
+      this.contractService.leaveMethod(this.lastContract, this.lastMethod);
+      this.lastContract = this.curContractID;
+      this.lastMethod = method;
+      // flush the current method datapoints
+      this.methodDatapoints = [];
+      this.contractService.generateDatapoints(this.curContractID, method);
+    }
   }
 
   exploreCompany() {

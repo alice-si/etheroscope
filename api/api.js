@@ -46,7 +46,7 @@ module.exports = function (app, db, io, log) {
     })
   }
 
-  function sendAllDataPointsFromDB (address, method) {
+  function sendAllDataPointsFromDB (address, method, socket) {
     db.getDataPoints(address.substr(2), method)
     .then((dataPoints) => {
       return Promise.map(dataPoints[0], (elem) => {
@@ -55,12 +55,12 @@ module.exports = function (app, db, io, log) {
     })
     .then((dataPoints) => {
       console.dir(dataPoints)
-      io.sockets.in(address + method).emit('getHistoryResponse', { error: false, contract: address, method: method, results: dataPoints })
+      socket.emit('getHistoryResponse', { error: false, contract: address, method: method, results: dataPoints })
     })
     .catch(function (err) {
       log.error('Error sending datapoints from DD')
       log.error(err)
-      io.sockets.in(address + method).emit('getHistoryResponse', { error: true })
+      socket.emit('getHistoryResponse', { error: true })
     })
   }
 
@@ -69,7 +69,7 @@ module.exports = function (app, db, io, log) {
       let room = address + method
       socket.join(room)
       log.debug('Joined room:', room)
-      sendHistory(address, method)
+      sendHistory(address, method, socket)
     })
     socket.on('unsubscribe', ([address, method]) => {
       if (address !== null && method !== null) {
@@ -87,9 +87,9 @@ module.exports = function (app, db, io, log) {
   io.on('disconnect', function (socket) {
   })
 
-  function sendHistory (address, method) {
+  function sendHistory (address, method, socket) {
     // Send every point we have in the db so far
-    sendAllDataPointsFromDB(address, method)
+    sendAllDataPointsFromDB(address, method, socket)
 
     // If there is already a caching process, we don't need to set one up
     if (methodCachesInProgress.has(address + method)) {
@@ -105,7 +105,7 @@ module.exports = function (app, db, io, log) {
         log.debug('Result is', result)
         let from = result.cachedFrom
         let to = result.cachedUpTo
-        if (result.cachedFrom === null || result.cachedUpTo === null) {
+        if (from === null || to === null) {
           from = latestBlock
           to = latestBlock
         }
