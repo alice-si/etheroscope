@@ -19,8 +19,14 @@ export class ContractService {
 
   generateDatapoints(contract: string, method: string) {
     console.log("Retrieving History...");
-    this.socket.emit('getHistory', [contract, method, 1240000, 1245000]);
+    this.socket.emit('getHistory', [contract, method]);
     return this.socket.fromEvent('getHistoryResponse');
+  }
+
+  leaveMethod(contract: string, method: string) {
+    console.log("Unsubscribing from method " + method + "...");
+    this.socket.emit('unsubscribe', [contract, method]);
+    return this.socket.fromEvent('unsubscribed');
   }
 
   private extractData(res: Response) {

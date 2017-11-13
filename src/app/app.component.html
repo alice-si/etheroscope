@@ -1,18 +1,31 @@
 <clr-main-container>
-  <clr-header class="header-4">
-    <div class="branding">
-      <a href="#" class="nav-link">
-        <span class="title">ETHEROSCOPE</span>
+    <clr-header class="header-4" style="height: 20%;">
+        <div class="branding">
+            <a href="#" class="nav-link">
+        <span class="title">
+          <span class="nav-link" [routerLink]="['/']" routerLinkActive="active">
+            ETHEROSCOPE
+          </span>
+        </span>
       </a>
+        </div>
+        <div class="header-nav" [clr-nav-level]="1">
+            <a class="nav-link" [routerLink]="['/']" routerLinkActive="active"><span class="nav-text">Home</span></a>
+            <a class="nav-link" href="http://etheroscope.alice.si/"><span class="nav-text">Alice.si</span></a>
+        </div>
+        <div class="header-actions">
+            <button type="button" class="button btn-primary" (click)="openModal()">
+            <clr-icon shape="info-circle" size="36" style="color:white"></clr-icon>
+          </button>
+        </div>
+    </clr-header>
+    <div class="content-container" style="max-width:100% height: 80%;">
+        <router-outlet></router-outlet>
     </div>
-      <div class="header-nav" [clr-nav-level]="1">
-          <a class="nav-link" href="#" [routerLink]="['/explorer']" routerLinkActive="active"><span class="nav-text">Explorer</span></a>
-          <a class="nav-link" href="http://etheroscope.alice.si/"><span class="nav-text">Alice.si mockup</span></a>
-      </div>
-    <div class="header-actions">
-    </div>
-  </clr-header>
-  <div class="content-container" style="width:100%">
-      <router-outlet></router-outlet>
-  </div>
+    <clr-modal [(clrModalOpen)]="helpModalOpen">
+        <h3 class="modal-title">I have a nice title</h3>
+        <div class="modal-body">
+            <p>But not much to say...</p>
+        </div>
+    </clr-modal>
 </clr-main-container>
