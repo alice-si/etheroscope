@@ -1,53 +1,97 @@
-<div class="search-area">
-		<input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" placeholder="Enter a valid smart contract hash">
-    <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">Explore</button>
-		<!--
-		<ng-select
-							[allowClear]="true"
-              [items]="items"
-              [disabled]="disabled"
-              (data)="refreshValue($event)"
-              (selected)="selected($event)"
-              (removed)="removed($event)"
-              (typed)="typed($event)"
-              placeholder="No contract selected">
-  	</ng-select>
-	-->
-</div>
-<div class="select-area">
-    <label for="select_company">or select a company from the list</label>
-    &nbsp;&nbsp;
-    <select class="select" #company (change)="selectCompany(company.value)">
-        <option></option>
-        <option *ngFor="let c of contractHash" [value]="c.hash">{{c.name}}</option>
-    </select>
-    &nbsp;&nbsp;
-</div>
-
-<div class="graph-area">
-	<ngx-charts-line-chart
-      	[view]="view"
-      	[scheme]="colorScheme"
-      	[results]="multi"
-      	[gradient]="gradient"
-      	[xAxis]="showXAxis"
-      	[yAxis]="showYAxis"
-      	[legend]="showLegend"
-      	[showXAxisLabel]="showXAxisLabel"
-      	[showYAxisLabel]="showYAxisLabel"
-      	[xAxisLabel]="xAxisLabel"
-      	[yAxisLabel]="yAxisLabel"
-      	[timeline]=true
-      	[autoScale]="autoScale"
-      	(select)="onSelect($event)"
-        *ngIf="displayGraph">
-    </ngx-charts-line-chart>
-    <div class="no-graph" *ngIf="!displayGraph">
-        Firstly enter a contract to explore, then select a method from the list to view.
+<div class="contractVarSelect">
+    <div class="search-area">
+        <input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" autofocus>
+        <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
+        <clr-icon shape="search" size="24"></clr-icon>
+      </button>
     </div>
 </div>
 
-<div class="variables-area" *ngIf="displayMethods">
-	<h3 style="font-size: 120%">Select a method below:</h3>
-	<button type="button" class="btn btn-primary" *ngFor="let m of methods" (click)="generateDatapoints(m)">{{m}}</button>
+<div class="no-graph" *ngIf="!displayGraph && !displayMethods">
+    <p>
+        <clr-icon shape="arrow" size="36"></clr-icon><br> First, enter a contract to explore. This must be a contract hash.<br> Click <u><a (click)="exploreContract(contractHash[0].hash)">here</a></u> to see an example!<br><br><br><br>
+        <clr-icon shape="scroll" size="36"></clr-icon>
+        <clr-icon shape="arrow" dir="right" size="36"></clr-icon>
+        <clr-icon shape="scroll" size="36"></clr-icon>
+        <clr-icon shape="arrow" dir="right" size="36"></clr-icon>
+        <clr-icon shape="scroll" size="36"></clr-icon>
+        <clr-icon shape="arrow" dir="right" size="36"></clr-icon>
+        <clr-icon shape="scroll" size="36"></clr-icon>
+        <clr-icon shape="arrow" dir="right" size="36"></clr-icon>
+        <clr-icon shape="scroll" size="36"></clr-icon>
+        <clr-icon shape="arrow" dir="right" size="36"></clr-icon>
+        <clr-icon shape="scroll" size="36"></clr-icon> <br><br> Each block in the blockchain comes with a unique hash.<br> However, make sure that the hash is associated with a smart contract.
+    </p>
+    <br>
 </div>
+
+<table *ngIf="displayMethods">
+    <tr>
+        <td class="no-graph-but-var" *ngIf="!displayGraph">
+            <p> Then choose a variable you want to look at
+                <clr-icon shape="arrow" size="36" dir="right"></clr-icon><br><br> </p>
+            <p>A smart contract may come with certain publicly exposed variables.<br>For example, a charity might make public the amount of money it has donated.<br>Choose a variable you want to see the history of.</p>
+        </td>
+        <td class="graph-area" *ngIf="displayGraph">
+            <ngx-charts-line-chart [view]="view" [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]=true [autoScale]="autoScale" (select)="onSelect($event)">
+            </ngx-charts-line-chart>
+        </td>
+        <td class="variables-area" align="right" style="max-width: 20%;">
+            <div class="card" id="var-w">
+                <div class="card-header">
+                    Select a variable to track
+                </div>
+                <div class="card-block">
+                    <div class="card-text">
+                        <button type="button" class="btn btn-primary btn-sm" *ngFor="let m of methods" (click)="generateDatapoints(m)">{{m}}</button>
+                    </div>
+                </div>
+            </div>
+            <div class="currViewing" *ngIf="displayGraph">
+                <div class="card">
+                    <div class="card-header">
+                        Currently Viewing...
+                    </div>
+                    <div class="card-block">
+                        <div class="card-text">
+                            Variable: {{this.lastMethod}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="filters" *ngIf="displayGraph">
+                <div class="card">
+                    <div class="card-header">
+                        Filter datapoints...
+                    </div>
+                    <div class="card-block">
+                        <div class="card-text" style="text-align: left">
+                            <form>
+                                <section class="form-block">
+                                    <label>
+                                        Between dates:
+                                    </label>
+                                    <div class="form-group">
+                                        <label for="startDate">
+                                            Starting from date:
+                                        </label>
+                                        <input type="datetime-local" id="startDate" size="35">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="endDate">
+                                            Ending at date:
+                                        </label>
+                                        <input type="datetime-local" id="endDate" size="35">
+                                    </div>
+                                </section>
+                                <button type="submit" class="btn btn-primary">
+                                    Filter
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>

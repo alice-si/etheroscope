@@ -1,48 +1,106 @@
-.search-area {
-  width: 60vw;
-  float: left;
+p {
+  margin: 0;
+  font-size: 1.5em;
+  padding: 0;
+}
+
+.contractVarSelect {
   font-weight: 100;
-}
+  height: 15%;
+  width: 100vw;
+  display: block;
+  .search-area {
+    height: 50%;
+    width: 60%;
+    .search-bar {
+      height: 96%;
+      border: none;
+      margin: 0;
+      padding: 0;
+      float: left;
+      width: 76%;
+      padding: 1%;
+    }
 
-.search-bar {
-  max-width: 600px;
-  width: 50vw;
-  padding: 15px;
-  margin: 30px;
-  align: center;
-}
+    input:focus {
+      background: none;
+    }
 
-.select-area{
-  width: 39vw;
-  float: left;
-  padding-top: 35px;
-  font-weight: 100;
-}
-
-.graph-area {
-  float: left;
-  height: 50vw;
-  width: 80vw;
+    button {
+      height: 100%;
+      width: 10%;
+      padding: 0;
+      margin: 0;
+      float: right;
+      border-radius: 0;
+    }
+    margin: 0 auto;
+    border-radius: 5px;
+    border: 2px solid #1998a2;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+  }
 }
 
 .no-graph {
-  align-content: center;
-  line-height: 50vw;
   text-align: center;
+  height: 85%;
+  width: 100%;
+  float: left;
+  a:hover {
+    cursor: pointer;
+  }
+  p {
+    font-size: 1.5em;
+  }
+}
+
+table {
+  height: 85%;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.graph-area {
+  width: 80%;
+  padding: 0;
+}
+
+.no-graph-but-var {
+  vertical-align: top;
+  p {
+    text-align: right;
+  }
+  width: 80%;
+  padding: 5% 0;
 }
 
 .variables-area {
-  float: left;
-  height: 50vw;
-  width: 19vw;
+  width: 20%;
+  vertical-align: top;
+  vertical-align: top;
+  border-collapse: collapse;
+  border-spacing: 0px;
+  #var-w .btn {
+    margin: 2px;
+    font-weight: 500;
+  }
 }
 
 .btn-primary {
   background-color: #1998a2;
   border: none;
-  font-weight:100;
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
 }
 
 .btn-primary:hover {
-  background-color: #11686e;
+  outline: none;
+  background-color: #1998a2;
+  border: none;
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
 }

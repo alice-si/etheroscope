@@ -1,9 +1,10 @@
-const db = require('./db')
+var log = require('loglevel')
+var db = require('./db.js')(log)
 const Web3 = require('web3')
-var Parity = require('../api/parity')
 const Promise = require('bluebird')
 const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
+var Parity = require('../api/parity')(db, log)
 
 db.poolConnect().then(() => {
   db.getLatestCachedBlockTime() 

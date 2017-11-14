@@ -4,7 +4,10 @@ var bodyParser = require('body-parser')
 var methodOverride = require('method-override')
 var morgan = require('morgan')
 var path = require('path')
-var db = require('./db/db.js')
+var log = require('loglevel')
+var db = require('./db/db.js')(log)
+
+log.enableAll()
 
 // Set port to 8080
 var port = process.env.PORT || 8080
@@ -15,8 +18,8 @@ Promise.config({
 })
 
 process.on('uncaughtException', function (err) {
-  console.error(err)
-  console.log('uncaughtException error: ' + err)
+  log.error(err)
+  log.error('uncaughtException error: ' + err)
 })
 
 // Application options and configurations
@@ -41,12 +44,15 @@ db.poolConnect().then(() => {
   app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
+  app.get('/explorer', function (req, res) {
+    res.redirect('/')
+  })
   var server = app.listen(port)
   var io = require('socket.io').listen(server)
-  require('./api/api.js')(app, db, io) // configure our routes
+  require('./api/api.js')(app, db, io, log) // configure our routes
 
   // Start application
   // app.listen(port)                                    // startup our app at http://localhost:8080
-  console.log('Starting server at: ' + port)          // shoutout to the user
+  log.info('Starting server at: ' + port)          // shoutout to the user
   exports = module.exports = app                        // expose app
 }) // kickstart db connection
