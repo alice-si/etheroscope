@@ -69,7 +69,7 @@
                     </div>
                     <div class="card-block">
                         <div class="card-text" style="text-align: left">
-                            <form>
+                            <form #f="ngForm" (ngSubmit)="newFilter(f.value)">
                                 <section class="form-block">
                                     <label>
                                         Between dates:
@@ -78,13 +78,13 @@
                                         <label for="startDate">
                                             Starting from date:
                                         </label>
-                                        <input type="datetime-local" id="startDate" size="35">
+                                        <input type="datetime-local" id="startDate" size="35" name="startDate" ngModel>
                                     </div>
                                     <div class="form-group">
                                         <label for="endDate">
                                             Ending at date:
                                         </label>
-                                        <input type="datetime-local" id="endDate" size="35">
+                                        <input type="datetime-local" id="endDate" size="35" name="endDate" ngModel>
                                     </div>
                                 </section>
                                 <button type="submit" class="btn btn-primary">
