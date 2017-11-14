@@ -81,6 +81,7 @@
     "spinkit": "^1.2.5",
     "standard": "^10.0.3",
     "ts-helpers": "^1.1.2",
+    "validator": "^9.1.1",
     "web-animations-js": "^2.3.1",
     "web3": "git+https://github.com/gobitfly/web3.js.git#develop",
     "webpack-sources": "^1.0.1",
