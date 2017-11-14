@@ -5,9 +5,12 @@ var methodOverride = require('method-override')
 var morgan = require('morgan')
 var path = require('path')
 var log = require('loglevel')
-log.enableAll()
+var validator = require('validator')
+
+// Change this to alter how much information is printed out
+log.setLevel('trace')
+
 var db = require('./db/db.js')(log)
-log.info('server.js: Logging is working and set to ' + log.getLevel())
 
 // Set port to 8080
 var port = process.env.PORT || 8080
@@ -48,7 +51,7 @@ db.poolConnect().then(() => {
   })
   var server = app.listen(port)
   var io = require('socket.io').listen(server)
-  require('./api/api.js')(app, db, io, log) // configure our routes
+  require('./api/api.js')(app, db, io, log, validator) // configure our routes
 
   // Start application
   // app.listen(port)                                    // startup our app at http://localhost:8080

@@ -5,7 +5,7 @@ var Promise = require('bluebird')
 const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
-module.exports = function (db, log) {
+module.exports = function (db, log, validator) {
   const parity = {}
 
   parity.getLatestBlock = function () {
@@ -142,15 +142,15 @@ module.exports = function (db, log) {
     return new Promise((resolve, reject) => {
       filter.get((error, result) => {
         if (!error) {
-          log.debug('Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
-          log.debug('From', startBlock, 'to', endBlock)
+          log.debug('parity.js: Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
+          log.debug('parity.js: From', startBlock, 'to', endBlock)
           db.updateFromTo(address.substr(2), method, totalFrom, totalTo)
             .then(() => {
-              log.debug('Updating cached address')
+              log.debug('parity.js: Updating cached address')
               return resolve(result)
             })
             .catch((err) => {
-              log.error('db update error: ', err)
+              log.error('parity.js: db update error: ', err)
               return reject(err)
             })
         } else {

@@ -1,10 +1,21 @@
-module.exports = function (app, db, io, log) {
-  var parity = require('./parity')(db, log)
+module.exports = function (app, db, io, log, validator) {
+  var parity = require('./parity')(db, log, validator)
   let Promise = require('bluebird')
   var methodCachesInProgress = new Set()
 
+  function validAddress (address) {
+    return address.length == '42' && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) == '0x'
+  }
+
   app.get('/api/explore/:contractAddress', (req, res) => {
-    return parity.getContract(req.params.contractAddress)
+    let address = req.params.contractAddress
+    if (!validAddress(address)) {
+      log.debug('User requested something stupid')
+      let err = "Error - invalid contract hash"
+      return res.status(400).json(err);
+    }
+
+    return parity.getContract(address)
       .then((contract) => {
         return parity.getContractVariables(contract)
       })
@@ -23,6 +34,9 @@ module.exports = function (app, db, io, log) {
     log.debug('Sending history from parity')
     // First we obtain the contract.
     let contract = null
+    if (!validAddress(address)) {
+        io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: true })
+    }
     return new Promise((resolve, reject) => {
       parity.getContract(contractAddress)
         // Then, we get the history of transactions
@@ -119,6 +133,7 @@ module.exports = function (app, db, io, log) {
   }
 
   // from, to and latestBlock are inclusive
+  // pre: from, to, latestBlock are numbers, not strings
   function cacheMorePoints (address, method, from, to, latestBlock) {
     const chunkSize = 1000
     if (to === latestBlock) {
