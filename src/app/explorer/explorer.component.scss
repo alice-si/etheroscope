@@ -69,7 +69,9 @@ table {
 
 .no-graph-but-var {
   vertical-align: top;
-  text-align: right;
+  p {
+    text-align: right;
+  }
   width: 80%;
   padding: 5% 0;
 }
