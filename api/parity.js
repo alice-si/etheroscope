@@ -5,7 +5,7 @@ var Promise = require('bluebird')
 const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
-module.exports = function (db, log) {
+module.exports = function (db, log, validator) {
   const parity = {}
 
   parity.getLatestBlock = function () {
@@ -21,15 +21,10 @@ module.exports = function (db, log) {
 
   parity.getContract = function (address) {
     return new Promise((resolve, reject) => {
-      db.getContractName(address.substr(2), (err, res) => {
-        if (err) log.error('Error getting contract name from the db:\n' + err)
-        // Caching new contract
-        if (res.rowsAffected[0] === 0) {
-          log.debug('Caching new contract: ' + address)
-          log.debug(res)
-          db.addContracts([[address.substr(2), null]], (err, res) => {
-            if (err) log.error('Error adding contract name to the db')
-          })
+      db.getContractName(address.substr(2))
+      .then((result) => {
+        if (result.rowsAffected[0] === 0) {
+          db.addContracts([[address.substr(2), null]])
         }
         // TODO: Queuing System for Etherscan API
         const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
@@ -43,7 +38,7 @@ module.exports = function (db, log) {
             return resolve(parsedContract)
           })
           .catch((err) => {
-            log.error('Etherscan.io API error: ' + err)
+            log.error('parity.js: Etherscan.io API error: ' + err)
             return reject(err)
           })
       })
@@ -62,7 +57,7 @@ module.exports = function (db, log) {
       let address = parsedContract.address.substr(2)
       db.getVariables(address).then((res) => {
         if (res.recordset.length === 0) {
-          log.debug('Caching variables for contract')
+          log.debug('parity.js: Caching variables for contract')
           var abi = parsedContract.abi
           let variableNames = []
           return Promise.each(abi, (item) => {
@@ -72,7 +67,7 @@ module.exports = function (db, log) {
               variableNames.push(item.name)
             }
           })
-            .then((results) => {
+				  .then((results) => {
               return Promise.each(variableNames, (variableName) => {
                 db.addVariable([[address, variableName]], (err, res) => {
                   if (err) log.error('Error with caching variables: ' + err)
@@ -120,18 +115,13 @@ module.exports = function (db, log) {
             return resolve(result.recordset[0].timeStamp)
           }
           return this.calculateBlockTime(blockNumber).then((time) => {
-            db.addBlockTime([[blockNumber, time, 1]], function (err, res) {
-              if (err) {
-                log.error('Error adding the time of a block to the db:\n' + err)
-              }
-            })
+            db.addBlockTime([[blockNumber, time, 1]])
             return resolve(time)
           })
         })
     })
   }
-
-  parity.sendDataPointsInRange = function (address, start, end) {
+parity.sendDataPointsInRange = function (address, start, end) {
     const resultSize = 10000
     /* Request the results from the database in blocks of 10000, and send them on to the user */
     for (var i = start; i < end; i += resultSize) {
@@ -150,16 +140,17 @@ module.exports = function (db, log) {
     return new Promise((resolve, reject) => {
       filter.get((error, result) => {
         if (!error) {
-          log.debug('Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
-          log.debug('From', startBlock, 'to', endBlock)
-          db.updateFromTo(address.substr(2), method, totalFrom, totalTo, (err, res) => {
-            if (err) {
-              log.error('db update error: ', err)
+          log.debug('parity.js: Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
+          log.debug('parity.js: From', startBlock, 'to', endBlock)
+          db.updateFromTo(address.substr(2), method, totalFrom, totalTo)
+            .then(() => {
+              log.debug('parity.js: Updating cached address')
+              return resolve(result)
+            })
+            .catch((err) => {
+              log.error('parity.js: db update error: ', err)
               return reject(err)
-            }
-            log.debug('Updating cached address')
-            return resolve(result)
-          })
+            })
         } else {
           return reject(error)
         }
@@ -179,16 +170,12 @@ module.exports = function (db, log) {
       })
       .then((events) => {
         return Promise.filter(events, ([time, val, blockNum]) => {
-          if (time !== prevTime) {
+          let updates = time !== prevTime
+          if (updates) {
             prevTime = time
-            db.addDataPoints([[contract.address.substr(2), method, blockNum, val]],
-              (err, res) => {
-                if (err) log.error('Error adding datapoint to db:\n' + err)
-              })
-            return true
-          } else {
-            return false
+            db.addDataPoints([[contract.address.substr(2), method, blockNum, val]])
           }
+          return updates
         })
       })
       .then((events) => {
