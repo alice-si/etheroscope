@@ -5,9 +5,9 @@ var methodOverride = require('method-override')
 var morgan = require('morgan')
 var path = require('path')
 var log = require('loglevel')
-var db = require('./db/db.js')(log)
-
 log.enableAll()
+var db = require('./db/db.js')(log)
+log.info('server.js: Logging is working and set to ' + log.getLevel())
 
 // Set port to 8080
 var port = process.env.PORT || 8080
@@ -18,8 +18,7 @@ Promise.config({
 })
 
 process.on('uncaughtException', function (err) {
-  log.error(err)
-  log.error('uncaughtException error: ' + err)
+  log.error('server.js: Error: uncaughtException: ' + err)
 })
 
 // Application options and configurations
@@ -53,6 +52,6 @@ db.poolConnect().then(() => {
 
   // Start application
   // app.listen(port)                                    // startup our app at http://localhost:8080
-  log.info('Starting server at: ' + port)          // shoutout to the user
+  log.info('server.js: Starting server at: ' + port)          // shoutout to the user
   exports = module.exports = app                        // expose app
 }) // kickstart db connection
