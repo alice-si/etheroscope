@@ -181,4 +181,17 @@ export class ExplorerComponent {
   selectCompany(hash: string) {
     this.exploreContract(hash);
   }
+
+  searchContracts(pattern: string) {
+    this.contractService.searchContracts(pattern).subscribe(
+      (something) => {
+        console.log("got something", something)
+      },
+      (error) => {
+        console.log(error);
+      },
+      () => {
+        console.log('ok')
+      })
+  }
 }

@@ -237,5 +237,43 @@ module.exports = function (log) {
     request.query(sql, callback)
   }
 
+  db.searchContractHash = function (pattern) {
+    return new Promise(function (resolve, reject) {
+      var request = new mssql.Request(pool)
+      let interspersed_pattern = intersperse(pattern, '%')
+      var sql = 'select top 3 *, difference(contracthash, \'' + pattern + '\') as contractDiff' +
+      ' from contracts where contracthash LIKE \'' + interspersed_pattern +
+      '\' order by contractDiff DESC;'
+      request.query(sql).then((results) => {
+        return resolve(results.recordset)
+      })
+      .catch((err) => {
+        log.error(err)
+      })
+    })
+  }
+
+  db.searchContractName = function (pattern) {
+    return new Promise(function (resolve, reject) {
+      var request = new mssql.Request(pool)
+      let interspersed_pattern = intersperse(pattern, '%')
+      var sql = 'select top 3 *, difference(name, \'' + pattern + '\') as nameDiff' +
+      ' from contracts where name LIKE \'' + interspersed_pattern +
+      '\' order by nameDiff DESC;'
+      request.query(sql).then((results) => {
+        return resolve(results.recordset)
+      })
+      .catch((err) => {
+        log.error(err)
+      })
+    })
+  }
+
+  let intersperse = function (str, intrsprs) {
+    str = str.split('').map((elem) => {
+      return elem + intrsprs
+    })
+    return ('%' + str.join(''))
+  }
   return db
 }
