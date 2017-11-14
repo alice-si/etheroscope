@@ -24,6 +24,7 @@ export class ExplorerComponent {
   lastMethod: string;
   lastContract: string;
   placeholder: string;
+  datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
 
   selectedCompany: any;
 
@@ -62,29 +63,15 @@ export class ExplorerComponent {
     this.lastContract = null;
     this.graphDatapoints = [];
     this.methodDatapoints = [];
+    this.datapointFilters = [];
     this.contractService.getHistoryEvent().subscribe(
       (datapoints: any) => {
         console.log("updating...")
         this.graphDatapoints = [];
         if (datapoints.results.length !== 0) {
           this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
-          // get rid of datapoints with duplicate times
-          let seenTime = {};
-          this.methodDatapoints.filter( (point) => {
-            if (seenTime.hasOwnProperty(point[0])) {
-              return false;
-            }
-            seenTime[point[0]] = true;
-            return true;
-          });
-          console.log(this.methodDatapoints.length + " method datapoints");
-          // let samples = 100;
-          // let intervals = Math.floor(this.methodDatapoints.length / samples);
-          // for (let i = 0; i < samples; i++) {
-          //   this.graphDatapoints[i] = this.methodDatapoints[i * intervals];
-          // }
-          this.graphDatapoints = this.methodDatapoints;
-          console.log(this.graphDatapoints.length + " graph datapoints");
+          this.removeDuplicateDatapoints();
+          this.filterGraphDatapoints();
           console.log("Updating graph");
           this.updateGraph();
         }
@@ -101,6 +88,40 @@ export class ExplorerComponent {
 
   onSelect(event) {
     console.log(event);
+  }
+
+  removeDuplicateDatapoints() {
+    // get rid of datapoints with duplicate times
+    let seenTime = {};
+    this.methodDatapoints.filter( (point) => {
+      if (seenTime.hasOwnProperty(point[0])) {
+        return false;
+      }
+      seenTime[point[0]] = true;
+      return true;
+    });
+  }
+
+  filterGraphDatapoints() {
+    this.graphDatapoints = this.methodDatapoints;
+    this.graphDatapoints.filter( (point) => {
+      let len = this.datapointFilters.length;
+      for (let i = 0; i < len; i++) {
+        if (!this.datapointFilters[i].filter(point)) {
+          return false;
+        }
+      }
+      return true;
+    })
+  }
+
+  filterOnDatesBetween(startDate: number, endDate: number, message: string) {
+    this.datapointFilters.push({
+      message: message,
+      filter: (point) => {
+        return point[0] >= startDate && point[0] <= endDate;
+      }
+    })
   }
 
   exploreContract(contract: string) {
