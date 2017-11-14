@@ -1,10 +1,16 @@
 <div class="contractVarSelect">
-    <div class="search-area">
-        <input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" autofocus>
-        <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
-        <clr-icon shape="search" size="24"></clr-icon>
-      </button>
-    </div>
+    <table>
+        <tr>
+            <td class="search-bar">
+                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" autofocus>
+            </td>
+            <td class="search-button">
+                <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
+          <clr-icon shape="search" size="24"></clr-icon>
+          </button>
+            </td>
+        </tr>
+    </table>
 </div>
 
 <div class="no-graph" *ngIf="!displayGraph && !displayMethods">
