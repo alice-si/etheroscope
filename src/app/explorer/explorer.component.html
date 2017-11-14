@@ -1,9 +1,12 @@
 <div class="contractVarSelect">
     <div class="search-area">
         <input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" autofocus>
+				<div id="button-wrapper">
+				  <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
+				</div>
         <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
         <clr-icon shape="search" size="24"></clr-icon>
-      </button>
+        </button>
     </div>
 </div>
 

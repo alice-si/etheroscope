@@ -1,3 +1,4 @@
 export const environment = {
-  production: true
+  production: true,
+  socketURL: 'http://etheroscopePROD.uksouth.cloudapp.azure.com:8080/'
 };
