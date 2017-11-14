@@ -1,10 +1,14 @@
 import { Component } from "@angular/core";
 import { ContractService } from "../_services/contract.service";
 
+import { fadeInAnimation } from "../_animations/index";
+
 
 @Component({
   styleUrls: ['./explorer.component.scss'],
-  templateUrl: './explorer.component.html'
+  templateUrl: './explorer.component.html',
+  animations: [fadeInAnimation],
+  host: { '[@fadeInAnimation]': '' }
 })
 
 export class ExplorerComponent {
@@ -170,9 +174,8 @@ export class ExplorerComponent {
         this.timesValues.push({"name": date, "value": +elem[1]});
       })
       this.displayGraph = true;
-      this.multi = [...[{ "name": "TODO: NAME", "series": this.timesValues}]];
+      this.multi = [...[{ "name": "", "series": this.timesValues}]];
     }
-
   }
 
   generateDatapoints(method: string) {
