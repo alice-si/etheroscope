@@ -106,10 +106,20 @@ module.exports = function (log) {
     /* This function takes in a contract hash
      * and returns a promise
      */
-  db.getContractName = function (contractHash, callback) {
-    var request = new mssql.Request(pool)
-    var sql = "select * from Contracts where contractHash='" + contractHash + "'"
-    request.query(sql, callback)
+  db.getContractName = function (contractHash) {
+    return new Promise(function (resolve, reject) {
+      var request = new mssql.Request(pool)
+      var sql = "select * from Contracts where contractHash='" + contractHash + "'"
+      request.query(sql)
+        .then((results) => {
+          return resolve(results)
+        })
+        .catch((err) => {
+          log.error('db.js: Error in getContractName')
+          log.error(err)
+          return reject(err)
+        })
+     })
   }
 
   /* This function takes in an array of arrays of the form:

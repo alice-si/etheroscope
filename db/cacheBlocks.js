@@ -7,15 +7,17 @@ const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 var Parity = require('../api/parity')(db, log)
 
 db.poolConnect().then(() => {
-  db.getLatestCachedBlockTime((err, res) => {
+  db.getLatestCachedBlockTime() 
+  .then((result) => {
     let currentValue = 1
-    if (err) {
-      console.error('BlockCaching error: ' + err)
-    }
-    if (res.recordset[0][''] !== null) {
-      currentValue = parseInt(res.recordset[0]['']) + 1
-    }
+    currentValue = result + 1
+    console.log('current value is', currentValue)
     generateBlockTimeMappings(currentValue)
+  })
+  .catch((err) => {
+    console.log('Error getting latest cached block from DB, exiting')
+    console.log(err)
+    process.exit(1)
   })
 })
 
