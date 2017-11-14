@@ -23,6 +23,7 @@ export class ExplorerComponent {
   methods: string[];
   displayMethods: boolean;
   displayGraph: boolean;
+  displayBadExploreRequestWarning: boolean;
   graphDatapoints: number[][];
   methodDatapoints: number[][];
   lastMethod: string;
@@ -61,6 +62,7 @@ export class ExplorerComponent {
     this.multi = [];
     this.displayMethods = false;
     this.displayGraph = false;
+    this.displayBadExploreRequestWarning = false;
     this.methods = [];
     this.timesValues = [];
     this.lastMethod = null;
@@ -135,11 +137,14 @@ export class ExplorerComponent {
         this.methods = methods;
       },
       (error) => {
-        console.log(error);
+      if (error.status === 400) {
+        this.displayBadExploreRequestWarning = true;
+      }
       },
       () => {
         this.placeholder = contract;
         console.log("completed contract exploring");
+        this.displayBadExploreRequestWarning = false;
         this.displayMethods = true;
       }
     );
