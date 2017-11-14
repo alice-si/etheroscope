@@ -30,6 +30,7 @@ export class ExplorerComponent {
   lastContract: string;
   placeholder: string;
   datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
+  matches: any;
 
   selectedCompany: any;
 
@@ -70,6 +71,7 @@ export class ExplorerComponent {
     this.graphDatapoints = [];
     this.methodDatapoints = [];
     this.datapointFilters = [];
+    this.matches = null;
     this.contractService.getHistoryEvent().subscribe(
       (datapoints: any) => {
         console.log("updating...")
@@ -98,8 +100,8 @@ export class ExplorerComponent {
 
   newFilter(formInput: any) {
     if (formInput.startDate !== "" && formInput.endDate !== "") {
-      let startDateNo = Math.round(new Date(formInput.startDate).getTime()/1000);
-      let endDateNo = Math.round(new Date(formInput.endDate).getTime()/1000);
+      let startDateNo = Math.round(new Date(formInput.startDate).getTime() / 1000);
+      let endDateNo = Math.round(new Date(formInput.endDate).getTime() / 1000);
       let message = "Dates between " + formInput.startDate + " - " + formInput.endDate;
       this.addFilterOnDatesBetween(startDateNo, endDateNo, message);
     }
@@ -206,14 +208,16 @@ export class ExplorerComponent {
 
   searchContracts(pattern: string) {
     this.contractService.searchContracts(pattern).subscribe(
-      (something) => {
-        console.log("got something", something)
+      (matches) => {
+        if (matches.length !== 0) {
+          this.matches = matches;
+        }
       },
       (error) => {
+        this.matches = null;
         console.log(error);
       },
       () => {
-        console.log('ok')
       })
   }
 }
