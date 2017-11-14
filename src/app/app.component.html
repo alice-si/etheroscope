@@ -9,9 +9,9 @@
         </span>
       </a>
         </div>
-        <div class="header-nav" [clr-nav-level]="1">
-            <a class="nav-link" [routerLink]="['/']" routerLinkActive="active"><span class="nav-text">Home</span></a>
-            <a class="nav-link" [routerLink]="['/explorer']"><span class="nav-text">Explorer</span></a>
+        <div class="header-nav">
+            <a class="nav-link" [routerLink]="['/']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><span class="nav-text">Home</span></a>
+            <a class="nav-link" [routerLink]="['/explorer']" routerLinkActive="active"><span class="nav-text">Explorer</span></a>
             <a class="nav-link" href="http://etheroscope.alice.si/"><span class="nav-text">Alice.si</span></a>
         </div>
         <div class="header-actions">
@@ -21,7 +21,9 @@
         </div>
     </clr-header>
     <div class="content-container" style="max-width:100% height: 80%;">
-        <router-outlet></router-outlet>
+      <div>
+        <router-outlet #outlet="outlet"></router-outlet>
+      </div>
     </div>
     <clr-modal [(clrModalOpen)]="helpModalOpen" [clrModalSize]="'xl'">
         <div class="modal-body">
