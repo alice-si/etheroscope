@@ -95,13 +95,10 @@ export class ExplorerComponent {
   }
 
   newFilter(formInput: any) {
-    console.log("form input " + formInput)
     if (formInput.startDate !== "" && formInput.endDate !== "") {
       let startDateNo = Math.round(new Date(formInput.startDate).getTime()/1000);
       let endDateNo = Math.round(new Date(formInput.endDate).getTime()/1000);
       let message = "Dates between " + formInput.startDate + " - " + formInput.endDate;
-      console.log('Start date ' + startDateNo)
-      console.log('End date ' + endDateNo)
       this.addFilterOnDatesBetween(startDateNo, endDateNo, message);
     }
     console.log(this.datapointFilters)
@@ -122,7 +119,6 @@ export class ExplorerComponent {
   }
 
   filterGraphDatapoints() {
-    //this.graphDatapoints = this.methodDatapoints;
     this.graphDatapoints = this.methodDatapoints.filter( (point) => {
       let len = this.datapointFilters.length;
       for (let i = 0; i < len; i++) {
@@ -138,7 +134,6 @@ export class ExplorerComponent {
     this.datapointFilters.push({
       message: message,
       filter: (point) => {
-        console.log(startDate + '-' + point[0] + '-' + endDate)
         return point[0] >= startDate && point[0] <= endDate;
       }
     })
