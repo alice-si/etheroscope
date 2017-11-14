@@ -1,20 +1,22 @@
-<!--
-  ~ Copyright (c) 2016 VMware, Inc. All Rights Reserved.
-  ~ This software is released under MIT license.
-  ~ The full license information can be found in LICENSE in the root directory of this project.
-  -->
-<p>This is a Clarity seed application. This is the default page that loads for the application. al;skdjflaskdfalksjdflkasdj fklsajdflk qajsdflk sdjlfkjdslkajfdlksaj fkldsj lk fjdsk jfkds jakfdsj kdalj flkasdj flkasdj fkldsaj flkadsj flkjas</p>
-
-<clr-dropdown>
-    <button clrDropdownTrigger class="btn">
-        Dropdown
-        <clr-icon shape="caret down"></clr-icon>
-    </button>
-    <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
-        <a clrDropdownItem href="javascript://">Action 1</a>
-        <a clrDropdownItem href="javascript://">Action 2</a>
-        <div class="dropdown-divider"></div>
-        <a clrDropdownItem href="javascript://">Link 1</a>
-        <a clrDropdownItem href="javascript://">Link 2</a>
-    </clr-dropdown-menu>
-</clr-dropdown>
+<div class="wrapper">
+    <div class="landing-w">
+        <div class="landing">
+            <h1>
+                Etheroscope
+            </h1>
+            <div id="tag"> Browse Smart Contracts the Smart Way. </div>
+        </div>
+        <div class="subLanding">
+            <table>
+                <tr>
+                    <td>
+                        <p id="text"> Etheroscope allows you to look up or search for your feavourite smart contracts and inspect their changes over time. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut euismod leo vel ante dapibus, nec mattis dolor dictum. Ut et purus quis lacus mollis sagittis eget eu ligula. Curabitur congue et eros in aliquam. Nulla maximus eu elit quis dictum. Maecenas ac fringilla erat, efficitur dignissim elit. Maecenas et maximus elit, at accumsan felis. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Curabitur maximus porttitor nibh, tincidunt porttitor purus tincidunt sit amet. </p>
+                    </td>
+                    <td>
+                        <button type="button" [routerLink]="['/explorer']" class="btn btn-primary">Explore Now!</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

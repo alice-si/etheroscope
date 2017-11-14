@@ -3,13 +3,37 @@
 // The full license information can be found in LICENSE in the root directory of this project.
 .clr-icon {
   &.clr-clarity-logo {
-      background-image: url(../images/clarity_logo.svg);
-      height: 36px;
-      width: 36px;
-      margin-right: 11px;
+    background-image: url(../images/clarity_logo.svg);
+    height: 36px;
+    width: 36px;
+    margin-right: 11px;
   }
 }
 
 .header-4 {
-	background-color: #1998a2;
+  background-color: #1998a2;
+}
+
+clr-header {}
+
+.btn-primary {
+  background-color: #1998a2;
+  border: none;
+  font-weight: 100;
+  align: center;
+  vertical-align: middle;
+  font-color: white
+}
+
+.btn-primary:hover {
+  background-color: #11686e;
+  cursor: pointer;
+}
+
+.btn {
+  background-color: #199;
+  border: none;
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
 }
