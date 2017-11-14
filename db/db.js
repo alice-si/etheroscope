@@ -119,7 +119,7 @@ module.exports = function (log) {
           log.error(err)
           return reject(err)
         })
-     })
+    })
   }
 
   /* This function takes in an array of arrays of the form:
@@ -305,7 +305,7 @@ module.exports = function (log) {
   db.searchContractHash = function (pattern) {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
-      let interspersed_pattern = intersperse(pattern, '%')
+      let interspersed_pattern = pattern + '%'
       var sql = 'select top 3 *, difference(contracthash, \'' + pattern + '\') as contractDiff' +
       ' from contracts where contracthash LIKE \'' + interspersed_pattern +
       '\' order by contractDiff DESC;'

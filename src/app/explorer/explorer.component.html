@@ -2,9 +2,12 @@
     <table>
         <tr>
             <td class="search-bar">
-                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" autofocus>
+                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" (keydown)="searchContracts(searchBar.value)" autofocus>
                 <div id="button-wrapper">
                     <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
+                </div>
+                <div id="matches" *ngFor="let match of matches">
+                    {{match.contractHash}} {{match.name}}
                 </div>
             </td>
             <td class="search-button">
@@ -66,7 +69,7 @@
                             Variable: {{this.lastMethod}}
                         </div>
                         <div class="card-text" *ngFor="let filter of datapointFilters; let i = index">
-                            {{filter.message}} 
+                            {{filter.message}}
                             <clr-icon shape="times" style="cursor:pointer;" (click)="deleteFilter(i)"></clr-icon>
                         </div>
                     </div>
