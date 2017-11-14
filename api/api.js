@@ -98,26 +98,27 @@ module.exports = function (app, db, io, log) {
     methodCachesInProgress.add(address + method)
 
     db.getCachedFromTo(address.substring(2), method)
-    .then((result) => {
-      log.debug('Result is:', result)
-      parity.getLatestBlock()
-      .then((latestBlock) => {
-        log.debug('Result is', result)
-        let from = result.cachedFrom
-        let to = result.cachedUpTo
-        if (from === null || to === null) {
-          from = latestBlock
-          to = latestBlock
-        }
-        cacheMorePoints(address, method, from, to, latestBlock)
+      .then((result) => {
+        log.debug('Result is:', result)
+        parity.getLatestBlock()
+          .then((latestBlock) => {
+            log.debug('Result is', result)
+            let from = result.cachedFrom
+            let to = result.cachedUpTo
+            if (from === null || to === null) {
+              from = latestBlock
+              to = latestBlock
+            }
+            log.debug('api.js: calling cacheMorePoints: from:', from, 'to:', to, 'latestBlock:', latestBlock)
+            cacheMorePoints(address, method, parseInt(from), parseInt(to), parseInt(latestBlock))
+          })
       })
-    })
-    .catch((err) => {
-      log.error('Error caching more points:', err)
-    })
+      .catch((err) => {
+        log.error('Error caching more points:', err)
+      })
   }
 
-  // from, to and latestBlock are exclusive
+  // from, to and latestBlock are inclusive
   function cacheMorePoints (address, method, from, to, latestBlock) {
     const chunkSize = 1000
     if (to === latestBlock) {
