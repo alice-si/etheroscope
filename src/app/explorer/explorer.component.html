@@ -1,9 +1,11 @@
 <div class="contractVarSelect">
     <div class="search-area">
-        <input type="text" #searchBar class="search-bar" id="searchBar" (keydown)="searchContracts(searchBar.value)" (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" autofocus>
+        <div id="button-wrapper">
+          <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
+        </div>
         <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
         <clr-icon shape="search" size="24"></clr-icon>
-      </button>
+        </button>
     </div>
 </div>
 
@@ -66,7 +68,7 @@
                     </div>
                     <div class="card-block">
                         <div class="card-text" style="text-align: left">
-                            <form>
+                            <form #f="ngForm" (ngSubmit)="newFilter(f.value)">
                                 <section class="form-block">
                                     <label>
                                         Between dates:
@@ -75,13 +77,13 @@
                                         <label for="startDate">
                                             Starting from date:
                                         </label>
-                                        <input type="datetime-local" id="startDate" size="35">
+                                        <input type="datetime-local" id="startDate" size="35" name="startDate" ngModel>
                                     </div>
                                     <div class="form-group">
                                         <label for="endDate">
                                             Ending at date:
                                         </label>
-                                        <input type="datetime-local" id="endDate" size="35">
+                                        <input type="datetime-local" id="endDate" size="35" name="endDate" ngModel>
                                     </div>
                                 </section>
                                 <button type="submit" class="btn btn-primary">

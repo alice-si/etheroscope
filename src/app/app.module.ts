@@ -15,7 +15,9 @@ import { ExplorerComponent } from "./explorer/explorer.component";
 import { ContractService } from "./_services/contract.service";
 import { SocketIoModule, SocketIoConfig } from 'ng-socket-io';
 
-const config: SocketIoConfig = { url: 'http://etheroscope.uksouth.cloudapp.azure.com:8080/', options: {} };
+import { environment } from '../environments/environment';
+
+const config: SocketIoConfig = { url: environment.socketURL, options: {} };
 
 @NgModule({
     declarations: [
