@@ -23,6 +23,7 @@ export class ExplorerComponent {
   methods: string[];
   displayMethods: boolean;
   displayGraph: boolean;
+  displayBadExploreRequestWarning: boolean;
   graphDatapoints: number[][];
   methodDatapoints: number[][];
   lastMethod: string;
@@ -61,6 +62,7 @@ export class ExplorerComponent {
     this.multi = [];
     this.displayMethods = false;
     this.displayGraph = false;
+    this.displayBadExploreRequestWarning = false;
     this.methods = [];
     this.timesValues = [];
     this.lastMethod = null;
@@ -94,10 +96,25 @@ export class ExplorerComponent {
     console.log(event);
   }
 
+  newFilter(formInput: any) {
+    console.log("form input " + formInput)
+    if (formInput.startDate !== "" && formInput.endDate !== "") {
+      let startDateNo = Math.round(new Date(formInput.startDate).getTime()/1000);
+      let endDateNo = Math.round(new Date(formInput.endDate).getTime()/1000);
+      let message = "Dates between " + formInput.startDate + " - " + formInput.endDate;
+      console.log('Start date ' + startDateNo)
+      console.log('End date ' + endDateNo)
+      this.addFilterOnDatesBetween(startDateNo, endDateNo, message);
+    }
+    console.log(this.datapointFilters)
+    this.filterGraphDatapoints();
+    this.updateGraph();
+  }
+
   removeDuplicateDatapoints() {
     // get rid of datapoints with duplicate times
     let seenTime = {};
-    this.methodDatapoints.filter( (point) => {
+    this.methodDatapoints = this.methodDatapoints.filter( (point) => {
       if (seenTime.hasOwnProperty(point[0])) {
         return false;
       }
@@ -107,8 +124,8 @@ export class ExplorerComponent {
   }
 
   filterGraphDatapoints() {
-    this.graphDatapoints = this.methodDatapoints;
-    this.graphDatapoints.filter( (point) => {
+    //this.graphDatapoints = this.methodDatapoints;
+    this.graphDatapoints = this.methodDatapoints.filter( (point) => {
       let len = this.datapointFilters.length;
       for (let i = 0; i < len; i++) {
         if (!this.datapointFilters[i].filter(point)) {
@@ -119,10 +136,11 @@ export class ExplorerComponent {
     })
   }
 
-  filterOnDatesBetween(startDate: number, endDate: number, message: string) {
+  addFilterOnDatesBetween(startDate: number, endDate: number, message: string) {
     this.datapointFilters.push({
       message: message,
       filter: (point) => {
+        console.log(startDate + '-' + point[0] + '-' + endDate)
         return point[0] >= startDate && point[0] <= endDate;
       }
     })
@@ -135,11 +153,14 @@ export class ExplorerComponent {
         this.methods = methods;
       },
       (error) => {
-        console.log(error);
+      if (error.status === 400) {
+        this.displayBadExploreRequestWarning = true;
+      }
       },
       () => {
         this.placeholder = contract;
         console.log("completed contract exploring");
+        this.displayBadExploreRequestWarning = false;
         this.displayMethods = true;
       }
     );
