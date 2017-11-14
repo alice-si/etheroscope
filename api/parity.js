@@ -27,9 +27,7 @@ module.exports = function (db, log) {
         if (res.rowsAffected[0] === 0) {
           log.debug('Caching new contract: ' + address)
           log.debug(res)
-          db.addContracts([[address.substr(2), null]], (err, res) => {
-            if (err) log.error('Error adding contract name to the db')
-          })
+          db.addContracts([[address.substr(2), null]])
         }
         // TODO: Queuing System for Etherscan API
         const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
@@ -74,9 +72,7 @@ module.exports = function (db, log) {
           })
             .then((results) => {
               return Promise.each(variableNames, (variableName) => {
-                db.addVariable([[address, variableName]], (err, res) => {
-                  if (err) log.error('Error with caching variables: ' + err)
-                })
+                db.addVariable([[address, variableName]])
               })
             })
             .then((results) => {
@@ -152,14 +148,15 @@ module.exports = function (db, log) {
         if (!error) {
           log.debug('Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
           log.debug('From', startBlock, 'to', endBlock)
-          db.updateFromTo(address.substr(2), method, totalFrom, totalTo, (err, res) => {
-            if (err) {
+          db.updateFromTo(address.substr(2), method, totalFrom, totalTo)
+            .then(() => {
+              log.debug('Updating cached address')
+              return resolve(result)
+            })
+            .catch((err) => {
               log.error('db update error: ', err)
               return reject(err)
-            }
-            log.debug('Updating cached address')
-            return resolve(result)
-          })
+            })
         } else {
           return reject(error)
         }
@@ -181,10 +178,7 @@ module.exports = function (db, log) {
         return Promise.filter(events, ([time, val, blockNum]) => {
           if (time !== prevTime) {
             prevTime = time
-            db.addDataPoints([[contract.address.substr(2), method, blockNum, val]],
-              (err, res) => {
-                if (err) log.error('Error adding datapoint to db:\n' + err)
-              })
+            db.addDataPoints([[contract.address.substr(2), method, blockNum, val]])
             return true
           } else {
             return false
