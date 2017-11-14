@@ -7,15 +7,17 @@ const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 var Parity = require('../api/parity')(db, log)
 
 db.poolConnect().then(() => {
-  db.getLatestCachedBlockTime((err, res) => {
+  db.getLatestCachedBlockTime() 
+  .then((result) => {
     let currentValue = 1
-    if (err) {
-      console.error('BlockCaching error: ' + err)
-    }
-    if (res.recordset[0][''] !== null) {
-      currentValue = parseInt(res.recordset[0]['']) + 1
-    }
+    currentValue = result + 1
+    console.log('current value is', currentValue)
     generateBlockTimeMappings(currentValue)
+  })
+  .catch((err) => {
+    console.log('Error getting latest cached block from DB, exiting')
+    console.log(err)
+    process.exit(1)
   })
 })
 
@@ -30,12 +32,10 @@ let generateBlockTimeMappings = async function (index) {
     } else {
       return Parity.calculateBlockTime(index).then((time) => {
         console.log('B,V: ' + index + ', ' + time)
-        db.addBlockTime([[index, time, 0]], function (err, res) {
-          if (err) {
-            console.log('Error adding the time of a block to the db:\n' + err)
-          }
-          generateBlockTimeMappings(index += 1)
-        })
+        db.addBlockTime([[index, time, 0]])
+          .then(() => {
+            generateBlockTimeMappings(index += 1)
+          })
       })
     }
   })
@@ -44,6 +44,9 @@ let generateBlockTimeMappings = async function (index) {
 let getCurrentBlock = function () {
   return new Promise((resolve) => {
     web3.eth.getBlockNumber((error, result) => {
+      if (error) {
+        log.error('cacheBlocks.js: Error in getCurrentBlock')
+      }
       return resolve(result)
     })
   })
