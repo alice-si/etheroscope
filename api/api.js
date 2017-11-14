@@ -34,9 +34,6 @@ module.exports = function (app, db, io, log, validator) {
     log.debug('Sending history from parity')
     // First we obtain the contract.
     let contract = null
-    if (!validAddress(address)) {
-        io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: true })
-    }
     return new Promise((resolve, reject) => {
       parity.getContract(contractAddress)
         // Then, we get the history of transactions
@@ -102,6 +99,11 @@ module.exports = function (app, db, io, log, validator) {
   })
 
   function sendHistory (address, method, socket) {
+    // Return error if they request an invalid contract hash
+    if (!validAddress(address)) {
+      io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: true })
+      return
+    }
     // Send every point we have in the db so far
     sendAllDataPointsFromDB(address, method, socket)
 
