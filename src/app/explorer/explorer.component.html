@@ -59,6 +59,39 @@
                     </div>
                 </div>
             </div>
+            <div class="filters" *ngIf="displayGraph">
+                <div class="card">
+                    <div class="card-header">
+                        Filter datapoints...
+                    </div>
+                    <div class="card-block">
+                        <div class="card-text" style="text-align: left">
+                            <form>
+                                <section class="form-block">
+                                    <label>
+                                        Between dates:
+                                    </label>
+                                    <div class="form-group">
+                                        <label for="startDate">
+                                            Starting from date:
+                                        </label>
+                                        <input type="datetime-local" id="startDate" size="35">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="endDate">
+                                            Ending at date:
+                                        </label>
+                                        <input type="datetime-local" id="endDate" size="35">
+                                    </div>
+                                </section>
+                                <button type="submit" class="btn btn-primary">
+                                    Filter
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </td>
     </tr>
 </table>
