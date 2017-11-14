@@ -225,11 +225,21 @@ module.exports = function (log) {
     })
   }
 
-  db.addBlockTime = function (values, callback) {
-    var request = new mssql.Request(pool)
-    var valueString = buildValueString(values)
-    var sql = 'insert into Blocks (blockNumber, timeStamp, userLog) values ' + valueString
-    request.query(sql, callback)
+  db.addBlockTime = function (values) {
+    return new Promise(function (resolve, reject) {
+      var request = new mssql.Request(pool)
+      var valueString = buildValueString(values)
+      var sql = 'insert into Blocks (blockNumber, timeStamp, userLog) values ' + valueString
+      request.query(sql)
+        .then(() => {
+          return resolve()
+        })
+        .catch((err) => {
+          log.error('db.js: Error in addBlocKTime')
+          log.error(err)
+          return reject(err)
+        })
+    })
   }
 
   /* This function returns *all* the variables in a given date range
