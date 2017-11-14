@@ -4,9 +4,11 @@ import { Observable } from "rxjs/Observable";
 import 'rxjs/add/operator/map';
 import { SocketIoModule, SocketIoConfig, Socket } from 'ng-socket-io';
 
+import { environment } from '../../environments/environment';
+
 @Injectable()
 export class ContractService {
-  private apiUrl: string = 'http://etheroscope.uksouth.cloudapp.azure.com:8080/';
+  private apiUrl: string = environment.socketURL;
 
   constructor(private http: Http, private socket: Socket) {
 
@@ -15,6 +17,10 @@ export class ContractService {
   exploreContract(contract: string) {
     console.log("Sending Request...");
     return this.http.get(this.apiUrl + 'api/explore/' + contract).map(this.extractData);
+  }
+
+  searchContracts(pattern: string) {
+    return this.http.get(this.apiUrl + 'api/search/' + pattern).map(this.extractData);
   }
 
   generateDatapoints(contract: string, method: string) {
