@@ -106,6 +106,12 @@ export class ExplorerComponent {
     this.updateGraph();
   }
 
+  deleteFilter(index: number) {
+    this.datapointFilters.splice(index, 1);
+    this.filterGraphDatapoints();
+    this.updateGraph();
+  }
+
   removeDuplicateDatapoints() {
     // get rid of datapoints with duplicate times
     let seenTime = {};
