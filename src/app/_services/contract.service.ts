@@ -17,6 +17,10 @@ export class ContractService {
     return this.http.get(this.apiUrl + 'api/explore/' + contract).map(this.extractData);
   }
 
+  searchContracts(pattern: string) {
+    return this.http.get(this.apiUrl + 'api/search/' + pattern).map(this.extractData);
+  }
+
   generateDatapoints(contract: string, method: string) {
     console.log("Retrieving History...");
     this.socket.emit('getHistory', [contract, method]);

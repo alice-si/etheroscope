@@ -1,6 +1,6 @@
 <div class="contractVarSelect">
     <div class="search-area">
-        <input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" autofocus>
+        <input type="text" #searchBar class="search-bar" id="searchBar" (keydown)="searchContracts(searchBar.value)" (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" autofocus>
         <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
         <clr-icon shape="search" size="24"></clr-icon>
       </button>

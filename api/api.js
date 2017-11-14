@@ -2,6 +2,7 @@ module.exports = function (app, db, io, log) {
   var parity = require('./parity')(db, log)
   let Promise = require('bluebird')
   var methodCachesInProgress = new Set()
+  let nameHashCache;
 
   app.get('/api/explore/:contractAddress', (req, res) => {
     return parity.getContract(req.params.contractAddress)
@@ -16,6 +17,20 @@ module.exports = function (app, db, io, log) {
         log.error(err)
         return res.status(400).json(err.message)
       })
+  })
+
+  app.get('/api/search/:string', (req, res) => {
+    let searchStr = req.params.string
+    if (searchStr[0] == '0' && (searchStr[1] == 'x' || searchStr[1] == 'X' )) {
+      db.searchContractHash(searchStr.substr(2)).then((results) => {
+        return res.status(200).json(results)
+      })
+    } else {
+      console.log(searchStr)
+      db.searchContractName(searchStr).then((results) => {
+        return res.status(200).json(results)
+      })
+    }
   })
 
   function sendDataPointsFromParity (contractAddress, method, from, to,
