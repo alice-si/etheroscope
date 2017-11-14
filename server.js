@@ -44,6 +44,9 @@ db.poolConnect().then(() => {
   app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
+  app.get('/explorer', function (req, res) {
+    res.redirect('/')
+  })
   var server = app.listen(port)
   var io = require('socket.io').listen(server)
   require('./api/api.js')(app, db, io, log) // configure our routes

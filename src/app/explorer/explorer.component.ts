@@ -32,6 +32,7 @@ export class ExplorerComponent implements OnInit {
   methodDatapoints: number[][];
   lastMethod: string;
   lastContract: string;
+  placeholder: string;
 
   selectedCompany: any;
 
@@ -98,6 +99,7 @@ export class ExplorerComponent implements OnInit {
 
   constructor(private contractService: ContractService) {
     this.curContractID = '';
+    this.placeholder = null;
     this.single = [];
     this.multi = [];
     this.displayMethods = false;
@@ -124,11 +126,12 @@ export class ExplorerComponent implements OnInit {
             return true;
           });
           console.log(this.methodDatapoints.length + " method datapoints");
-          let samples = 100;
-          let intervals = Math.floor(this.methodDatapoints.length / samples);
-          for (let i = 0; i < samples; i++) {
-            this.graphDatapoints[i] = this.methodDatapoints[i * intervals];
-          }
+          // let samples = 100;
+          // let intervals = Math.floor(this.methodDatapoints.length / samples);
+          // for (let i = 0; i < samples; i++) {
+          //   this.graphDatapoints[i] = this.methodDatapoints[i * intervals];
+          // }
+          this.graphDatapoints = this.methodDatapoints;
           console.log(this.graphDatapoints.length + " graph datapoints");
           console.log("Updating graph");
           this.updateGraph();
@@ -158,6 +161,7 @@ export class ExplorerComponent implements OnInit {
         console.log(error);
       },
       () => {
+        this.placeholder = contract;
         console.log("completed contract exploring");
         this.displayMethods = true;
       }
