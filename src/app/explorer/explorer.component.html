@@ -1,6 +1,6 @@
 <div class="contractVarSelect">
 		<div class="search-area">
-				<ng-select
+				<ng-select class="search-bar"
 									[allowClear]="true"
 		              [items]="items"
 		              [disabled]="disabled"
@@ -10,7 +10,9 @@
 		              (typed)="typed($event)"
 		              placeholder="No contract selected">
 		  	</ng-select>
-				<button type="button" class="btn btn-primary" (click)="exploreContract(value.id)">Explore</button>
+				<button type="button" class="btn btn-primary" (click)="exploreContract(value.id)">
+				<clr-icon shape="search" size="24"></clr-icon>
+				</button>
 		</div>
 </div>
 
