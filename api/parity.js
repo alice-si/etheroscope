@@ -116,11 +116,7 @@ module.exports = function (db, log) {
             return resolve(result.recordset[0].timeStamp)
           }
           return this.calculateBlockTime(blockNumber).then((time) => {
-            db.addBlockTime([[blockNumber, time, 1]], function (err, res) {
-              if (err) {
-                log.error('Error adding the time of a block to the db:\n' + err)
-              }
-            })
+            db.addBlockTime([[blockNumber, time, 1]])
             return resolve(time)
           })
         })
