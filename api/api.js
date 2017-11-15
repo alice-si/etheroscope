@@ -124,17 +124,11 @@ module.exports = function (app, db, io, log, validator) {
       return
     }
 
-    // If there is already a caching process, we don't need to set one up
-    if (methodCachesInProgress.has(address + method)) {
-      return
-    }
-    methodCachesInProgress.add(address + method)
-
     db.getCachedFromTo(address.substring(2), method)
       .then((result) => {
-        log.debug('Result is:', result)
         parity.getLatestBlock()
           .then((latestBlock) => {
+            io.sockets.in(address + method).emit('latestBlock', { latestBlock: latestBlock })
             log.debug('Result is', result)
             let from = result.cachedFrom
             let to = result.cachedUpTo
@@ -144,6 +138,11 @@ module.exports = function (app, db, io, log, validator) {
             }
             // Send every point we have in the db so far
             sendAllDataPointsFromDB(address, method, parseInt(from), parseInt(to), socket)
+            // If there is already a caching process, we don't need to set one up
+            if (methodCachesInProgress.has(address + method)) {
+              return
+           }
+            methodCachesInProgress.add(address + method)
             log.debug('api.js: calling cacheMorePoints: from:', from, 'to:', to, 'latestBlock:', latestBlock)
             cacheMorePoints(address, method, parseInt(from), parseInt(to), parseInt(latestBlock))
           })
