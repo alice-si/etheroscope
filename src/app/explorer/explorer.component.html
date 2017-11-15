@@ -67,6 +67,12 @@
                     <div class="card-text">
                         Variable: {{this.lastMethod}}
                     </div>
+                    <div class="progress-block">
+                        <label>Generating Datapoints</label>
+                        <div class="progress-static">
+                            <div class="progress-meter" [attr.data-value]="progressBar"></div>
+                        </div>
+                    </div>
                     <div class="card-text" *ngFor="let filter of datapointFilters; let i = index">
                         {{filter.message}}
                         <clr-icon shape="times" style="cursor:pointer;" (click)="deleteFilter(i)"></clr-icon>
@@ -118,5 +124,3 @@
         </td>
     </tr>
 </table>
-
-From : {{cachedFrom}} To: {{cachedTo}}

@@ -34,6 +34,7 @@ export class ExplorerComponent {
 
   cachedFrom: number;
   cachedTo: number;
+  progressBar: number;
 
   selectedCompany: any;
 
@@ -72,6 +73,8 @@ export class ExplorerComponent {
         } else {
             this.cachedFrom = Math.min(this.cachedFrom, parseInt(datapoints.from));
             this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to));
+            this.progressBar = Math.ceil(100 * (this.cachedTo - this.cachedFrom) / this.cachedTo);
+            console.log(this.progressBar);
         }
         if (datapoints.results.length !== 0) {
           this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
@@ -92,6 +95,7 @@ export class ExplorerComponent {
   }
 
   private initialiseVariables() {
+      this.progressBar = 0;
       this.curContractID = '';
       this.placeholder = null;
       this.single = [];
