@@ -1,10 +1,22 @@
 <div class="contractVarSelect">
-    <div class="search-area">
-        <input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" autofocus>
-        <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
-        <clr-icon shape="search" size="24"></clr-icon>
-      </button>
-    </div>
+    <table>
+        <tr>
+            <td class="search-bar">
+                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" (keydown)="searchContracts(searchBar.value)" autofocus>
+                <div id="button-wrapper">
+                    <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
+                </div>
+                <div id="matches" *ngFor="let match of matches">
+                    {{match.contractHash}} {{match.name}}
+                </div>
+            </td>
+            <td class="search-button">
+                <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
+          <clr-icon shape="search" size="24"></clr-icon>
+          </button>
+            </td>
+        </tr>
+    </table>
 </div>
 
 <div class="no-graph" *ngIf="!displayGraph && !displayMethods">
@@ -56,6 +68,10 @@
                         <div class="card-text">
                             Variable: {{this.lastMethod}}
                         </div>
+                        <div class="card-text" *ngFor="let filter of datapointFilters; let i = index">
+                            {{filter.message}}
+                            <clr-icon shape="times" style="cursor:pointer;" (click)="deleteFilter(i)"></clr-icon>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -66,8 +82,19 @@
                     </div>
                     <div class="card-block">
                         <div class="card-text" style="text-align: left">
-                            <form>
+                            <form #f="ngForm" (ngSubmit)="newFilter(f.value)">
                                 <section class="form-block">
+                                    <label>
+                                        On the last:
+                                    </label>
+                                    <div class="btn-group btn-primary btn-icon">
+                                        <button class="btn btn-primary" (click)="filterOnLast(1, 'hour')">1H</button>
+                                        <button class="btn btn-primary" (click)="filterOnLast(12, 'hour')">12H</button>
+                                        <button class="btn btn-primary" (click)="filterOnLast(1, 'day')">1D</button>
+                                        <button class="btn btn-primary" (click)="filterOnLast(1, 'week')">1W</button>
+                                        <button class="btn btn-primary" (click)="filterOnLast(1, 'month')">1M</button>
+                                        <button class="btn btn-primary" (click)="filterOnLast(1, 'year')">1Y</button>
+                                    </div>
                                     <label>
                                         Between dates:
                                     </label>
@@ -75,13 +102,13 @@
                                         <label for="startDate">
                                             Starting from date:
                                         </label>
-                                        <input type="datetime-local" id="startDate" size="35">
+                                        <input type="datetime-local" id="startDate" size="35" name="startDate" ngModel>
                                     </div>
                                     <div class="form-group">
                                         <label for="endDate">
                                             Ending at date:
                                         </label>
-                                        <input type="datetime-local" id="endDate" size="35">
+                                        <input type="datetime-local" id="endDate" size="35" name="endDate" ngModel>
                                     </div>
                                 </section>
                                 <button type="submit" class="btn btn-primary">
@@ -98,4 +125,3 @@
 
 From : {{cachedFrom}}
 To: {{cachedTo}}
-{{increment}}
