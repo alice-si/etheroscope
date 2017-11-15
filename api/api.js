@@ -64,7 +64,7 @@ module.exports = function (app, db, io, log, validator) {
           totalFrom, totalTo)
       })
       .then(function (results) {
-        io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: false, contract: contractAddress, method: method, from: from, to: to, results: results })
+        io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: false, from: from, to: to, results: results })
         return resolve()
       })
       .catch(function (err) {
@@ -75,7 +75,7 @@ module.exports = function (app, db, io, log, validator) {
     })
   }
 
-  function sendAllDataPointsFromDB (address, method, socket) {
+  function sendAllDataPointsFromDB (address, method, from, to, socket) {
     db.getDataPoints(address.substr(2), method)
     .then((dataPoints) => {
       return Promise.map(dataPoints[0], (elem) => {
@@ -84,7 +84,7 @@ module.exports = function (app, db, io, log, validator) {
     })
     .then((dataPoints) => {
       console.dir(dataPoints)
-      socket.emit('getHistoryResponse', { error: false, contract: address, method: method, results: dataPoints })
+      socket.emit('getHistoryResponse', { error: false, from: from, to: to, results: dataPoints })
     })
     .catch(function (err) {
       log.error('Error sending datapoints from DD')
@@ -103,7 +103,7 @@ module.exports = function (app, db, io, log, validator) {
     socket.on('unsubscribe', ([address, method]) => {
       if (address !== null && method !== null) {
         log.debug('Unsubbing')
-        socket.leave(address+method, (err) => {
+        socket.leave(address + method, (err) => {
           log.debug('unsubbed!!')
           socket.emit('unsubscribed', { error: err })
         })
@@ -123,8 +123,6 @@ module.exports = function (app, db, io, log, validator) {
     if (!validAddress(address)) {
       return
     }
-    // Send every point we have in the db so far
-    sendAllDataPointsFromDB(address, method, socket)
 
     // If there is already a caching process, we don't need to set one up
     if (methodCachesInProgress.has(address + method)) {
@@ -144,6 +142,8 @@ module.exports = function (app, db, io, log, validator) {
               from = latestBlock
               to = latestBlock
             }
+            // Send every point we have in the db so far
+            sendAllDataPointsFromDB(address, method, parseInt(from), parseInt(to), socket)
             log.debug('api.js: calling cacheMorePoints: from:', from, 'to:', to, 'latestBlock:', latestBlock)
             cacheMorePoints(address, method, parseInt(from), parseInt(to), parseInt(latestBlock))
           })
