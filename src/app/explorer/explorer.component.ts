@@ -113,16 +113,39 @@ export class ExplorerComponent {
     console.log(event);
   }
 
-  newFilter(formInput: any) {
+  newFilterFromForm(formInput: any) {
     if (formInput.startDate !== "" && formInput.endDate !== "") {
       let startDateNo = Math.round(new Date(formInput.startDate).getTime() / 1000);
       let endDateNo = Math.round(new Date(formInput.endDate).getTime() / 1000);
-      let message = "Dates between " + formInput.startDate + " - " + formInput.endDate;
-      this.addFilterOnDatesBetween(startDateNo, endDateNo, message);
+      this.addFilterOnDatesBetween(startDateNo, endDateNo);
     }
-    console.log(this.datapointFilters)
-    this.filterGraphDatapoints();
-    this.updateGraph();
+  }
+
+  filterOnLast(length: number, timeframe: string) {
+    let now  = Math.round(new Date().getTime() / 1000);
+    let mult = 0;
+    switch (timeframe) {
+      case 'hour':
+        mult = 3600;
+        break;
+      case 'day':
+        mult = 86400;
+        break;
+      case 'week':
+        mult = 604800;
+        break;
+      case 'month':
+        mult = 2419200;
+        break;
+      case 'year':
+        mult = 29030400;
+        break;
+      default:
+        // other timeframes not supported
+        return;
+    }
+    let to = now - (mult * length);
+    this.addFilterOnDatesBetween(to, now);
   }
 
   deleteFilter(index: number) {
@@ -155,13 +178,21 @@ export class ExplorerComponent {
     })
   }
 
-  addFilterOnDatesBetween(startDate: number, endDate: number, message: string) {
+  addFilterOnDatesBetween(startDate: number, endDate: number) {
+    let startDisplayDate = new Date(0);
+    let endDisplayDate = new Date(0);
+    startDisplayDate.setUTCSeconds(+startDate);
+    endDisplayDate.setUTCSeconds(+endDate);
+    let message = "Dates between " + startDisplayDate.toLocaleString()
+      + " - " + endDisplayDate.toLocaleString();
     this.datapointFilters.push({
       message: message,
       filter: (point) => {
         return point[0] >= startDate && point[0] <= endDate;
       }
     })
+    this.filterGraphDatapoints();
+    this.updateGraph();
   }
 
   exploreContract(contract: string) {
