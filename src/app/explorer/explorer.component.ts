@@ -196,15 +196,17 @@ export class ExplorerComponent {
   }
 
   exploreContract(contract: string) {
+    this.cachedTo = -1;
+    this.cachedFrom = -1;
     this.curContractID = contract;
     this.contractService.exploreContract(contract).subscribe(
       (methods) => {
         this.methods = methods;
       },
       (error) => {
-      if (error.status === 400) {
-        this.displayBadExploreRequestWarning = true;
-      }
+        if (error.status === 400) {
+              this.displayBadExploreRequestWarning = true;
+        }
       },
       () => {
         this.placeholder = contract;
