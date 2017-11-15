@@ -40,6 +40,7 @@ export class ExplorerComponent {
   methodHasInitialResponse: boolean;
   cachedFrom: number;
   cachedTo: number;
+  latestBlock: number;
   progressBar: number;
 
   selectedCompany: any;
@@ -68,10 +69,16 @@ export class ExplorerComponent {
 
   constructor(private contractService: ContractService) {
     this.initialiseVariables();
+    this.contractService.latestBlockEvent().subscribe(
+      (latestBlock: any) => {
+        this.latestBlock = latestBlock.latestBlock;
+      }
+    );
     this.contractService.getHistoryEvent().subscribe(
       (datapoints: any) => {
+        console.log(datapoints)
         if (datapoints.error) return;
-        console.log("Retrieving datapoints...")
+        //console.log("Retrieving datapoints...")
         this.graphDatapoints = [];
         if (!this.methodHasInitialResponse) {
             this.methodHasInitialResponse = true;
@@ -82,7 +89,7 @@ export class ExplorerComponent {
             this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to));
             console.log(this.progressBar);
         }
-        this.progressBar = Math.ceil(100 * (this.cachedTo - this.cachedFrom) / this.cachedTo);
+        this.progressBar = Math.ceil(100 * (this.cachedTo - this.cachedFrom) / this.latestBlock);
         if (datapoints.results.length !== 0) {
           this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
           this.removeDuplicateDatapoints();
@@ -248,9 +255,9 @@ export class ExplorerComponent {
   generateDatapoints(method: string) {
     if (method !== this.lastMethod || this.curContractID !== this.lastContract ||
       this.lastContract === null || this.lastMethod === null) {
+      this.contractService.leaveMethod(this.lastContract, this.lastMethod);
       this.progressBar = 0;
       this.methodHasInitialResponse = false;
-      this.contractService.leaveMethod(this.lastContract, this.lastMethod);
       this.lastContract = this.curContractID;
       this.lastMethod = method;
       // flush the current method datapoints

@@ -24,7 +24,7 @@ export class ContractService {
   }
 
   generateDatapoints(contract: string, method: string) {
-    console.log("Retrieving History...");
+    console.log("Subscribing to method " + method + "...");
     this.socket.emit('getHistory', [contract, method]);
   }
 
@@ -35,6 +35,10 @@ export class ContractService {
 
   getHistoryEvent() {
     return this.socket.fromEvent('getHistoryResponse');
+  }
+
+  latestBlockEvent() {
+    return this.socket.fromEvent('latestBlock');
   }
 
   private extractData(res: Response) {
