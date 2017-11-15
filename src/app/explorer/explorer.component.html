@@ -80,10 +80,10 @@
                 </div>
                 <div *ngIf="progressBar !== 100" class="card-block">
                     <div class="progress-block">
+                        <label>{{this.progressBar}}%</label>
                         <div class="progress-static">
                             <div class="progress-meter" [attr.data-value]="progressBar"></div>
                         </div>
-                        <label>{{this.progressBar}}%</label>
                     </div>
                     <div *ngIf="methodHasInitialResponse" class="card-text">
                         Got points from block
