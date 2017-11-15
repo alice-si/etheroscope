@@ -25,6 +25,7 @@ export class ExplorerComponent {
     {"name": "DigixCrowdSale", "hash": "0xf0160428a8552ac9bb7e050d90eeade4ddd52843"}];
 
   curContractID: string;
+  curContractName: string;
   methods: string[];
   displayMethods: boolean;
   displayGraph: boolean;
@@ -112,6 +113,7 @@ export class ExplorerComponent {
   private initialiseVariables() {
       this.progressBar = 0;
       this.curContractID = '';
+      this.curContractName = '';
       this.placeholder = null;
       this.single = [];
       this.multi = [];
@@ -222,8 +224,15 @@ export class ExplorerComponent {
     this.curContractID = contract;
     this.displayGraph = false;
     this.contractService.exploreContract(contract).subscribe(
-      (methods) => {
-        this.methods = methods;
+      (contractInfo) => {
+        console.log('Contract INFO');
+        console.log(contractInfo);
+        this.methods = contractInfo.variableNames;
+        if (contractInfo.contractName === null) {
+          this.curContractName = 'unknown';
+        } else {
+          this.curContractName = contractInfo.contractName;
+        }
       },
       (error) => {
         if (error.status === 400) {

@@ -109,10 +109,14 @@ module.exports = function (log) {
   db.getContractName = function (contractHash) {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
-      var sql = "select * from Contracts where contractHash='" + contractHash + "'"
+      var sql = "select name from Contracts where contractHash='" + contractHash + "'"
       request.query(sql)
         .then((results) => {
-          return resolve(results)
+          let name = null
+          if (results.rowsAffected[0] !== 0) {
+            name = results.recordset[0].name
+          }
+          return resolve(name)
         })
         .catch((err) => {
           log.error('db.js: Error in getContractName')
