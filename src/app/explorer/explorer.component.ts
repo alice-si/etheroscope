@@ -2,6 +2,8 @@ import { Component } from "@angular/core";
 import { ContractService } from "../_services/contract.service";
 
 import { fadeInAnimation } from "../_animations/index";
+import { SlicePipe } from '@angular/common';
+import {Clipboard} from 'ts-clipboard';
 
 
 enum FilterGroup {
@@ -13,7 +15,7 @@ enum FilterGroup {
   styleUrls: ['./explorer.component.scss'],
   templateUrl: './explorer.component.html',
   animations: [fadeInAnimation],
-  host: { '[@fadeInAnimation]': '' }
+  host: {'[@fadeInAnimation]': ''}
 })
 
 export class ExplorerComponent {
@@ -299,5 +301,9 @@ export class ExplorerComponent {
       },
       () => {
       })
+  }
+
+  copyToClipboard(clip: string) {
+    Clipboard.copy(clip);
   }
 }
