@@ -39,6 +39,7 @@ export class ExplorerComponent {
   matches: any;
 
   methodHasInitialResponse: boolean;
+  waitingForInitialPoints: boolean;
   cachedFrom: number;
   cachedTo: number;
   latestBlock: number;
@@ -93,6 +94,7 @@ export class ExplorerComponent {
         }
         this.progressBar = Math.ceil(100 * (this.cachedTo - this.cachedFrom) / this.latestBlock);
         if (datapoints.results.length !== 0) {
+          this.waitingForInitialPoints = false;
           this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
           this.removeDuplicateDatapoints();
           this.filterGraphDatapoints();
@@ -127,6 +129,7 @@ export class ExplorerComponent {
       this.graphDatapoints = [];
       this.methodDatapoints = [];
       this.datapointFilters = [];
+      this.waitingForInitialPoints = false;
   }
 
   onSelect(event) {
@@ -271,6 +274,7 @@ export class ExplorerComponent {
       this.lastContract === null || this.lastMethod === null) {
       this.contractService.leaveMethod(this.lastContract, this.lastMethod);
       this.progressBar = 0;
+      this.waitingForInitialPoints = true;
       this.methodHasInitialResponse = false;
       this.lastContract = this.curContractID;
       this.lastMethod = method;
