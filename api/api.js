@@ -99,9 +99,10 @@ module.exports = function (app, db, io, log, validator) {
   })
 
   function sendHistory (address, method, socket) {
-    // Return error if they request an invalid contract hash
+    /* Ignore invalid requests on the socket - the frontend should
+     * ensure these are not send, so any invalid addresses
+     * will not have been sent from our front end */
     if (!validAddress(address)) {
-      io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: true })
       return
     }
     // Send every point we have in the db so far
