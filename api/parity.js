@@ -23,7 +23,7 @@ module.exports = function (db, log, validator) {
     return new Promise((resolve, reject) => {
       db.getContractName(address.substr(2))
       .then((result) => {
-        if (result.rowsAffected[0] === 0) {
+        if (result === null) {
           db.addContracts([[address.substr(2), null]])
         }
         // TODO: Queuing System for Etherscan API
@@ -35,7 +35,7 @@ module.exports = function (db, log, validator) {
             // db.addContracts([[address.substr(2), null]], (err, res) => {
             //   if (err) log.error('Error adding contract name to the db')
             // })
-            return resolve(parsedContract)
+            return resolve({ parsedContract: parsedContract, contractName: result })
           })
           .catch((err) => {
             log.error('parity.js: Etherscan.io API error: ' + err)
@@ -52,7 +52,9 @@ module.exports = function (db, log, validator) {
     return Contract.at(address)
   }
 
-  parity.getContractVariables = function (parsedContract) {
+  parity.getContractVariables = function (contractInfo) {
+    let parsedContract = contractInfo.parsedContract
+    let contractName = contractInfo.contractName
     return new Promise((resolve, reject) => {
       let address = parsedContract.address.substr(2)
       db.getVariables(address).then((res) => {
@@ -75,14 +77,14 @@ module.exports = function (db, log, validator) {
               })
             })
             .then((results) => {
-              return resolve(variableNames)
+              return resolve({ variableNames: variableNames, contractName: contractName })
             })
         } else {
           let variableNames = []
           Promise.map(res.recordset, (elem) => {
             variableNames.push(elem.variableName)
           }).then(() => {
-            return resolve(variableNames)
+            return resolve({ variableNames: variableNames, contractName: contractName })
           })
         }
       })
