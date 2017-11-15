@@ -2,7 +2,7 @@
     <table>
         <tr>
             <td class="search-bar">
-                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" (keydown)="searchContracts(searchBar.value)" autofocus>
+                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" (keyup)="searchContracts(searchBar.value)" autofocus>
                 <div id="button-wrapper">
                     <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
                 </div>
@@ -37,19 +37,19 @@
     <br>
 </div>
 
-<table *ngIf="displayMethods">
+<table *ngIf="displayMethods" class="graph-table">
     <tr>
-        <td class="no-graph-but-var" *ngIf="!displayGraph">
-            <p> Then choose a variable you want to look at
-                <clr-icon shape="arrow" size="36" dir="right"></clr-icon><br><br> </p>
-            <p>A smart contract may come with certain publicly exposed variables.<br>For example, a charity might make public the amount of money it has donated.<br>Choose a variable you want to see the history of.</p>
-        </td>
-        <td class="graph-area" *ngIf="displayGraph">
-            <ngx-charts-line-chart [view]="view" [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]=true [autoScale]="autoScale" (select)="onSelect($event)">
+        <td class="graph-td">
+            <ngx-charts-line-chart class="graph-area" *ngIf="displayGraph" [view]="view" [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]=true [autoScale]="autoScale" (select)="onSelect($event)">
             </ngx-charts-line-chart>
+            <div class="no-graph-but-var" *ngIf="!displayGraph">
+                <p> Then choose a variable you want to look at
+                    <clr-icon shape="arrow" size="36" dir="right"></clr-icon><br><br> </p>
+                <p>A smart contract may come with certain publicly exposed variables.<br>For example, a charity might make public the amount of money it has donated.<br>Choose a variable you want to see the history of.</p>
+            </div>
         </td>
-        <td class="variables-area" align="right" style="max-width: 20%;">
-            <div class="card" id="var-w">
+        <td class="cards-td" align="right">
+            <div class="card" id="variables">
                 <div class="card-header">
                     Select a variable to track
                 </div>
@@ -59,52 +59,48 @@
                     </div>
                 </div>
             </div>
-            <div class="currViewing" *ngIf="displayGraph">
-                <div class="card">
-                    <div class="card-header">
-                        Currently Viewing...
+            <div class="card currViewing" *ngIf="displayGraph">
+                <div class="card-header">
+                    Currently Viewing...
+                </div>
+                <div class="card-block">
+                    <div class="card-text">
+                        Variable: {{this.lastMethod}}
                     </div>
-                    <div class="card-block">
-                        <div class="card-text">
-                            Variable: {{this.lastMethod}}
-                        </div>
-                        <div class="card-text" *ngFor="let filter of datapointFilters; let i = index">
-                            {{filter.message}}
-                            <clr-icon shape="times" style="cursor:pointer;" (click)="deleteFilter(i)"></clr-icon>
-                        </div>
+                    <div class="card-text" *ngFor="let filter of datapointFilters; let i = index">
+                        {{filter.message}}
+                        <clr-icon shape="times" style="cursor:pointer;" (click)="deleteFilter(i)"></clr-icon>
                     </div>
                 </div>
             </div>
-            <div class="filters" *ngIf="displayGraph">
-                <div class="card">
-                    <div class="card-header">
-                        Filter datapoints...
-                    </div>
-                    <div class="card-block">
-                        <div class="card-text" style="text-align: left">
-                            <form #f="ngForm" (ngSubmit)="newFilter(f.value)">
-                                <section class="form-block">
-                                    <label>
+            <div class="card filters" *ngIf="displayGraph">
+                <div class="card-header">
+                    Filter datapoints...
+                </div>
+                <div class="card-block">
+                    <div class="card-text" style="text-align: left">
+                        <form #f="ngForm" (ngSubmit)="newFilter(f.value)">
+                            <section class="form-block">
+                                <label>
                                         Between dates:
                                     </label>
-                                    <div class="form-group">
-                                        <label for="startDate">
+                                <div class="form-group">
+                                    <label for="startDate">
                                             Starting from date:
                                         </label>
-                                        <input type="datetime-local" id="startDate" size="35" name="startDate" ngModel>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="endDate">
+                                    <input type="datetime-local" id="startDate" size="35" name="startDate" ngModel>
+                                </div>
+                                <div class="form-group">
+                                    <label for="endDate">
                                             Ending at date:
                                         </label>
-                                        <input type="datetime-local" id="endDate" size="35" name="endDate" ngModel>
-                                    </div>
-                                </section>
-                                <button type="submit" class="btn btn-primary">
+                                    <input type="datetime-local" id="endDate" size="35" name="endDate" ngModel>
+                                </div>
+                            </section>
+                            <button type="submit" class="btn btn-primary">
                                     Filter
                                 </button>
-                            </form>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
