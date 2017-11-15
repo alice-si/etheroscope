@@ -297,9 +297,13 @@ module.exports = function (log) {
   }
 
   db.getLatestCachedBlockTime = function (callback) {
-    var request = new mssql.Request(pool)
-    var sql = 'select MAX(blockNumber) from blocks where userLog=0'
-    request.query(sql, callback)
+    return new Promise(function (resolve, reject) {
+      var request = new mssql.Request(pool)
+      var sql = 'select MAX(blockNumber) from blocks where userLog=0'
+      request.query(sql).then((results) => {
+        return resolve(results.recordset[0][''])
+      })
+    })
   }
 
   db.searchContractHash = function (pattern) {

@@ -29,6 +29,9 @@ module.exports = function (app, db, io, log, validator) {
         return res.status(400).json(err.message)
       })
   })
+  app.get('/api/search/', (req, res) => {
+        return res.status(200).json([])
+  })
 
   app.get('/api/search/:string', (req, res) => {
     let searchStr = req.params.string
