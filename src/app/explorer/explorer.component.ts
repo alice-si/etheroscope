@@ -215,6 +215,7 @@ export class ExplorerComponent {
 
   exploreContract(contract: string) {
     this.curContractID = contract;
+    this.displayGraph = false;
     this.contractService.exploreContract(contract).subscribe(
       (methods) => {
         this.methods = methods;
