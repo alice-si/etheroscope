@@ -1,13 +1,22 @@
 <div class="contractVarSelect">
-    <div class="search-area">
-        <input type="text" #searchBar class="search-bar" id="searchBar" (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" autofocus>
-				<div id="button-wrapper">
-				  <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
-				</div>
-        <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
-        <clr-icon shape="search" size="24"></clr-icon>
-        </button>
-    </div>
+    <table>
+        <tr>
+            <td class="search-bar">
+                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" (keydown)="searchContracts(searchBar.value)" autofocus>
+                <div id="button-wrapper">
+                    <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
+                </div>
+                <div id="matches" *ngFor="let match of matches">
+                    {{match.contractHash}} {{match.name}}
+                </div>
+            </td>
+            <td class="search-button">
+                <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
+          <clr-icon shape="search" size="24"></clr-icon>
+          </button>
+            </td>
+        </tr>
+    </table>
 </div>
 
 <div class="no-graph" *ngIf="!displayGraph && !displayMethods">
@@ -58,6 +67,10 @@
                     <div class="card-block">
                         <div class="card-text">
                             Variable: {{this.lastMethod}}
+                        </div>
+                        <div class="card-text" *ngFor="let filter of datapointFilters; let i = index">
+                            {{filter.message}}
+                            <clr-icon shape="times" style="cursor:pointer;" (click)="deleteFilter(i)"></clr-icon>
                         </div>
                     </div>
                 </div>
