@@ -17,6 +17,7 @@ p {
     margin: 0;
   }
   table {
+    table-layout: fixed;
     width: 65%;
     height: 50%;
 
@@ -68,7 +69,6 @@ p {
 }
 
 .graph-table {
-  overflow-x: hidden;
   height: 85%;
   width: 100%;
   table-layout: fixed;
@@ -89,9 +89,11 @@ p {
     }
   }
   .cards-td {
+    overflow-x: hidden;
     width: 20%;
     height: 100%;
     .card {
+      margin-top: 1em;
       width: 100%;
       .card-header {
         text-align: center;
@@ -105,6 +107,10 @@ p {
         padding: 5px;
         font-size: 1em;
       }
+      .card-text {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
       overflow: hidden;
     }
     vertical-align: top;
@@ -113,12 +119,20 @@ p {
   }
 
   .filters {
-    input {
-      margin: 0;
+    form {
       padding: 0;
+    }
+    input {
+      width: 70%;
+      margin: 0 auto;
+      padding: 0;
+      text-align: center;
     }
     width: inherit;
     .btn-group {
+      margin: 0 auto;
+    }
+    .btn-submit {
       margin: 0 auto;
     }
     .card-block {
