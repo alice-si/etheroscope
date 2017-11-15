@@ -224,9 +224,7 @@ export class ExplorerComponent {
   searchContracts(pattern: string) {
     this.contractService.searchContracts(pattern).subscribe(
       (matches) => {
-        if (matches.length !== 0) {
-          this.matches = matches;
-        }
+        this.matches = matches;
       },
       (error) => {
         this.matches = null;
