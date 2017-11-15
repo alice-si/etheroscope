@@ -193,14 +193,18 @@ p {
   }
 
   #variables {
+    table {
+      width: 100%;
+    }
     .card-block {
       text-align: left;
-      .card-text {
-        button {
-          margin: 0;
-          margin: 2px 1px;
-        }
-      }
+      padding: 0 5px;
+      padding-bottom: 5px;
+    }
+    width: 100%;
+    td {
+      padding: 1px 0;
+      margin: 0;
     }
     margin-top: 0;
   }

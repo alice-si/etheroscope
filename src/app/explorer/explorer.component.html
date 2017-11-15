@@ -70,9 +70,20 @@
                     Contract: {{this.curContractName}}
                 </div>
                 <div class="card-block">
-                    <div class="card-text">
-                        Address: {{this.curContractID}}
-                    </div>
+                    <table>
+                        <tr>
+                            <td>
+                                <div class="card-text" style="text-align: center; font-size: 0.9em;">
+                                    Address: {{this.curContractID.substr(0, 20)}}...
+                                </div>
+                            </td>
+                            <td align="right">
+                                <button class="btn btn-icon btn-link" style="margin:0;" (click)="copyToClipboard(this.curContractID)">
+                          <clr-icon shape="clipboard"></clr-icon>
+                          </button>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
                 <div class="card-block">
                     <div class="card-text">
@@ -87,9 +98,9 @@
                     Currently Viewing Variable
                 </div>
                 <div class="card-block">
-                    <div class="card-text">
-                        "{{this.lastMethod}}"
-                    </div>
+                    <button class="btn-primary btn btn-sm">
+            {{this.lastMethod}}
+          </button>
                 </div>
                 <div *ngIf="progressBar !== 100" class="card-block">
                     <div class="progress-block">

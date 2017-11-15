@@ -80,6 +80,7 @@
     "socket.io": "^2.0.4",
     "spinkit": "^1.2.5",
     "standard": "^10.0.3",
+    "ts-clipboard": "^1.0.15",
     "ts-helpers": "^1.1.2",
     "validator": "^9.1.1",
     "web-animations-js": "^2.3.1",
