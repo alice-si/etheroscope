@@ -1,13 +1,10 @@
 <div class="contractVarSelect">
-    <table>
+    <table id="search-table">
         <tr>
             <td class="search-bar">
-                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" (keyup)="searchContracts(searchBar.value)" autofocus>
+                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
                 <div id="button-wrapper">
                     <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
-                </div>
-                <div id="matches" *ngFor="let match of matches">
-                    {{match.contractHash}} {{match.name}}
                 </div>
             </td>
             <td class="search-button">
@@ -18,10 +15,19 @@
         </tr>
     </table>
 </div>
+<div id="matches" *ngIf="matches !== undefined && matches.length !== 0 && userSearching">
+    <table>
+        <tr *ngFor="let match of matches" (click)="exploreContract('0x' + match.contractHash)">
+            <td align="center">
+                0x{{match.contractHash}} {{match.name}}
+            </td>
+        </tr>
+    </table>
+</div>
 
 <div class="no-graph" *ngIf="!displayGraph && !displayMethods">
     <p>
-        <clr-icon shape="arrow" size="36"></clr-icon><br> First, enter a contract to explore. This must be a contract hash.<br> Click <u><a (click)="exploreContract(contractHash[0].hash)">here</a></u> to see an example!<br><br><br><br>
+        <clr-icon shape="arrow" size="36"></clr-icon><br> First, enter a contract to explore. This could be a contract's hash, or a name the contract is associated with.<br> Click <u><a (click)="exploreContract(contractHash[0].hash)">here</a></u> to see an example!<br><br><br><br>
         <clr-icon shape="scroll" size="36"></clr-icon>
         <clr-icon shape="arrow" dir="right" size="36"></clr-icon>
         <clr-icon shape="scroll" size="36"></clr-icon>
@@ -54,11 +60,11 @@
         <td class="cards-td" align="right">
             <div class="card" id="variables">
                 <div class="card-header">
-                  Contract: {{this.curContractName}}
+                    Contract: {{this.curContractName}}
                 </div>
                 <div class="card-block">
                     <div class="card-text">
-                      Address: {{this.curContractID}}
+                        Address: {{this.curContractID}}
                     </div>
                 </div>
                 <div class="card-block">
@@ -87,8 +93,7 @@
                     </div>
                     <div *ngIf="methodHasInitialResponse" class="card-text">
                         Got points from block
-                        <br>
-                        {{this.cachedFrom}} to {{this.cachedTo}}
+                        <br> {{this.cachedFrom}} to {{this.cachedTo}}
                     </div>
                 </div>
                 <div class="card-block">
