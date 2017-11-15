@@ -235,7 +235,8 @@ export class ExplorerComponent {
 
   updateGraph() {
     this.timesValues = [];
-    if (this.graphDatapoints !== null && this.graphDatapoints !== undefined) {
+    if (this.graphDatapoints !== null && this.graphDatapoints !== undefined
+      && this.graphDatapoints.length > 0) {
       this.graphDatapoints.sort((a, b) => {
         return a[0] - b[0];
       })
