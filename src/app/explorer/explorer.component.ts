@@ -122,29 +122,32 @@ export class ExplorerComponent {
   }
 
   filterOnLast(length: number, timeframe: string) {
-    let now  = Math.round(new Date().getTime() / 1000);
-    let mult = 0;
+    let curDate = new Date();
+    let toDate  = new Date();
+    // make sure both dates seconds are alligned
+    toDate.setSeconds(curDate.getSeconds());
     switch (timeframe) {
       case 'hour':
-        mult = 3600;
+        toDate.setHours(curDate.getHours() - length);
         break;
       case 'day':
-        mult = 86400;
+        toDate.setDate(curDate.getDate() - length);
         break;
       case 'week':
-        mult = 604800;
+        toDate.setDate(curDate.getDate() - (length * 7));
         break;
       case 'month':
-        mult = 2419200;
+        toDate.setMonth(curDate.getMonth() - length);
         break;
       case 'year':
-        mult = 29030400;
+        toDate.setFullYear(curDate.getFullYear() - length);
         break;
       default:
         // other timeframes not supported
         return;
     }
-    let to = now - (mult * length);
+    let now  = Math.round(curDate.getTime() / 1000);
+    let to = Math.round(toDate.getTime() / 1000);
     this.addFilterOnDatesBetween(to, now);
   }
 
