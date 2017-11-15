@@ -121,19 +121,6 @@ module.exports = function (db, log, validator) {
         })
     })
   }
-parity.sendDataPointsInRange = function (address, start, end) {
-    const resultSize = 10000
-    /* Request the results from the database in blocks of 10000, and send them on to the user */
-    for (var i = start; i < end; i += resultSize) {
-      let to = i + resultSize - 1
-      if (to > end) {
-        to = end
-      }
-      db.getDataPointsInRange(address, i, to).then((dataPoints) => {
-        /* Send the results to the user */
-      })
-    }
-  }
 
   parity.getHistory = function (address, method, startBlock, endBlock, totalFrom, totalTo) {
     let filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
