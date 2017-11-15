@@ -30,6 +30,9 @@ export class ExplorerComponent {
   placeholder: string;
   datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
 
+  cachedFrom: number;
+  cachedTo: number;
+
   selectedCompany: any;
 
   timesValues: any[];
@@ -55,23 +58,19 @@ export class ExplorerComponent {
   autoScale = true;
 
   constructor(private contractService: ContractService) {
-    this.curContractID = '';
-    this.placeholder = null;
-    this.single = [];
-    this.multi = [];
-    this.displayMethods = false;
-    this.displayGraph = false;
-    this.methods = [];
-    this.timesValues = [];
-    this.lastMethod = null;
-    this.lastContract = null;
-    this.graphDatapoints = [];
-    this.methodDatapoints = [];
-    this.datapointFilters = [];
+    this.initialiseVariables();
     this.contractService.getHistoryEvent().subscribe(
       (datapoints: any) => {
-        console.log("updating...")
+        if (datapoints.error) return;
+        console.log("Retrieving datapoints...")
         this.graphDatapoints = [];
+        if (this.cachedFrom == -1) {
+            this.cachedFrom = parseInt(datapoints.from);
+            this.cachedTo = parseInt(datapoints.to);
+        } else {
+            this.cachedFrom = Math.min(this.cachedFrom, parseInt(datapoints.from));
+            this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to));
+        }
         if (datapoints.results.length !== 0) {
           this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
           this.removeDuplicateDatapoints();
@@ -88,6 +87,24 @@ export class ExplorerComponent {
         this.updateGraph();
       }
     );
+  }
+
+  private initialiseVariables() {
+      this.curContractID = '';
+      this.placeholder = null;
+      this.single = [];
+      this.multi = [];
+      this.displayMethods = false;
+      this.displayGraph = false;
+      this.methods = [];
+      this.timesValues = [];
+      this.lastMethod = null;
+      this.lastContract = null;
+      this.cachedFrom = -1;
+      this.cachedTo = -1;
+      this.graphDatapoints = [];
+      this.methodDatapoints = [];
+      this.datapointFilters = [];
   }
 
   onSelect(event) {
