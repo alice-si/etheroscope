@@ -32,6 +32,7 @@ export class ExplorerComponent {
   datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
   matches: any;
 
+  methodHasInitialResponse: boolean;
   cachedFrom: number;
   cachedTo: number;
   progressBar: number;
@@ -67,15 +68,16 @@ export class ExplorerComponent {
         if (datapoints.error) return;
         console.log("Retrieving datapoints...")
         this.graphDatapoints = [];
-        if (this.cachedFrom == -1) {
+        if (!this.methodHasInitialResponse) {
+            this.methodHasInitialResponse = true;
             this.cachedFrom = parseInt(datapoints.from);
             this.cachedTo = parseInt(datapoints.to);
         } else {
             this.cachedFrom = Math.min(this.cachedFrom, parseInt(datapoints.from));
             this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to));
-            this.progressBar = Math.ceil(100 * (this.cachedTo - this.cachedFrom) / this.cachedTo);
             console.log(this.progressBar);
         }
+        this.progressBar = Math.ceil(100 * (this.cachedTo - this.cachedFrom) / this.cachedTo);
         if (datapoints.results.length !== 0) {
           this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
           this.removeDuplicateDatapoints();
@@ -106,8 +108,7 @@ export class ExplorerComponent {
       this.timesValues = [];
       this.lastMethod = null;
       this.lastContract = null;
-      this.cachedFrom = -1;
-      this.cachedTo = -1;
+      this.methodHasInitialResponse = false;
       this.graphDatapoints = [];
       this.methodDatapoints = [];
       this.datapointFilters = [];
@@ -203,8 +204,6 @@ export class ExplorerComponent {
   }
 
   exploreContract(contract: string) {
-    this.cachedTo = -1;
-    this.cachedFrom = -1;
     this.curContractID = contract;
     this.contractService.exploreContract(contract).subscribe(
       (methods) => {
@@ -244,6 +243,8 @@ export class ExplorerComponent {
   generateDatapoints(method: string) {
     if (method !== this.lastMethod || this.curContractID !== this.lastContract ||
       this.lastContract === null || this.lastMethod === null) {
+      this.progressBar = 0;
+      this.methodHasInitialResponse = false;
       this.contractService.leaveMethod(this.lastContract, this.lastMethod);
       this.lastContract = this.curContractID;
       this.lastMethod = method;
