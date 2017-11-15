@@ -17,12 +17,11 @@ module.exports = function (app, db, io, log, validator) {
     }
 
     return parity.getContract(address)
-      .then((contract) => {
-        return parity.getContractVariables(contract)
+      .then((contractInfo) => {
+        return parity.getContractVariables(contractInfo)
       })
-      .then((variables) => {
-        log.debug('vars: ' + JSON.stringify(variables))
-        return res.status(200).json(variables)
+      .then((contractInfo) => {
+        return res.status(200).json(contractInfo)
       })
       .catch((err) => {
         log.error(err)
