@@ -32,6 +32,10 @@ export class ExplorerComponent {
   datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
   matches: any;
 
+  cachedFrom: number;
+  cachedTo: number;
+  progressBar: number;
+
   selectedCompany: any;
 
   timesValues: any[];
@@ -57,25 +61,21 @@ export class ExplorerComponent {
   autoScale = true;
 
   constructor(private contractService: ContractService) {
-    this.curContractID = '';
-    this.placeholder = null;
-    this.single = [];
-    this.multi = [];
-    this.displayMethods = false;
-    this.displayGraph = false;
-    this.displayBadExploreRequestWarning = false;
-    this.methods = [];
-    this.timesValues = [];
-    this.lastMethod = null;
-    this.lastContract = null;
-    this.graphDatapoints = [];
-    this.methodDatapoints = [];
-    this.datapointFilters = [];
-    this.matches = null;
+    this.initialiseVariables();
     this.contractService.getHistoryEvent().subscribe(
       (datapoints: any) => {
-        console.log("updating...")
+        if (datapoints.error) return;
+        console.log("Retrieving datapoints...")
         this.graphDatapoints = [];
+        if (this.cachedFrom == -1) {
+            this.cachedFrom = parseInt(datapoints.from);
+            this.cachedTo = parseInt(datapoints.to);
+        } else {
+            this.cachedFrom = Math.min(this.cachedFrom, parseInt(datapoints.from));
+            this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to));
+            this.progressBar = Math.ceil(100 * (this.cachedTo - this.cachedFrom) / this.cachedTo);
+            console.log(this.progressBar);
+        }
         if (datapoints.results.length !== 0) {
           this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
           this.removeDuplicateDatapoints();
@@ -94,20 +94,65 @@ export class ExplorerComponent {
     );
   }
 
+  private initialiseVariables() {
+      this.progressBar = 0;
+      this.curContractID = '';
+      this.placeholder = null;
+      this.single = [];
+      this.multi = [];
+      this.displayMethods = false;
+      this.displayGraph = false;
+      this.methods = [];
+      this.timesValues = [];
+      this.lastMethod = null;
+      this.lastContract = null;
+      this.cachedFrom = -1;
+      this.cachedTo = -1;
+      this.graphDatapoints = [];
+      this.methodDatapoints = [];
+      this.datapointFilters = [];
+  }
+
   onSelect(event) {
     console.log(event);
   }
 
-  newFilter(formInput: any) {
+  newFilterFromForm(formInput: any) {
     if (formInput.startDate !== "" && formInput.endDate !== "") {
       let startDateNo = Math.round(new Date(formInput.startDate).getTime() / 1000);
       let endDateNo = Math.round(new Date(formInput.endDate).getTime() / 1000);
-      let message = "Dates between " + formInput.startDate + " - " + formInput.endDate;
-      this.addFilterOnDatesBetween(startDateNo, endDateNo, message);
+      this.addFilterOnDatesBetween(startDateNo, endDateNo);
     }
-    console.log(this.datapointFilters)
-    this.filterGraphDatapoints();
-    this.updateGraph();
+  }
+
+  filterOnLast(length: number, timeframe: string) {
+    let curDate = new Date();
+    let toDate  = new Date();
+    // make sure both dates seconds are alligned
+    toDate.setSeconds(curDate.getSeconds());
+    switch (timeframe) {
+      case 'hour':
+        toDate.setHours(curDate.getHours() - length);
+        break;
+      case 'day':
+        toDate.setDate(curDate.getDate() - length);
+        break;
+      case 'week':
+        toDate.setDate(curDate.getDate() - (length * 7));
+        break;
+      case 'month':
+        toDate.setMonth(curDate.getMonth() - length);
+        break;
+      case 'year':
+        toDate.setFullYear(curDate.getFullYear() - length);
+        break;
+      default:
+        // other timeframes not supported
+        return;
+    }
+    let now  = Math.round(curDate.getTime() / 1000);
+    let to = Math.round(toDate.getTime() / 1000);
+    this.addFilterOnDatesBetween(to, now);
   }
 
   deleteFilter(index: number) {
@@ -140,25 +185,35 @@ export class ExplorerComponent {
     })
   }
 
-  addFilterOnDatesBetween(startDate: number, endDate: number, message: string) {
+  addFilterOnDatesBetween(startDate: number, endDate: number) {
+    let startDisplayDate = new Date(0);
+    let endDisplayDate = new Date(0);
+    startDisplayDate.setUTCSeconds(+startDate);
+    endDisplayDate.setUTCSeconds(+endDate);
+    let message = "Dates between " + startDisplayDate.toLocaleString()
+      + " - " + endDisplayDate.toLocaleString();
     this.datapointFilters.push({
       message: message,
       filter: (point) => {
         return point[0] >= startDate && point[0] <= endDate;
       }
     })
+    this.filterGraphDatapoints();
+    this.updateGraph();
   }
 
   exploreContract(contract: string) {
+    this.cachedTo = -1;
+    this.cachedFrom = -1;
     this.curContractID = contract;
     this.contractService.exploreContract(contract).subscribe(
       (methods) => {
         this.methods = methods;
       },
       (error) => {
-      if (error.status === 400) {
-        this.displayBadExploreRequestWarning = true;
-      }
+        if (error.status === 400) {
+              this.displayBadExploreRequestWarning = true;
+        }
       },
       () => {
         this.placeholder = contract;
