@@ -4,6 +4,11 @@ import { ContractService } from "../_services/contract.service";
 import { fadeInAnimation } from "../_animations/index";
 
 
+enum FilterGroup {
+  dates,
+  values
+};
+
 @Component({
   styleUrls: ['./explorer.component.scss'],
   templateUrl: './explorer.component.html',
@@ -193,12 +198,12 @@ export class ExplorerComponent {
     endDisplayDate.setUTCSeconds(+endDate);
     let message = "Dates between " + startDisplayDate.toLocaleString()
       + " - " + endDisplayDate.toLocaleString();
-    this.datapointFilters.push({
+    this.datapointFilters[FilterGroup.dates] = {
       message: message,
       filter: (point) => {
         return point[0] >= startDate && point[0] <= endDate;
       }
-    })
+    };
     this.filterGraphDatapoints();
     this.updateGraph();
   }
