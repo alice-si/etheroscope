@@ -2,6 +2,7 @@ module.exports = function (app, db, io, log, validator) {
   var parity = require('./parity')(db, log, validator)
   let Promise = require('bluebird')
   var methodCachesInProgress = new Set()
+  let nameHashCache;
 
   function validAddress (address) {
     return address.length == '42' && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) == '0x'
@@ -27,6 +28,23 @@ module.exports = function (app, db, io, log, validator) {
         log.error(err)
         return res.status(400).json(err.message)
       })
+  })
+  app.get('/api/search/', (req, res) => {
+        return res.status(200).json([])
+  })
+
+  app.get('/api/search/:string', (req, res) => {
+    let searchStr = req.params.string
+    if (searchStr[0] == '0' && (searchStr[1] == 'x' || searchStr[1] == 'X' )) {
+      db.searchContractHash(searchStr.substr(2)).then((results) => {
+        return res.status(200).json(results)
+      })
+    } else {
+      console.log(searchStr)
+      db.searchContractName(searchStr).then((results) => {
+        return res.status(200).json(results)
+      })
+    }
   })
 
   function sendDataPointsFromParity (contractAddress, method, from, to,

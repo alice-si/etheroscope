@@ -30,6 +30,7 @@ export class ExplorerComponent {
   lastContract: string;
   placeholder: string;
   datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
+  matches: any;
 
   selectedCompany: any;
 
@@ -70,6 +71,7 @@ export class ExplorerComponent {
     this.graphDatapoints = [];
     this.methodDatapoints = [];
     this.datapointFilters = [];
+    this.matches = null;
     this.contractService.getHistoryEvent().subscribe(
       (datapoints: any) => {
         console.log("updating...")
@@ -97,16 +99,19 @@ export class ExplorerComponent {
   }
 
   newFilter(formInput: any) {
-    console.log("form input " + formInput)
     if (formInput.startDate !== "" && formInput.endDate !== "") {
-      let startDateNo = Math.round(new Date(formInput.startDate).getTime()/1000);
-      let endDateNo = Math.round(new Date(formInput.endDate).getTime()/1000);
+      let startDateNo = Math.round(new Date(formInput.startDate).getTime() / 1000);
+      let endDateNo = Math.round(new Date(formInput.endDate).getTime() / 1000);
       let message = "Dates between " + formInput.startDate + " - " + formInput.endDate;
-      console.log('Start date ' + startDateNo)
-      console.log('End date ' + endDateNo)
       this.addFilterOnDatesBetween(startDateNo, endDateNo, message);
     }
     console.log(this.datapointFilters)
+    this.filterGraphDatapoints();
+    this.updateGraph();
+  }
+
+  deleteFilter(index: number) {
+    this.datapointFilters.splice(index, 1);
     this.filterGraphDatapoints();
     this.updateGraph();
   }
@@ -124,7 +129,6 @@ export class ExplorerComponent {
   }
 
   filterGraphDatapoints() {
-    //this.graphDatapoints = this.methodDatapoints;
     this.graphDatapoints = this.methodDatapoints.filter( (point) => {
       let len = this.datapointFilters.length;
       for (let i = 0; i < len; i++) {
@@ -140,7 +144,6 @@ export class ExplorerComponent {
     this.datapointFilters.push({
       message: message,
       filter: (point) => {
-        console.log(startDate + '-' + point[0] + '-' + endDate)
         return point[0] >= startDate && point[0] <= endDate;
       }
     })
@@ -201,5 +204,20 @@ export class ExplorerComponent {
 
   selectCompany(hash: string) {
     this.exploreContract(hash);
+  }
+
+  searchContracts(pattern: string) {
+    this.contractService.searchContracts(pattern).subscribe(
+      (matches) => {
+        if (matches.length !== 0) {
+          this.matches = matches;
+        }
+      },
+      (error) => {
+        this.matches = null;
+        console.log(error);
+      },
+      () => {
+      })
   }
 }
