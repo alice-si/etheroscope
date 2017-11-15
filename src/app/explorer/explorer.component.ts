@@ -22,6 +22,7 @@ export class ExplorerComponent {
   single: any[];
   multi: any[];
 
+  contractHash: any[] = [{"name": "Alice.si", "hash": "0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C"}]
   curContractID: string;
   curContractName: string;
   methods: string[];
