@@ -78,8 +78,6 @@ export class ExplorerComponent {
       (datapoints: any) => {
         console.log(datapoints)
         if (datapoints.error) return;
-        //console.log("Retrieving datapoints...")
-        this.graphDatapoints = [];
         if (!this.methodHasInitialResponse) {
             this.methodHasInitialResponse = true;
             this.cachedFrom = parseInt(datapoints.from);
