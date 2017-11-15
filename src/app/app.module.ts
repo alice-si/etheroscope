@@ -17,6 +17,7 @@ import { SocketIoModule, SocketIoConfig } from 'ng-socket-io';
 
 import { environment } from '../environments/environment';
 
+
 const config: SocketIoConfig = { url: environment.socketURL, options: {} };
 
 @NgModule({

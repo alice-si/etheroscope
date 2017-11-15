@@ -54,8 +54,8 @@ module.exports = function (app, db, io, log, validator) {
     return new Promise((resolve, reject) => {
       parity.getContract(contractAddress)
         // Then, we get the history of transactions
-      .then(function (parsedContract) {
-        contract = parsedContract
+      .then(function (contractInfo) {
+        contract = contractInfo.parsedContract
         return parity.getHistory(contractAddress, method, from, to, totalFrom, totalTo)
       })
       .then(function (events) {
