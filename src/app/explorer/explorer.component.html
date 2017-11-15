@@ -27,7 +27,7 @@
 
 <div class="no-graph" *ngIf="!displayGraph && !displayMethods">
     <p>
-        <clr-icon shape="arrow" size="36"></clr-icon><br> First, enter a contract to explore. This must be a contract hash.<br> Click <u><a (click)="exploreContract(contractHash[0].hash)">here</a></u> to see an example!<br><br><br><br>
+        <clr-icon shape="arrow" size="36"></clr-icon><br> First, enter a contract to explore. This could be a contract's hash, or a name the contract is associated with.<br> Click <u><a (click)="exploreContract(contractHash[0].hash)">here</a></u> to see an example!<br><br><br><br>
         <clr-icon shape="scroll" size="36"></clr-icon>
         <clr-icon shape="arrow" dir="right" size="36"></clr-icon>
         <clr-icon shape="scroll" size="36"></clr-icon>
@@ -60,11 +60,11 @@
         <td class="cards-td" align="right">
             <div class="card" id="variables">
                 <div class="card-header">
-                  Contract: {{this.curContractName}}
+                    Contract: {{this.curContractName}}
                 </div>
                 <div class="card-block">
                     <div class="card-text">
-                      Address: {{this.curContractID}}
+                        Address: {{this.curContractID}}
                     </div>
                 </div>
                 <div class="card-block">
@@ -93,8 +93,7 @@
                     </div>
                     <div *ngIf="methodHasInitialResponse" class="card-text">
                         Got points from block
-                        <br>
-                        {{this.cachedFrom}} to {{this.cachedTo}}
+                        <br> {{this.cachedFrom}} to {{this.cachedTo}}
                     </div>
                 </div>
                 <div class="card-block">
