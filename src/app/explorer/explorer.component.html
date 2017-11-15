@@ -47,8 +47,8 @@
                     <clr-icon shape="arrow" size="36" dir="right"></clr-icon><br><br> </p>
                 <p>A smart contract may come with certain publicly exposed variables.<br>For example, a charity might make public the amount of money it has donated.<br>Choose a variable you want to see the history of.</p>
             </div>
-            <div class="no-graph-but-var" *ngIf="displayGraph && graphDatapoints.length === 0">
-              <p> There are no points to display </p>
+            <div class="no-graph-with-var" *ngIf="displayGraph && graphDatapoints.length === 0">
+                <p> There are no points to display </p>
             </div>
         </td>
         <td class="cards-td" align="right">
@@ -78,10 +78,10 @@
                         </div>
                         <label>{{this.progressBar}}%</label>
                     </div>
-										<div *ngIf="methodHasInitialResponse" class="card-text">
-                      Got points from block<br>{{this.cachedFrom}} to {{this.cachedTo}}
+                    <div *ngIf="methodHasInitialResponse" class="card-text">
+                        Got points from block<br>{{this.cachedFrom}} to {{this.cachedTo}}
                     </div>
-                 </div>
+                </div>
                 <div class="card-block">
                     <div class="card-text" *ngFor="let filter of datapointFilters; let i = index">
                         {{filter.message}}
