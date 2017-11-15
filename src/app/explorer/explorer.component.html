@@ -25,7 +25,7 @@
     </table>
 </div>
 
-<div class="no-graph" *ngIf="!displayGraph && !displayMethods">
+<div class="no-graph" *ngIf="curDisplayState === DisplayState.noContract">
     <p>
         <clr-icon shape="arrow" size="36"></clr-icon><br> First, enter a contract to explore. This could be a contract's hash, or a name the contract is associated with.<br> Click <u><a (click)="exploreContract(contractHash[0].hash)">here</a></u> to see an example!<br><br><br><br>
         <clr-icon shape="scroll" size="36"></clr-icon>
@@ -43,20 +43,20 @@
     <br>
 </div>
 
-<table *ngIf="displayMethods" class="graph-table">
+<table *ngIf="curDisplayState !== DisplayState.noContract" class="graph-table">
     <tr>
         <td class="graph-td">
-            <ngx-charts-line-chart class="graph-area" *ngIf="displayGraph && graphDatapoints.length !== 0" [view]="view" [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]=true [autoScale]="autoScale" (select)="onSelect($event)">
+            <ngx-charts-line-chart class="graph-area" *ngIf="curDisplayState === DisplayState.displayingGraph && graphDatapoints.length !== 0" [view]="view" [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]=true [autoScale]="autoScale" (select)="onSelect($event)">
             </ngx-charts-line-chart>
-            <div class="no-graph-but-var" *ngIf="!displayGraph && !waitingForInitialPoints">
+            <div class="no-graph-but-var" *ngIf="curDisplayState === DisplayState.newContract">
                 <p> Then choose a variable you want to look at
                     <clr-icon shape="arrow" size="36" dir="right"></clr-icon><br><br> </p>
                 <p>A smart contract may come with certain publicly exposed variables.<br>For example, a charity might make public the amount of money it has donated.<br>Choose a variable you want to see the history of.</p>
             </div>
-            <div class="no-graph-with-var" *ngIf="displayGraph && graphDatapoints.length === 0">
+            <div class="no-graph-with-var" *ngIf="curDisplayState === DisplayState.displayingGraph && graphDatapoints.length === 0">
                 <p> There are no points to display </p>
             </div>
-            <div class="no-graph-with-var" *ngIf="waitingForInitialPoints">
+            <div class="no-graph-with-var" *ngIf="curDisplayState === DisplayState.awaitingInitialPoints">
                 <span class="spinner spinner-lg">
                 </span>
                 <p>
@@ -93,7 +93,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card currViewing" *ngIf="displayGraph">
+            <div class="card currViewing" *ngIf="curDisplayState === DisplayState.displayingGraph || curDisplayState === DisplayState.awaitingInitialPoints">
                 <div class="card-header">
                     Currently Viewing Variable
                 </div>
@@ -109,7 +109,7 @@
                             <div class="progress-meter" [attr.data-value]="progressBar"></div>
                         </div>
                     </div>
-                    <div *ngIf="methodHasInitialResponse" class="card-text">
+                    <div class="card-text">
                         Got points from block
                         <br> {{this.cachedFrom}} to {{this.cachedTo}}
                     </div>
@@ -121,7 +121,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card filters" *ngIf="displayGraph">
+            <div class="card filters" *ngIf="curDisplayState === DisplayState.displayingGraph">
                 <div class="card-header">
                     Filter the points on the graph
                 </div>
