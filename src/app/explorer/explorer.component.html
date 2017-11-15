@@ -100,9 +100,6 @@
                             <section class="form-block">
                                 <div class="section">
                                 </div>
-                                <label>
-                                        Between dates:
-                                </label>
                                 <div class="form-group row">
                                     <div for="startDate" class="col-xs-12"> Starting from date: </div>
                                     <input type="datetime-local" class="col-xs-12" id="startDate" name="startDate" ngModel>
@@ -113,8 +110,10 @@
                                     </div>
                                     <input type="datetime-local" class="col-xs-12" id="endDate" name="endDate" ngModel>
                                 </div>
+                                <div class="row">
+                                    <button type="submit" class="btn btn-primary btn-submit">Filter</button>
+                                </div>
                             </section>
-                            <button type="submit" class="btn btn-primary">Filter</button>
                         </form>
 
                     </div>
