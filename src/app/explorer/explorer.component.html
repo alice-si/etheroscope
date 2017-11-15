@@ -87,11 +87,13 @@
                                     <label>
                                         On the last:
                                     </label>
-                                    <div class="btn-group btn-primary">
-                                        <button class="btn btn-primary">Day</button>
-                                        <button class="btn btn-primary">Week</button>
-                                        <button class="btn btn-primary">Month</button>
-                                        <button class="btn btn-primary">Year</button>
+                                    <div class="btn-group btn-primary btn-icon">
+                                        <button class="btn btn-primary" (click)="filterOnLast(1, 'hour')">1H</button>
+                                        <button class="btn btn-primary" (click)="filterOnLast(12, 'hour')">12H</button>
+                                        <button class="btn btn-primary" (click)="filterOnLast(1, 'day')">1D</button>
+                                        <button class="btn btn-primary" (click)="filterOnLast(1, 'week')">1W</button>
+                                        <button class="btn btn-primary" (click)="filterOnLast(1, 'month')">1M</button>
+                                        <button class="btn btn-primary" (click)="filterOnLast(1, 'year')">1Y</button>
                                     </div>
                                     <label>
                                         Between dates:
