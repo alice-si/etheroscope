@@ -49,6 +49,8 @@ export class ExplorerComponent {
 
   view: any[];
 
+  userSearching: boolean;
+
   // Graph options
   showXAxis = true;
   showYAxis = true;
@@ -68,6 +70,7 @@ export class ExplorerComponent {
   autoScale = true;
 
   constructor(private contractService: ContractService) {
+    this.userSearching = true;
     this.initialiseVariables();
     this.contractService.latestBlockEvent().subscribe(
       (latestBlock: any) => {
@@ -77,7 +80,7 @@ export class ExplorerComponent {
     this.contractService.getHistoryEvent().subscribe(
       (datapoints: any) => {
         console.log(datapoints)
-        if (datapoints.error) return;
+        if (datapoints.error) { return; }
         if (!this.methodHasInitialResponse) {
             this.methodHasInitialResponse = true;
             this.cachedFrom = parseInt(datapoints.from);
@@ -214,6 +217,8 @@ export class ExplorerComponent {
   }
 
   exploreContract(contract: string) {
+    console.log('exploring')
+    this.userSearching = false;
     this.curContractID = contract;
     this.displayGraph = false;
     this.contractService.exploreContract(contract).subscribe(

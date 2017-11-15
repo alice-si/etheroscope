@@ -1,19 +1,25 @@
 <div class="contractVarSelect">
-    <table>
+    <table id="search-table">
         <tr>
             <td class="search-bar">
-                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" (keyup)="searchContracts(searchBar.value)" autofocus>
+                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
                 <div id="button-wrapper">
                     <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
-                </div>
-                <div id="matches" *ngFor="let match of matches">
-                    {{match.contractHash}} {{match.name}}
                 </div>
             </td>
             <td class="search-button">
                 <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
           <clr-icon shape="search" size="24"></clr-icon>
           </button>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="matches" *ngIf="matches !== undefined && matches.length !== 0 && userSearching">
+    <table>
+        <tr *ngFor="let match of matches" (click)="exploreContract('0x' + match.contractHash)">
+            <td align="center">
+                0x{{match.contractHash}} {{match.name}}
             </td>
         </tr>
     </table>
