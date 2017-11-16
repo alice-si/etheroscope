@@ -93,7 +93,7 @@ export class ExplorerComponent {
           this.cachedTo = parseInt(datapoints.to, 10);
         } else {
           this.cachedFrom = Math.min(this.cachedFrom, parseInt(datapoints.from, 10));
-          this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to, 10);
+          this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to, 10));
           console.log(this.progressBar);
         }
         this.progressBar = Math.ceil(100 * (this.cachedTo - this.cachedFrom) / this.latestBlock);
