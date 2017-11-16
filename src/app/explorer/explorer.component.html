@@ -90,6 +90,9 @@
                             </td>
                         </tr>
                     </table>
+                    <div style="text-align: center;" *ngIf="this.curContractName !== 'unknown'">
+                        <a [href]="'https://etherscan.io/address/' + curContractID + '#code'" target="_blank ">View the contract's source code</a>
+                    </div>
                 </div>
                 <div class="card-block">
                     <div class="card-text">
