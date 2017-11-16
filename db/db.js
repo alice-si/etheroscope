@@ -300,7 +300,7 @@ module.exports = function (log) {
     })
   }
 
-  db.getLatestCachedBlockTime = function (callback) {
+  db.getLatestCachedBlockTime = function () {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
       var sql = 'select MAX(blockNumber) from blocks where userLog=0'

@@ -8,25 +8,25 @@ const ROUTES = [
   { path: '',
     component: HomeComponent,
     data: {
-	    animation: {
-	    	value: 'fadeInAnimation',
-	    }
+      animation: {
+        value: 'fadeInAnimation',
+      }
     }
   },
   { path: 'home',
     component: HomeComponent,
     data: {
-	    animation: {
-	    	value: 'fadeInAnimation',
-	    }
+      animation: {
+        value: 'fadeInAnimation',
+      }
     }
   },
   { path: 'explorer',
     component: ExplorerComponent,
     data: {
-	    animation: {
-	    	value: 'fadeInAnimation',
-	    }
+      animation: {
+        value: 'fadeInAnimation',
+      }
     }
   },
   { path: '**', redirectTo: '' }
