@@ -54,6 +54,7 @@ export class ExplorerComponent {
   userSearching: boolean;
   variableScroll: number;
   relevantMethods: any;
+  searchMatch: number;
 
   // Graph options
   showXAxis = true;
@@ -123,6 +124,7 @@ export class ExplorerComponent {
   }
 
   private initialiseVariables() {
+    this.searchMatch = 0;
     this.progressBar = 0;
     this.curContractID = '';
     this.curContractName = '';
@@ -317,5 +319,30 @@ export class ExplorerComponent {
 
   copyToClipboard(clip: string) {
     Clipboard.copy(clip);
+  }
+
+  decSearch() {
+    if (this.matches !== undefined) {
+      if (this.searchMatch > 0 && this.searchMatch < this.matches.length) {
+        this.searchMatch -= 1;
+      }
+    }
+    console.log(this.searchMatch)
+  }
+
+  incSearch() {
+    if (this.matches !== undefined) {
+      if (this.searchMatch < 5 && this.searchMatch < this.matches.length) {
+        this.searchMatch += 1;
+      }
+    }
+    console.log(this.searchMatch)
+  }
+
+  searchMatchFn(index: number) {
+    if (index === this.searchMatch) {
+      return 'rgb(234, 234, 234)'
+    }
+    return 'rgb(250, 250, 250)'
   }
 }
