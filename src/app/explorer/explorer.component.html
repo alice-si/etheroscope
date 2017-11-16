@@ -101,7 +101,10 @@
                         </div>
                     </div>
                     <div class="card-block">
-                        <div class="card-text">
+                        <div class="card-text" *ngIf="relevantMethods.length === 0">
+                            No displayable variables in contract
+                        </div>
+                        <div class="card-text" *ngIf="relevantMethods.length !== 0">
                             Click to view a variable:
                             <br>
                             <button class="btn btn-sm var-btns animated fadeIn" *ngFor="let m of relevantMethods" (click)="generateDatapoints(m)">
