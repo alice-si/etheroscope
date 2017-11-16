@@ -56,6 +56,8 @@ export class ExplorerComponent {
   relevantMethods: any;
   searchMatch: number;
 
+  methodPages: number;
+
   // Graph options
   showXAxis = true;
   showYAxis = true;
@@ -118,6 +120,14 @@ export class ExplorerComponent {
   methodsScroll() {
     let length = this.methods.length
     this.variableScroll = (this.variableScroll + 1) % Math.ceil(length / 4 );
+    console.log(this.variableScroll)
+    let newIndex = (this.variableScroll * 4)
+    this.relevantMethods = this.methods.slice(newIndex, (newIndex  + 4))
+  }
+
+  methodsScrollBack() {
+    let length = this.methods.length
+    this.variableScroll = (this.variableScroll - 1) % Math.ceil(length / 4 );
     console.log(this.variableScroll)
     let newIndex = (this.variableScroll * 4)
     this.relevantMethods = this.methods.slice(newIndex, (newIndex  + 4))
@@ -244,6 +254,7 @@ export class ExplorerComponent {
         console.log('Contract INFO');
         console.log(contractInfo);
         this.methods = contractInfo.variableNames;
+        this.methodPages = Math.ceil(this.methods.length / 4)
         this.relevantMethods = this.methods.slice(0, 4);
         if (contractInfo.contractName === null) {
           this.curContractName = 'unknown';
