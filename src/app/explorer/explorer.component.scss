@@ -26,8 +26,8 @@ p {
     transform: translateX(-50%);
     width: 65%;
     height: 50%;
-    border-left: 1px solid #1998a2;
-    border-right: 1px solid #1998a2;
+    border-left: 2px solid #1998a2;
+    border-right: 2px solid #1998a2;
     border-bottom: 1px solid #1998a2;
     border-radius: 0 0 5px 5px;
   }
@@ -140,11 +140,25 @@ p {
     .no-graph-with-var {
       height: 100%;
       width: 100%;
-      p {
+      .spinner {
+        text-align: center;
+        margin: 0 auto;
+      }
+      .ngwv-w {
         position: relative;
         top: 50%;
         transform: translateY(-50%);
-        text-align: center;
+        p {
+          text-align: center;
+          margin: 0 auto;
+        }
+        .progress {
+          width: 50%;
+          margin: 0 auto;
+        }
+        .progress:after {
+          background-color: #1998a2;
+        }
       }
     }
   }
@@ -246,15 +260,19 @@ p {
       .progress-block {
         margin: 0;
         padding: 0;
+        width: 80%;
+        margin: 0 auto;
       }
       .card-text {
         font-size: 0.8em;
         padding: 0;
         margin: 0;
       }
+      .progress-meter:before {
+        background-color: #1998a2;
+      }
       .progress-meter {
-        width: 80%;
-        margin: 0 auto;
+        margin-left: 2px;
       }
       .from-block-to-block {
         font-size: 0.8em;
@@ -326,14 +344,16 @@ p {
 }
 
 #matches {
-  -webkit-animation-duration: 0.2s;
-  -webkit-animation-delay: 0.2s;
-  -moz-animation-duration: 0.2s;
-  -moz-animation-delay: 0.2s;
-  -o-animation-duration: 0.2s;
-  -o-animation-delay: 0.2s;
-  animation-duration: 0.2s;
-  animation-delay: 0.2s;
+  .fadeIn {
+    -webkit-animation-duration: 0.1s;
+    -webkit-animation-delay: 0.1s;
+    -moz-animation-duration: 0.1s;
+    -moz-animation-delay: 0.1s;
+    -o-animation-duration: 0.1s;
+    -o-animation-delay: 0.1s;
+    animation-duration: 0.1s;
+    animation-delay: 0.1s;
+  }
 }
 
 

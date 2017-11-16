@@ -320,6 +320,7 @@ export class ExplorerComponent {
       (matches) => {
         if (JSON.stringify(this.matches) !== JSON.stringify(matches)) {
           this.matches = matches;
+          this.userSearching = true;
         }
         if (this.matches.length === 0) {
           this.searchMatch = 0;

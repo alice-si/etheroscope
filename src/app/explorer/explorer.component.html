@@ -3,7 +3,7 @@
     <table id="search-table" class="animated fadeIn">
         <tr>
             <td class="search-bar">
-                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract('0x' + matches[searchMatch].contractHash)" value="{{placeholder}}" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
+                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract('0x' + matches[searchMatch].contractHash)" value="{{placeholder}}" (blur)="userSearching = false" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
                 <div id="button-wrapper">
                     <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
                 </div>
@@ -53,7 +53,7 @@
     <tr>
         <td class="graph-td">
             <div class="graph-area animated fadeIn" *ngIf="curDisplayState === DisplayState.displayingGraph && graphDatapoints.length !== 0">
-                <ngx-charts-line-chart [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]=true>
+                <ngx-charts-line-chart [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [autoScale]="autoScale" [timeline]=true>
                 </ngx-charts-line-chart>
             </div>
             <div class="no-graph-but-var animated fadeInLeft" *ngIf="curDisplayState === DisplayState.newContract">
@@ -65,20 +65,21 @@
                 <p> There are no points to display </p>
             </div>
             <div class="no-graph-with-var" *ngIf="curDisplayState === DisplayState.awaitingInitialPoints">
-                <span class="spinner spinner-lg">
-                </span>
-                <p>
-                    Waiting for the first datapoints to be found...
-                </p>
+                <div class="ngwv-w">
+                    <p>
+                        Finding the first datapoints
+                    </p>
+                    <div class="progress loop"><progress></progress></div>
+                </div>
             </div>
         </td>
         <td class="cards-td" align="right">
             <div class="animated fadeIn">
                 <div class="card" id="variables">
-                    <div class="card-header" *ngIf="this.curContractName.length <= 24">
+                    <div class="card-header" *ngIf="this.curContractName.length <= 25">
                         Contract: {{this.curContractName}}
                     </div>
-                    <div class="card-header" *ngIf="this.curContractName.length > 25">
+                    <div class="card-header" *ngIf="this.curContractName.length > 25" [title]="this.curContractName">
                         Contract: {{this.curContractName.slice(0,22)}}...
                     </div>
                     <div class="card-block">
@@ -145,7 +146,7 @@
                         Got points from block {{this.cachedFrom}} to {{this.cachedTo}}
                     </div>
                 </div>
-                <div class="card-block">
+                <div class="card-block" *ngIf="datapointFilters !== undefined && datapointFilters.length !== 0">
                     <div class="card-text" *ngFor="let filter of datapointFilters; let i = index">
                         {{filter.message}}
                         <clr-icon shape="times" style="cursor:pointer;" (click)="deleteFilter(i)"></clr-icon>
