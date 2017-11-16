@@ -3,7 +3,7 @@ import { ContractService } from "../_services/contract.service";
 
 import { fadeInAnimation } from "../_animations/index";
 import { SlicePipe } from '@angular/common';
-import {Clipboard} from 'ts-clipboard';
+import { Clipboard } from 'ts-clipboard';
 
 
 enum FilterGroup {
