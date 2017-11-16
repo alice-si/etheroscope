@@ -318,10 +318,12 @@ export class ExplorerComponent {
   searchContracts(pattern: string) {
     this.contractService.searchContracts(pattern).subscribe(
       (matches) => {
-        this.matches = matches;
-        if (matches.length === 0) {
+        if (JSON.stringify(this.matches) !== JSON.stringify(matches)) {
+          this.matches = matches;
+        }
+        if (this.matches.length === 0) {
           this.searchMatch = 0;
-        } else if (matches.length < this.searchMatch) {
+        } else if (this.matches.length < this.searchMatch) {
           this.searchMatch = matches.length - 1;
         }
       },

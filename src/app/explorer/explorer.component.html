@@ -1,5 +1,6 @@
+<!-- Contract Selection -->
 <div class="contractVarSelect">
-    <table id="search-table">
+    <table id="search-table" class="animated fadeIn">
         <tr>
             <td class="search-bar">
                 <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract('0x' + matches[searchMatch].contractHash)" value="{{placeholder}}" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
@@ -15,19 +16,22 @@
         </tr>
     </table>
 </div>
-<div id="matches" *ngIf="matches !== undefined && matches.length !== 0 && userSearching">
+
+<!-- Fuzzy Search Selctor -->
+<div id="matches" *ngIf="matches !== undefined && matches.length !== 0 && userSearching" class="animated fadeIn">
     <table>
         <tr *ngFor="let match of matches; let i = index" (click)="exploreContract('0x' + match.contractHash)">
             <td align="center" [style.background-color]="searchMatchFn(i)">
-                <p class="nameMatch">{{match.name}} </p>
-                <p class="hashMatch">Hash: 0x{{match.contractHash}}</p>
+                <p class="nameMatch animated fadeIn">{{match.name}} </p>
+                <p class="hashMatch animated fadeIn">Hash: 0x{{match.contractHash}}</p>
             </td>
         </tr>
     </table>
 </div>
 
+<!-- Help Message without a graph -->
 <div class="no-graph" *ngIf="curDisplayState === DisplayState.noContract">
-    <p>
+    <p *ngIf="curDisplayState === DisplayState.noContract" class="animated fadeInUp">
         <clr-icon shape="arrow" size="36"></clr-icon><br> First, enter a contract to explore. This could be a contract's hash, or a name the contract is associated with.<br> Click <u><a (click)="exploreContract(contractHash[0].hash)">here</a></u> to see an example!<br><br><br><br>
         <clr-icon shape="scroll" size="36"></clr-icon>
         <clr-icon shape="arrow" dir="right" size="36"></clr-icon>
@@ -44,19 +48,20 @@
     <br>
 </div>
 
+<!-- basic state when user indicates a contract -->
 <table *ngIf="curDisplayState !== DisplayState.noContract" class="graph-table">
     <tr>
         <td class="graph-td">
-            <div class="graph-area" *ngIf="curDisplayState === DisplayState.displayingGraph && graphDatapoints.length !== 0">
+            <div class="graph-area animated fadeIn" *ngIf="curDisplayState === DisplayState.displayingGraph && graphDatapoints.length !== 0">
                 <ngx-charts-line-chart [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]=true>
                 </ngx-charts-line-chart>
             </div>
-            <div class="no-graph-but-var" *ngIf="curDisplayState === DisplayState.newContract">
+            <div class="no-graph-but-var animated fadeInLeft" *ngIf="curDisplayState === DisplayState.newContract">
                 <p> Then choose a variable you want to look at
                     <clr-icon shape="arrow" size="36" dir="right"></clr-icon><br><br> </p>
                 <p>A smart contract may come with certain publicly exposed variables.<br>For example, a charity might make public the amount of money it has donated.<br>Choose a variable you want to see the history of.</p>
             </div>
-            <div class="no-graph-with-var" *ngIf="curDisplayState === DisplayState.displayingGraph && graphDatapoints.length === 0">
+            <div class="no-graph-with-var animated fadeIn" *ngIf="curDisplayState === DisplayState.displayingGraph && graphDatapoints.length === 0">
                 <p> There are no points to display </p>
             </div>
             <div class="no-graph-with-var" *ngIf="curDisplayState === DisplayState.awaitingInitialPoints">
@@ -68,54 +73,56 @@
             </div>
         </td>
         <td class="cards-td" align="right">
-            <div class="card" id="variables">
-                <div class="card-header" *ngIf="this.curContractName.length <= 24">
-                    Contract: {{this.curContractName}}
-                </div>
-                <div class="card-header" *ngIf="this.curContractName.length > 25">
-                    Contract: {{this.curContractName.slice(0,22)}}...
-                </div>
-                <div class="card-block">
-                    <table>
-                        <tr>
-                            <td style="padding: 0;">
-                                <div class="card-text" style="text-align: center; font-size: 0.9em;">
-                                    Address: {{this.curContractID.substr(0, 20)}}...
-                                </div>
-                            </td>
-                            <td align="right">
-                                <button class="btn btn-icon btn-link" style="margin:0;" (click)="copyToClipboard(this.curContractID)">
+            <div class="animated fadeIn">
+                <div class="card" id="variables">
+                    <div class="card-header" *ngIf="this.curContractName.length <= 24">
+                        Contract: {{this.curContractName}}
+                    </div>
+                    <div class="card-header" *ngIf="this.curContractName.length > 25">
+                        Contract: {{this.curContractName.slice(0,22)}}...
+                    </div>
+                    <div class="card-block">
+                        <table>
+                            <tr>
+                                <td style="padding: 0;">
+                                    <div class="card-text" style="text-align: center; font-size: 0.9em;">
+                                        Address: {{this.curContractID.substr(0, 20)}}...
+                                    </div>
+                                </td>
+                                <td align="right">
+                                    <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the address!" (click)="copyToClipboard(this.curContractID)">
                           <clr-icon shape="clipboard"></clr-icon>
                           </button>
-                            </td>
-                        </tr>
-                    </table>
-                    <div style="text-align: center;" *ngIf="this.curContractName !== 'unknown'">
-                        <a [href]="'https://etherscan.io/address/' + curContractID + '#code'" target="_blank ">View the contract's source code</a>
+                                </td>
+                            </tr>
+                        </table>
+                        <div id="viewSourceCode" style="text-align: center;" *ngIf="this.curContractName !== 'unknown'">
+                            <a [href]="'https://etherscan.io/address/' + curContractID + '#code'" target="_blank ">View the contract's source code</a>
+                        </div>
                     </div>
-                </div>
-                <div class="card-block">
-                    <div class="card-text">
-                        Click to view a variable:
-                        <br>
-                        <button class="btn btn-sm var-btns" *ngFor="let m of relevantMethods" (click)="generateDatapoints(m)">
+                    <div class="card-block">
+                        <div class="card-text">
+                            Click to view a variable:
+                            <br>
+                            <button class="btn btn-sm var-btns animated fadeIn" *ngFor="let m of relevantMethods" (click)="generateDatapoints(m)">
                           <div *ngIf="m.length <= 15"> {{m}} </div>
                           <div *ngIf="m.length >= 16" title="{{m}}"> {{m.slice(0,13)}}..  </div>
                         </button>
-                        <br>
-                        <div *ngIf="methodPages > 1" style="text-align: center">
-                            <button class="btn btn-link" (click)="methodsScrollBack()">
+                            <br>
+                            <div *ngIf="methodPages > 1" style="text-align: center">
+                                <button class="btn btn-link" (click)="methodsScrollBack()">
                               <clr-icon shape="arrow left"></clr-icon>
                             </button>
-                            <span>Page {{variableScroll + 1}} of {{methodPages}} &nbsp; </span>
-                            <button class="btn btn-link" (click)="methodsScroll()">
+                                <span>Page {{variableScroll + 1}} of {{methodPages}} &nbsp; </span>
+                                <button class="btn btn-link" (click)="methodsScroll()">
                               <clr-icon shape="arrow right"></clr-icon>
                             </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="card currViewing" *ngIf="curDisplayState === DisplayState.displayingGraph || curDisplayState === DisplayState.awaitingInitialPoints">
+            <div class="card currViewing animated fadeIn" *ngIf="curDisplayState === DisplayState.displayingGraph || curDisplayState === DisplayState.awaitingInitialPoints">
                 <div class="card-header">
                     Currently Viewing Variable
                 </div>
@@ -142,7 +149,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card filters" *ngIf="curDisplayState === DisplayState.displayingGraph">
+            <div class="card filters animated fadeIn" *ngIf="curDisplayState === DisplayState.displayingGraph">
                 <div class="card-header">
                     Filter the points on the graph
                 </div>
