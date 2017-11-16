@@ -109,8 +109,12 @@ p {
   .graph-td {
     width: 80%;
     height: 100%;
+    .ngx-charts {
+      max-height: 100%;
+    }
     .graph-area {
       width: 100%;
+      height: 100%;
     }
     .no-graph-but-var {
       height: 100%;
@@ -133,7 +137,6 @@ p {
     }
   }
   .cards-td {
-    overflow-x: hidden;
     width: 20%;
     height: 100%;
     vertical-align: top;
@@ -207,6 +210,35 @@ p {
       margin: 0;
     }
     margin-top: 0;
+    .var-btns {
+      background: #1998a2;
+      color: white;
+      outline: none;
+      border: 0px;
+      margin: 0 2px;
+      margin-bottom: 2px;
+    }
+  }
+
+  .currViewing {
+    .progress-card {
+      .progress-block {
+        margin: 0;
+        padding: 0;
+      }
+      .card-text {
+        font-size: 0.8em;
+        padding: 0;
+        margin: 0;
+      }
+      .progress-meter {
+        width: 80%;
+        margin: 0 auto;
+      }
+      .from-block-to-block {
+        font-size: 0.8em;
+      }
+    }
   }
 }
 
@@ -227,9 +259,47 @@ p {
   box-shadow: none;
 }
 
+.btn-link {
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-link:hover {
+  outline: none;
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-link:focus {
+  outline: none;
+}
+
+.btn:focus {
+  outline: none;
+}
+
 .btn-group {
   button {
     background-color: #1998a2;
     font-weight: 100;
   }
+}
+
+.btn-sm {
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-sm:hover {
+  outline: none;
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-sm:focus {
+  outline: none;
 }

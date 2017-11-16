@@ -25,7 +25,7 @@
     </table>
 </div>
 
-<div class="no-graph" *ngIf="!displayGraph && !displayMethods">
+<div class="no-graph" *ngIf="curDisplayState === DisplayState.noContract">
     <p>
         <clr-icon shape="arrow" size="36"></clr-icon><br> First, enter a contract to explore. This could be a contract's hash, or a name the contract is associated with.<br> Click <u><a (click)="exploreContract(contractHash[0].hash)">here</a></u> to see an example!<br><br><br><br>
         <clr-icon shape="scroll" size="36"></clr-icon>
@@ -43,24 +43,22 @@
     <br>
 </div>
 
-<table *ngIf="displayMethods" class="graph-table">
+<table *ngIf="curDisplayState !== DisplayState.noContract" class="graph-table">
     <tr>
         <td class="graph-td">
-
-            <ngx-charts-line-chart class="graph-area" *ngIf="displayGraph && graphDatapoints.length !== 0" [view]="view" [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]=true [autoScale]="autoScale" (select)="onSelect($event)">
-            </ngx-charts-line-chart>
-
-            <div class="no-graph-but-var" *ngIf="!displayGraph && !waitingForInitialPoints">
+            <div class="graph-area" *ngIf="curDisplayState === DisplayState.displayingGraph && graphDatapoints.length !== 0">
+                <ngx-charts-line-chart [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]=true>
+                </ngx-charts-line-chart>
+            </div>
+            <div class="no-graph-but-var" *ngIf="curDisplayState === DisplayState.newContract">
                 <p> Then choose a variable you want to look at
                     <clr-icon shape="arrow" size="36" dir="right"></clr-icon><br><br> </p>
                 <p>A smart contract may come with certain publicly exposed variables.<br>For example, a charity might make public the amount of money it has donated.<br>Choose a variable you want to see the history of.</p>
             </div>
-
-            <div class="no-graph-with-var" *ngIf="displayGraph && graphDatapoints.length === 0">
+            <div class="no-graph-with-var" *ngIf="curDisplayState === DisplayState.displayingGraph && graphDatapoints.length === 0">
                 <p> There are no points to display </p>
             </div>
-
-            <div class="no-graph-with-var" *ngIf="waitingForInitialPoints">
+            <div class="no-graph-with-var" *ngIf="curDisplayState === DisplayState.awaitingInitialPoints">
                 <span class="spinner spinner-lg">
                 </span>
                 <p>
@@ -70,13 +68,16 @@
         </td>
         <td class="cards-td" align="right">
             <div class="card" id="variables">
-                <div class="card-header">
+                <div class="card-header" *ngIf="this.curContractName.length <= 24">
                     Contract: {{this.curContractName}}
+                </div>
+                <div class="card-header" *ngIf="this.curContractName.length > 25">
+                    Contract: {{this.curContractName.slice(0,22)}}...
                 </div>
                 <div class="card-block">
                     <table>
                         <tr>
-                            <td>
+                            <td style="padding: 0;">
                                 <div class="card-text" style="text-align: center; font-size: 0.9em;">
                                     Address: {{this.curContractID.substr(0, 20)}}...
                                 </div>
@@ -92,30 +93,35 @@
                 <div class="card-block">
                     <div class="card-text">
                         Click to view a variable:
+                        <button class="btn btn-link" *ngIf="this.methods.length > 4" (click)="methodsScroll()">
+                          <clr-icon shape="arrow right"></clr-icon>
+                        </button>
                         <br>
-                        <button class="btn btn-primary btn-sm" *ngFor="let m of methods" (click)="generateDatapoints(m)">{{m}}</button>
+                        <button class="btn btn-sm var-btns" *ngFor="let m of relevantMethods" (click)="generateDatapoints(m)">
+                          <div *ngIf="m.length <= 15"> {{m}} </div>
+                          <div *ngIf="m.length >= 16" title="{{m}}"> {{m.slice(0,13)}}..  </div>
+                        </button>
                     </div>
                 </div>
             </div>
-            <div class="card currViewing" *ngIf="displayGraph">
+            <div class="card currViewing" *ngIf="curDisplayState === DisplayState.displayingGraph || curDisplayState === DisplayState.awaitingInitialPoints">
                 <div class="card-header">
                     Currently Viewing Variable
                 </div>
                 <div class="card-block">
-                    <button class="btn-primary btn btn-sm">
-            {{this.lastMethod}}
-          </button>
+                    <button class="btn-primary btn btn-sm" style="cursor: default;">
+                      {{this.lastMethod}}
+                    </button>
                 </div>
-                <div *ngIf="progressBar !== 100" class="card-block">
+                <div *ngIf="progressBar !== 100" class="card-block progress-card">
                     <div class="progress-block">
-                        <label>{{this.progressBar}}%</label>
+                        {{this.progressBar}}%
                         <div class="progress-static">
                             <div class="progress-meter" [attr.data-value]="progressBar"></div>
                         </div>
                     </div>
-                    <div *ngIf="methodHasInitialResponse" class="card-text">
-                        Got points from block
-                        <br> {{this.cachedFrom}} to {{this.cachedTo}}
+                    <div class="card-text from-block-to-block">
+                        Got points from block {{this.cachedTo - this.cachedFrom}} to {{this.cachedTo}}
                     </div>
                 </div>
                 <div class="card-block">
@@ -125,7 +131,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card filters" *ngIf="displayGraph">
+            <div class="card filters" *ngIf="curDisplayState === DisplayState.displayingGraph">
                 <div class="card-header">
                     Filter the points on the graph
                 </div>
@@ -157,7 +163,7 @@
                                     <input type="datetime-local" class="col-xs-12" id="endDate" name="endDate" ngModel>
                                 </div>
                                 <div class="row">
-                                    <button type="submit" class="btn btn-primary btn-submit">Filter</button>
+                                    <button type="submit" class="btn btn-primary btn-sm btn-submit">Filter</button>
                                 </div>
                             </section>
                         </form>
