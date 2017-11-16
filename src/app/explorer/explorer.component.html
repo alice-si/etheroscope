@@ -92,8 +92,8 @@
                                 </td>
                                 <td align="right">
                                     <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the address!" (click)="copyToClipboard(this.curContractID)">
-                          <clr-icon shape="clipboard"></clr-icon>
-                          </button>
+                                      <clr-icon shape="copy" style="color: #1998a2"></clr-icon>
+                                    </button>
                                 </td>
                             </tr>
                         </table>
@@ -106,19 +106,20 @@
                             No displayable variables in contract
                         </div>
                         <div class="card-text" *ngIf="relevantMethods.length !== 0">
-                            Click to view a variable:
-                            <br>
+                            <div style="text-align: center;">
+                                Click to view a variable:
+                            </div>
                             <button class="btn btn-sm var-btns animated fadeIn" *ngFor="let m of relevantMethods" (click)="generateDatapoints(m)">
                           <div *ngIf="m.length <= 15"> {{m}} </div>
                           <div *ngIf="m.length >= 16" title="{{m}}"> {{m.slice(0,13)}}..  </div>
                         </button>
                             <br>
                             <div *ngIf="methodPages > 1" style="text-align: center">
-                                <button class="btn btn-link" (click)="methodsScrollBack()">
+                                <button class="btn btn-link" (click)="methodsScroll(true)">
                               <clr-icon shape="arrow left"></clr-icon>
                             </button>
-                                <span>Page {{variableScroll + 1}} of {{methodPages}} &nbsp; </span>
-                                <button class="btn btn-link" (click)="methodsScroll()">
+                                <span>{{variableScroll + 1}} / {{methodPages}} &nbsp; </span>
+                                <button class="btn btn-link" (click)="methodsScroll(false)">
                               <clr-icon shape="arrow right"></clr-icon>
                             </button>
                             </div>

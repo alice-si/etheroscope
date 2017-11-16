@@ -66,7 +66,7 @@
 
 .btn-primary {
   background-color: #1998a2;
-  font-weight: 100;
+  font-weight: 400;
   border: 0px;
   box-shadow: none;
 }
@@ -74,11 +74,16 @@
 .btn-primary:hover {
   outline: none;
   background-color: #1998a2;
-  font-weight: 100;
+  font-weight: 400;
   border: 0px;
   box-shadow: none;
 }
 
 .btn:focus {
   outline: none;
+}
+
+a {
+  color: #1998a2;
+  text-decoration: underline;
 }
