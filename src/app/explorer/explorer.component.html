@@ -90,18 +90,28 @@
                             </td>
                         </tr>
                     </table>
+                    <div style="text-align: center;" *ngIf="this.curContractName !== 'unknown'">
+                        <a [href]="'https://etherscan.io/address/' + curContractID + '#code'" target="_blank ">View the contract's source code</a>
+                    </div>
                 </div>
                 <div class="card-block">
                     <div class="card-text">
                         Click to view a variable:
-                        <button class="btn btn-link" *ngIf="this.methods.length > 4" (click)="methodsScroll()">
-                          <clr-icon shape="arrow right"></clr-icon>
-                        </button>
                         <br>
                         <button class="btn btn-sm var-btns" *ngFor="let m of relevantMethods" (click)="generateDatapoints(m)">
                           <div *ngIf="m.length <= 15"> {{m}} </div>
                           <div *ngIf="m.length >= 16" title="{{m}}"> {{m.slice(0,13)}}..  </div>
                         </button>
+                        <br>
+                        <div *ngIf="methodPages > 1" style="text-align: center">
+                            <button class="btn btn-link" (click)="methodsScrollBack()">
+                              <clr-icon shape="arrow left"></clr-icon>
+                            </button>
+                            <span>Page {{variableScroll + 1}} of {{methodPages}} &nbsp; </span>
+                            <button class="btn btn-link" (click)="methodsScroll()">
+                              <clr-icon shape="arrow right"></clr-icon>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -122,7 +132,7 @@
                         </div>
                     </div>
                     <div class="card-text from-block-to-block">
-                        Got points from block {{this.cachedTo - this.cachedFrom}} to {{this.cachedTo}}
+                        Got points from block {{this.cachedFrom}} to {{this.cachedTo}}
                     </div>
                 </div>
                 <div class="card-block">
@@ -139,10 +149,10 @@
                 <div class="card-block">
                     <div class="btn-group btn-primary">
                         <button (click)="filterOnLast(1, 'hour')">1h</button>
-                        <button (click)="filterOnLast(11, 'hour')">12h</button>
-                        <button (click)="filterOnLast(0, 'day')">1d</button>
-                        <button (click)="filterOnLast(0, 'week')">1w</button>
-                        <button (click)="filterOnLast(0, 'month')">1m</button>
+                        <button (click)="filterOnLast(12, 'hour')">12h</button>
+                        <button (click)="filterOnLast(1, 'day')">1d</button>
+                        <button (click)="filterOnLast(1, 'week')">1w</button>
+                        <button (click)="filterOnLast(1, 'month')">1m</button>
                         <button (click)="filterOnLast(1, 'year')">1y</button>
                     </div>
                 </div>

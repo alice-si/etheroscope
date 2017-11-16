@@ -3,7 +3,7 @@ import { ContractService } from "../_services/contract.service";
 
 import { fadeInAnimation } from "../_animations/index";
 import { SlicePipe } from '@angular/common';
-import {Clipboard} from 'ts-clipboard';
+import { Clipboard } from 'ts-clipboard';
 
 
 enum FilterGroup {
@@ -55,6 +55,8 @@ export class ExplorerComponent {
   variableScroll: number;
   relevantMethods: any;
   searchMatch: number;
+
+  methodPages: number;
 
   // Graph options
   showXAxis = true;
@@ -118,6 +120,14 @@ export class ExplorerComponent {
   methodsScroll() {
     let length = this.methods.length
     this.variableScroll = (this.variableScroll + 1) % Math.ceil(length / 4 );
+    console.log(this.variableScroll)
+    let newIndex = (this.variableScroll * 4)
+    this.relevantMethods = this.methods.slice(newIndex, (newIndex  + 4))
+  }
+
+  methodsScrollBack() {
+    let length = this.methods.length
+    this.variableScroll = (this.variableScroll - 1) % Math.ceil(length / 4 );
     console.log(this.variableScroll)
     let newIndex = (this.variableScroll * 4)
     this.relevantMethods = this.methods.slice(newIndex, (newIndex  + 4))
@@ -237,13 +247,14 @@ export class ExplorerComponent {
     console.log(this.variableScroll)
     console.log('exploring')
     this.userSearching = false;
-    this.curDisplayState = DisplayState.newContract;
     this.curContractID = contract;
     this.contractService.exploreContract(contract).subscribe(
       (contractInfo) => {
+        this.curDisplayState = DisplayState.newContract;
         console.log('Contract INFO');
         console.log(contractInfo);
         this.methods = contractInfo.variableNames;
+        this.methodPages = Math.ceil(this.methods.length / 4)
         this.relevantMethods = this.methods.slice(0, 4);
         if (contractInfo.contractName === null) {
           this.curContractName = 'unknown';
