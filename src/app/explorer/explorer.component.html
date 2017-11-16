@@ -2,7 +2,7 @@
     <table id="search-table">
         <tr>
             <td class="search-bar">
-                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
+                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract('0x' + matches[searchMatch].contractHash)" value="{{placeholder}}" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
                 <div id="button-wrapper">
                     <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
                 </div>
