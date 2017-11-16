@@ -308,6 +308,11 @@ export class ExplorerComponent {
     this.contractService.searchContracts(pattern).subscribe(
       (matches) => {
         this.matches = matches;
+        if (matches.length === 0) {
+          this.searchMatch = 0;
+        } else if (matches.length < this.searchMatch) {
+          this.searchMatch = matches.length - 1;
+        }
       },
       (error) => {
         this.matches = null;
@@ -332,7 +337,7 @@ export class ExplorerComponent {
 
   incSearch() {
     if (this.matches !== undefined) {
-      if (this.searchMatch < 5 && this.searchMatch < this.matches.length) {
+      if (this.searchMatch < 4 && this.searchMatch < this.matches.length) {
         this.searchMatch += 1;
       }
     }
