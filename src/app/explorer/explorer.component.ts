@@ -94,7 +94,6 @@ export class ExplorerComponent {
         } else {
           this.cachedFrom = Math.min(this.cachedFrom, parseInt(datapoints.from, 10));
           this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to, 10));
-          console.log(this.progressBar);
         }
         this.progressBar = Math.ceil(100 * (this.cachedTo - this.cachedFrom) / this.latestBlock);
         if (datapoints.results.length !== 0) {
@@ -102,7 +101,6 @@ export class ExplorerComponent {
           this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
           this.removeDuplicateDatapoints();
           this.filterGraphDatapoints();
-          console.log("Updating graph");
           this.updateGraph();
         }
       },
@@ -148,10 +146,6 @@ export class ExplorerComponent {
     }
     let newIndex = (this.variableScroll * 4)
     this.relevantMethods = this.methods.slice(newIndex, (newIndex  + 4))
-  }
-
-  onSelect(event) {
-    console.log(event);
   }
 
   newFilterFromForm(formInput: any) {
@@ -240,8 +234,6 @@ export class ExplorerComponent {
   }
 
   exploreContract(contract: string) {
-    console.log(this.variableScroll)
-    console.log('exploring')
     this.userSearching = false;
     this.curContractID = contract;
     this.contractService.exploreContract(contract).subscribe(
@@ -320,8 +312,8 @@ export class ExplorerComponent {
         }
         if (this.matches.length === 0) {
           this.searchMatch = 0;
-        } else if (this.matches.length < this.searchMatch) {
-          this.searchMatch = matches.length - 1;
+        } else if (this.matches.length <= this.searchMatch) {
+          this.searchMatch = this.matches.length - 1;
         }
       },
       (error) => {
@@ -342,7 +334,6 @@ export class ExplorerComponent {
         this.searchMatch -= 1;
       }
     }
-    console.log(this.searchMatch)
   }
 
   incSearch() {
@@ -351,13 +342,19 @@ export class ExplorerComponent {
         this.searchMatch += 1;
       }
     }
-    console.log(this.searchMatch)
   }
 
   searchMatchFn(index: number) {
     if (index === this.searchMatch) {
-      return 'rgb(234, 234, 234)'
+      return '#eaeaea'
     }
-    return 'rgb(250, 250, 250)'
+    return '#fafafa'
+  }
+
+  checkCursorInSearchArea(event: any) {
+    if (event.target.id !== 'searchBar') {
+      this.userSearching = false;
+    }
+
   }
 }
