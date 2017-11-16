@@ -8,22 +8,22 @@ import { Clipboard } from 'ts-clipboard';
 
 enum FilterGroup {
   dates,
-  values
+    values
 };
 
 enum DisplayState {
   noContract,
-  newContract,
-  awaitingInitialResponse,
-  awaitingInitialPoints,
-  displayingGraph
+    newContract,
+    awaitingInitialResponse,
+    awaitingInitialPoints,
+    displayingGraph
 };
 
 @Component({
   styleUrls: ['./explorer.component.scss'],
   templateUrl: './explorer.component.html',
-  animations: [fadeInAnimation],
-  host: {'[@fadeInAnimation]': ''}
+  animations: [fadeInAnimation]
+  // host: {'[@fadeInAnimation]': ''}
 })
 
 export class ExplorerComponent {
@@ -88,13 +88,13 @@ export class ExplorerComponent {
         console.log(datapoints)
         if (datapoints.error) { return; }
         if (this.curDisplayState === DisplayState.awaitingInitialResponse) {
-            this.curDisplayState = DisplayState.awaitingInitialPoints;
-            this.cachedFrom = parseInt(datapoints.from);
-            this.cachedTo = parseInt(datapoints.to);
+          this.curDisplayState = DisplayState.awaitingInitialPoints;
+          this.cachedFrom = parseInt(datapoints.from, 10);
+          this.cachedTo = parseInt(datapoints.to, 10);
         } else {
-            this.cachedFrom = Math.min(this.cachedFrom, parseInt(datapoints.from));
-            this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to));
-            console.log(this.progressBar);
+          this.cachedFrom = Math.min(this.cachedFrom, parseInt(datapoints.from, 10));
+          this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to, 10);
+          console.log(this.progressBar);
         }
         this.progressBar = Math.ceil(100 * (this.cachedTo - this.cachedFrom) / this.latestBlock);
         if (datapoints.results.length !== 0) {
@@ -260,7 +260,7 @@ export class ExplorerComponent {
       },
       (error) => {
         if (error.status === 400) {
-              this.displayBadExploreRequestWarning = true;
+          this.displayBadExploreRequestWarning = true;
         }
       },
       () => {
