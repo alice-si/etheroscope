@@ -114,26 +114,10 @@ export class ExplorerComponent {
         this.updateGraph();
       }
     );
-    this.variableScroll = 0;
-  }
-
-  methodsScroll() {
-    let length = this.methods.length
-    this.variableScroll = (this.variableScroll + 1) % Math.ceil(length / 4 );
-    console.log(this.variableScroll)
-    let newIndex = (this.variableScroll * 4)
-    this.relevantMethods = this.methods.slice(newIndex, (newIndex  + 4))
-  }
-
-  methodsScrollBack() {
-    let length = this.methods.length
-    this.variableScroll = (this.variableScroll - 1) % Math.ceil(length / 4 );
-    console.log(this.variableScroll)
-    let newIndex = (this.variableScroll * 4)
-    this.relevantMethods = this.methods.slice(newIndex, (newIndex  + 4))
   }
 
   private initialiseVariables() {
+    this.variableScroll = 0;
     this.searchMatch = 0;
     this.progressBar = 0;
     this.curContractID = '';
@@ -152,6 +136,18 @@ export class ExplorerComponent {
     this.userSearching = true;
     this.curDisplayState = DisplayState.noContract;
     this.DisplayState = DisplayState;
+  }
+
+  methodsScroll(back: boolean) {
+    let length = this.methods.length
+    let sections = Math.ceil(length / 4)
+    if (!back) {
+      this.variableScroll = (this.variableScroll + 1) % sections;
+    } else {
+      this.variableScroll = (((this.variableScroll - 1) % sections) + sections) % sections
+    }
+    let newIndex = (this.variableScroll * 4)
+    this.relevantMethods = this.methods.slice(newIndex, (newIndex  + 4))
   }
 
   onSelect(event) {

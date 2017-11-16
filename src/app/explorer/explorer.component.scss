@@ -200,7 +200,7 @@ p {
   }
 
   .card {
-    margin-top: 1em;
+    margin-top: 0.3em;
     width: 100%;
     .card-header {
       text-align: center;
@@ -228,7 +228,8 @@ p {
     .card-block {
       text-align: left;
       padding: 0 5px;
-      padding-bottom: 5px;
+      padding-bottom: 2px;
+      margin: 0;
     }
     width: 100%;
     td {
@@ -361,4 +362,9 @@ p {
   -vendor-animation-duration: 0.5s;
   -vendor-animation-delay: 0.5s;
   -vendor-animation-iteration-count: infinite;
+}
+
+a {
+  color: #1998a2;
+  text-decoration: underline;
 }
