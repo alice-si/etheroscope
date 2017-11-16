@@ -17,10 +17,9 @@ p {
         border-top: 1px solid #1998a2;
         border-radius: 0 0 5px 5px;
         cursor: pointer;
-      }
-      td:hover {
-        background: #eaeaea;
-      }
+      } // td:hover {
+      //   background: #eaeaea;
+      // }
     }
     position: absolute;
     left: 50%;
@@ -31,6 +30,19 @@ p {
     border-right: 1px solid #1998a2;
     border-bottom: 1px solid #1998a2;
     border-radius: 0 0 5px 5px;
+  }
+  p {
+    font-size: 1em;
+    padding-left: 10px;
+  }
+  .nameMatch {
+    text-align: left;
+    font-weight: 600;
+    color: #1998a2;
+  }
+  .hashMatch {
+    text-align: left;
+    font-style: italic;
   }
 }
 

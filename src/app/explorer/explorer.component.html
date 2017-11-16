@@ -2,7 +2,7 @@
     <table id="search-table">
         <tr>
             <td class="search-bar">
-                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
+                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
                 <div id="button-wrapper">
                     <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
                 </div>
@@ -17,9 +17,10 @@
 </div>
 <div id="matches" *ngIf="matches !== undefined && matches.length !== 0 && userSearching">
     <table>
-        <tr *ngFor="let match of matches" (click)="exploreContract('0x' + match.contractHash)">
-            <td align="center">
-                0x{{match.contractHash}} {{match.name}}
+        <tr *ngFor="let match of matches; let i = index" (click)="exploreContract('0x' + match.contractHash)">
+            <td align="center" [style.background-color]="searchMatchFn(i)">
+                <p class="nameMatch">{{match.name}} </p>
+                <p class="hashMatch">Hash: 0x{{match.contractHash}}</p>
             </td>
         </tr>
     </table>
