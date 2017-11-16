@@ -97,14 +97,21 @@
                 <div class="card-block">
                     <div class="card-text">
                         Click to view a variable:
-                        <button class="btn btn-link" *ngIf="this.methods.length > 4" (click)="methodsScroll()">
-                          <clr-icon shape="arrow right"></clr-icon>
-                        </button>
                         <br>
                         <button class="btn btn-sm var-btns" *ngFor="let m of relevantMethods" (click)="generateDatapoints(m)">
                           <div *ngIf="m.length <= 15"> {{m}} </div>
                           <div *ngIf="m.length >= 16" title="{{m}}"> {{m.slice(0,13)}}..  </div>
                         </button>
+                        <br>
+                        <div *ngIf="methodPages > 1" style="text-align: center">
+                            <button class="btn btn-link" (click)="methodsScrollBack()">
+                              <clr-icon shape="arrow left"></clr-icon>
+                            </button>
+                            <span>Page {{variableScroll + 1}} of {{methodPages}} &nbsp; </span>
+                            <button class="btn btn-link" (click)="methodsScroll()">
+                              <clr-icon shape="arrow right"></clr-icon>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
