@@ -237,10 +237,10 @@ export class ExplorerComponent {
     console.log(this.variableScroll)
     console.log('exploring')
     this.userSearching = false;
-    this.curDisplayState = DisplayState.newContract;
     this.curContractID = contract;
     this.contractService.exploreContract(contract).subscribe(
       (contractInfo) => {
+        this.curDisplayState = DisplayState.newContract;
         console.log('Contract INFO');
         console.log(contractInfo);
         this.methods = contractInfo.variableNames;
