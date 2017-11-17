@@ -8,22 +8,22 @@ import { Clipboard } from 'ts-clipboard';
 
 enum FilterGroup {
   dates,
-  values
+    values
 };
 
 enum DisplayState {
   noContract,
-  newContract,
-  awaitingInitialResponse,
-  awaitingInitialPoints,
-  displayingGraph
+    newContract,
+    awaitingInitialResponse,
+    awaitingInitialPoints,
+    displayingGraph
 };
 
 @Component({
   styleUrls: ['./explorer.component.scss'],
   templateUrl: './explorer.component.html',
-  animations: [fadeInAnimation],
-  host: {'[@fadeInAnimation]': ''}
+  animations: [fadeInAnimation]
+  // host: {'[@fadeInAnimation]': ''}
 })
 
 export class ExplorerComponent {
@@ -88,13 +88,12 @@ export class ExplorerComponent {
         console.log(datapoints)
         if (datapoints.error) { return; }
         if (this.curDisplayState === DisplayState.awaitingInitialResponse) {
-            this.curDisplayState = DisplayState.awaitingInitialPoints;
-            this.cachedFrom = parseInt(datapoints.from);
-            this.cachedTo = parseInt(datapoints.to);
+          this.curDisplayState = DisplayState.awaitingInitialPoints;
+          this.cachedFrom = parseInt(datapoints.from, 10);
+          this.cachedTo = parseInt(datapoints.to, 10);
         } else {
-            this.cachedFrom = Math.min(this.cachedFrom, parseInt(datapoints.from));
-            this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to));
-            console.log(this.progressBar);
+          this.cachedFrom = Math.min(this.cachedFrom, parseInt(datapoints.from, 10));
+          this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to, 10));
         }
         this.progressBar = Math.ceil(100 * (this.cachedTo - this.cachedFrom) / this.latestBlock);
         if (datapoints.results.length !== 0) {
@@ -102,7 +101,6 @@ export class ExplorerComponent {
           this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
           this.removeDuplicateDatapoints();
           this.filterGraphDatapoints();
-          console.log("Updating graph");
           this.updateGraph();
         }
       },
@@ -114,26 +112,10 @@ export class ExplorerComponent {
         this.updateGraph();
       }
     );
-    this.variableScroll = 0;
-  }
-
-  methodsScroll() {
-    let length = this.methods.length
-    this.variableScroll = (this.variableScroll + 1) % Math.ceil(length / 4 );
-    console.log(this.variableScroll)
-    let newIndex = (this.variableScroll * 4)
-    this.relevantMethods = this.methods.slice(newIndex, (newIndex  + 4))
-  }
-
-  methodsScrollBack() {
-    let length = this.methods.length
-    this.variableScroll = (this.variableScroll - 1) % Math.ceil(length / 4 );
-    console.log(this.variableScroll)
-    let newIndex = (this.variableScroll * 4)
-    this.relevantMethods = this.methods.slice(newIndex, (newIndex  + 4))
   }
 
   private initialiseVariables() {
+    this.variableScroll = 0;
     this.searchMatch = 0;
     this.progressBar = 0;
     this.curContractID = '';
@@ -154,8 +136,16 @@ export class ExplorerComponent {
     this.DisplayState = DisplayState;
   }
 
-  onSelect(event) {
-    console.log(event);
+  methodsScroll(back: boolean) {
+    let length = this.methods.length
+    let sections = Math.ceil(length / 4)
+    if (!back) {
+      this.variableScroll = (this.variableScroll + 1) % sections;
+    } else {
+      this.variableScroll = (((this.variableScroll - 1) % sections) + sections) % sections
+    }
+    let newIndex = (this.variableScroll * 4)
+    this.relevantMethods = this.methods.slice(newIndex, (newIndex  + 4))
   }
 
   newFilterFromForm(formInput: any) {
@@ -244,8 +234,6 @@ export class ExplorerComponent {
   }
 
   exploreContract(contract: string) {
-    console.log(this.variableScroll)
-    console.log('exploring')
     this.userSearching = false;
     this.curContractID = contract;
     this.contractService.exploreContract(contract).subscribe(
@@ -264,7 +252,7 @@ export class ExplorerComponent {
       },
       (error) => {
         if (error.status === 400) {
-              this.displayBadExploreRequestWarning = true;
+          this.displayBadExploreRequestWarning = true;
         }
       },
       () => {
@@ -332,8 +320,8 @@ export class ExplorerComponent {
         }
         if (this.matches.length === 0) {
           this.searchMatch = 0;
-        } else if (this.matches.length < this.searchMatch) {
-          this.searchMatch = matches.length - 1;
+        } else if (this.matches.length <= this.searchMatch) {
+          this.searchMatch = this.matches.length - 1;
         }
       },
       (error) => {
@@ -354,7 +342,6 @@ export class ExplorerComponent {
         this.searchMatch -= 1;
       }
     }
-    console.log(this.searchMatch)
   }
 
   incSearch() {
@@ -363,13 +350,19 @@ export class ExplorerComponent {
         this.searchMatch += 1;
       }
     }
-    console.log(this.searchMatch)
   }
 
   searchMatchFn(index: number) {
     if (index === this.searchMatch) {
-      return 'rgb(234, 234, 234)'
+      return '#eaeaea'
     }
-    return 'rgb(250, 250, 250)'
+    return '#fafafa'
+  }
+
+  checkCursorInSearchArea(event: any) {
+    if (event.target.id !== 'searchBar') {
+      this.userSearching = false;
+    }
+
   }
 }
