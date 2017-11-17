@@ -2,29 +2,41 @@ import { Component } from "@angular/core";
 import { ContractService } from "../_services/contract.service";
 
 import { fadeInAnimation } from "../_animations/index";
+import { SlicePipe } from '@angular/common';
+import { Clipboard } from 'ts-clipboard';
 
 
 enum FilterGroup {
   dates,
-  values
+    values
+};
+
+enum DisplayState {
+  noContract,
+    newContract,
+    awaitingInitialResponse,
+    awaitingInitialPoints,
+    displayingGraph
 };
 
 @Component({
   styleUrls: ['./explorer.component.scss'],
   templateUrl: './explorer.component.html',
-  animations: [fadeInAnimation],
-  host: { '[@fadeInAnimation]': '' }
+  animations: [fadeInAnimation]
+  // host: {'[@fadeInAnimation]': ''}
 })
 
 export class ExplorerComponent {
+  DisplayState: any;
   single: any[];
   multi: any[];
 
+  contractHash: any[] = [{"name": "Alice.si", "hash": "0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C"}]
+  curDisplayState: DisplayState;
   curContractID: string;
   curContractName: string;
   methods: string[];
   displayMethods: boolean;
-  displayGraph: boolean;
   displayBadExploreRequestWarning: boolean;
   graphDatapoints: number[][];
   methodDatapoints: number[][];
@@ -33,20 +45,18 @@ export class ExplorerComponent {
   placeholder: string;
   datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
   matches: any;
-
-  methodHasInitialResponse: boolean;
   cachedFrom: number;
   cachedTo: number;
   latestBlock: number;
   progressBar: number;
-
   selectedCompany: any;
-
   timesValues: any[];
-
-  view: any[];
-
   userSearching: boolean;
+  variableScroll: number;
+  relevantMethods: any;
+  searchMatch: number;
+
+  methodPages: number;
 
   // Graph options
   showXAxis = true;
@@ -67,7 +77,6 @@ export class ExplorerComponent {
   autoScale = true;
 
   constructor(private contractService: ContractService) {
-    this.userSearching = true;
     this.initialiseVariables();
     this.contractService.latestBlockEvent().subscribe(
       (latestBlock: any) => {
@@ -78,21 +87,20 @@ export class ExplorerComponent {
       (datapoints: any) => {
         console.log(datapoints)
         if (datapoints.error) { return; }
-        if (!this.methodHasInitialResponse) {
-            this.methodHasInitialResponse = true;
-            this.cachedFrom = parseInt(datapoints.from);
-            this.cachedTo = parseInt(datapoints.to);
+        if (this.curDisplayState === DisplayState.awaitingInitialResponse) {
+          this.curDisplayState = DisplayState.awaitingInitialPoints;
+          this.cachedFrom = parseInt(datapoints.from, 10);
+          this.cachedTo = parseInt(datapoints.to, 10);
         } else {
-            this.cachedFrom = Math.min(this.cachedFrom, parseInt(datapoints.from));
-            this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to));
-            console.log(this.progressBar);
+          this.cachedFrom = Math.min(this.cachedFrom, parseInt(datapoints.from, 10));
+          this.cachedTo = Math.max(this.cachedTo, parseInt(datapoints.to, 10));
         }
         this.progressBar = Math.ceil(100 * (this.cachedTo - this.cachedFrom) / this.latestBlock);
         if (datapoints.results.length !== 0) {
+          this.curDisplayState = DisplayState.displayingGraph;
           this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
           this.removeDuplicateDatapoints();
           this.filterGraphDatapoints();
-          console.log("Updating graph");
           this.updateGraph();
         }
       },
@@ -107,26 +115,37 @@ export class ExplorerComponent {
   }
 
   private initialiseVariables() {
-      this.progressBar = 0;
-      this.curContractID = '';
-      this.curContractName = '';
-      this.placeholder = null;
-      this.single = [];
-      this.multi = [];
-      this.displayMethods = false;
-      this.displayGraph = false;
-      this.methods = [];
-      this.timesValues = [];
-      this.lastMethod = null;
-      this.lastContract = null;
-      this.methodHasInitialResponse = false;
-      this.graphDatapoints = [];
-      this.methodDatapoints = [];
-      this.datapointFilters = [];
+    this.variableScroll = 0;
+    this.searchMatch = 0;
+    this.progressBar = 0;
+    this.curContractID = '';
+    this.curContractName = '';
+    this.placeholder = null;
+    this.single = [];
+    this.multi = [];
+    this.displayMethods = false;
+    this.methods = [];
+    this.timesValues = [];
+    this.lastMethod = null;
+    this.lastContract = null;
+    this.graphDatapoints = [];
+    this.methodDatapoints = [];
+    this.datapointFilters = [];
+    this.userSearching = true;
+    this.curDisplayState = DisplayState.noContract;
+    this.DisplayState = DisplayState;
   }
 
-  onSelect(event) {
-    console.log(event);
+  methodsScroll(back: boolean) {
+    let length = this.methods.length
+    let sections = Math.ceil(length / 4)
+    if (!back) {
+      this.variableScroll = (this.variableScroll + 1) % sections;
+    } else {
+      this.variableScroll = (((this.variableScroll - 1) % sections) + sections) % sections
+    }
+    let newIndex = (this.variableScroll * 4)
+    this.relevantMethods = this.methods.slice(newIndex, (newIndex  + 4))
   }
 
   newFilterFromForm(formInput: any) {
@@ -215,15 +234,16 @@ export class ExplorerComponent {
   }
 
   exploreContract(contract: string) {
-    console.log('exploring')
     this.userSearching = false;
     this.curContractID = contract;
-    this.displayGraph = false;
     this.contractService.exploreContract(contract).subscribe(
       (contractInfo) => {
+        this.curDisplayState = DisplayState.newContract;
         console.log('Contract INFO');
         console.log(contractInfo);
         this.methods = contractInfo.variableNames;
+        this.methodPages = Math.ceil(this.methods.length / 4)
+        this.relevantMethods = this.methods.slice(0, 4);
         if (contractInfo.contractName === null) {
           this.curContractName = 'unknown';
         } else {
@@ -232,7 +252,7 @@ export class ExplorerComponent {
       },
       (error) => {
         if (error.status === 400) {
-              this.displayBadExploreRequestWarning = true;
+          this.displayBadExploreRequestWarning = true;
         }
       },
       () => {
@@ -245,6 +265,14 @@ export class ExplorerComponent {
   }
 
   updateGraph() {
+    let temp = []
+    let samples = 300;
+    let intervals = Math.floor(this.graphDatapoints.length / samples);
+    for (let i = 0; i < samples; i++) {
+      temp.push(this.graphDatapoints[i * intervals]);
+    }
+    this.graphDatapoints = temp;
+
     this.timesValues = [];
     if (this.graphDatapoints !== null && this.graphDatapoints !== undefined
       && this.graphDatapoints.length > 0) {
@@ -257,7 +285,6 @@ export class ExplorerComponent {
         date.setUTCSeconds(+elem[0]);
         this.timesValues.push({"name": date, "value": +elem[1]});
       })
-      this.displayGraph = true;
       this.multi = [...[{ "name": "", "series": this.timesValues}]];
     }
   }
@@ -267,7 +294,7 @@ export class ExplorerComponent {
       this.lastContract === null || this.lastMethod === null) {
       this.contractService.leaveMethod(this.lastContract, this.lastMethod);
       this.progressBar = 0;
-      this.methodHasInitialResponse = false;
+      this.curDisplayState = DisplayState.awaitingInitialResponse;
       this.lastContract = this.curContractID;
       this.lastMethod = method;
       // flush the current method datapoints
@@ -287,7 +314,15 @@ export class ExplorerComponent {
   searchContracts(pattern: string) {
     this.contractService.searchContracts(pattern).subscribe(
       (matches) => {
-        this.matches = matches;
+        if (JSON.stringify(this.matches) !== JSON.stringify(matches)) {
+          this.matches = matches;
+          this.userSearching = true;
+        }
+        if (this.matches.length === 0) {
+          this.searchMatch = 0;
+        } else if (this.matches.length <= this.searchMatch) {
+          this.searchMatch = this.matches.length - 1;
+        }
       },
       (error) => {
         this.matches = null;
@@ -295,5 +330,39 @@ export class ExplorerComponent {
       },
       () => {
       })
+  }
+
+  copyToClipboard(clip: string) {
+    Clipboard.copy(clip);
+  }
+
+  decSearch() {
+    if (this.matches !== undefined) {
+      if (this.searchMatch > 0 && this.searchMatch < this.matches.length) {
+        this.searchMatch -= 1;
+      }
+    }
+  }
+
+  incSearch() {
+    if (this.matches !== undefined) {
+      if (this.searchMatch < 4 && this.searchMatch < this.matches.length) {
+        this.searchMatch += 1;
+      }
+    }
+  }
+
+  searchMatchFn(index: number) {
+    if (index === this.searchMatch) {
+      return '#eaeaea'
+    }
+    return '#fafafa'
+  }
+
+  checkCursorInSearchArea(event: any) {
+    if (event.target.id !== 'searchBar') {
+      this.userSearching = false;
+    }
+
   }
 }

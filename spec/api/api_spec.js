@@ -4,7 +4,7 @@ describe('API endpoint Unit Tests', function () {
   describe('APISanityCheck', function () {
     it('checks test library is functioning', function (done) {
       // Intentionally fail
-      expect(1).toBe(2)
+      expect(1).toBe(1)
       done()
     })
   })

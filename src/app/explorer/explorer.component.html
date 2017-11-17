@@ -1,32 +1,37 @@
-<div class="contractVarSelect">
-    <table id="search-table">
+<!-- Contract Selection -->
+<div class="contractVarSelect" (click)="checkCursorInSearchArea($event)">
+    <table id="search-table" class="animated fadeIn">
         <tr>
             <td class="search-bar">
-                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract(searchBar.value)" value="{{placeholder}}" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
+                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract('0x' + matches[searchMatch].contractHash)" value="{{placeholder}}" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
                 <div id="button-wrapper">
                     <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
                 </div>
             </td>
             <td class="search-button">
-                <button type="button" class="btn btn-primary" (click)="exploreContract(searchBar.value)">
-          <clr-icon shape="search" size="24"></clr-icon>
-          </button>
-            </td>
-        </tr>
-    </table>
-</div>
-<div id="matches" *ngIf="matches !== undefined && matches.length !== 0 && userSearching">
-    <table>
-        <tr *ngFor="let match of matches" (click)="exploreContract('0x' + match.contractHash)">
-            <td align="center">
-                0x{{match.contractHash}} {{match.name}}
+                <button type="button" class="btn btn-sm btn-primary" (click)="exploreContract(searchBar.value)">
+                  <clr-icon shape="search" size="20"> </clr-icon>
+                </button>
             </td>
         </tr>
     </table>
 </div>
 
-<div class="no-graph" *ngIf="!displayGraph && !displayMethods">
-    <p>
+<!-- Fuzzy Search Selctor -->
+<div id="matches" *ngIf="matches !== undefined && matches.length !== 0 && userSearching" (mouseenter)="userSearching = true" class="animated fadeIn">
+    <table>
+        <tr *ngFor="let match of matches; let i = index" (click)="exploreContract('0x' + match.contractHash)">
+            <td align="center" [style.background-color]="searchMatchFn(i)">
+                <p class="nameMatch">{{match.name}} </p>
+                <p class="hashMatch">Hash: 0x{{match.contractHash}}</p>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- Help Message without a graph -->
+<div class="no-graph" *ngIf="curDisplayState === DisplayState.noContract" (click)="userSearching = false;">
+    <p *ngIf="curDisplayState === DisplayState.noContract" class="animated fadeInUp">
         <clr-icon shape="arrow" size="36"></clr-icon><br> First, enter a contract to explore. This could be a contract's hash, or a name the contract is associated with.<br> Click <u><a (click)="exploreContract(contractHash[0].hash)">here</a></u> to see an example!<br><br><br><br>
         <clr-icon shape="scroll" size="36"></clr-icon>
         <clr-icon shape="arrow" dir="right" size="36"></clr-icon>
@@ -43,77 +48,123 @@
     <br>
 </div>
 
-<table *ngIf="displayMethods" class="graph-table">
+<!-- basic state when user indicates a contract -->
+<table *ngIf="curDisplayState !== DisplayState.noContract" class="graph-table" (click)="userSearching = false;">
     <tr>
         <td class="graph-td">
-            <ngx-charts-line-chart class="graph-area" *ngIf="displayGraph && graphDatapoints.length !== 0" [view]="view" [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [timeline]=true [autoScale]="autoScale" (select)="onSelect($event)">
-            </ngx-charts-line-chart>
-            <div class="no-graph-but-var" *ngIf="!displayGraph">
+            <div class="graph-area animated fadeIn" *ngIf="curDisplayState === DisplayState.displayingGraph && graphDatapoints.length !== 0">
+                <ngx-charts-line-chart [scheme]="colorScheme" [results]="multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [autoScale]="autoScale" [timeline]=true>
+                </ngx-charts-line-chart>
+            </div>
+            <div class="no-graph-but-var animated fadeInLeft" *ngIf="curDisplayState === DisplayState.newContract">
                 <p> Then choose a variable you want to look at
                     <clr-icon shape="arrow" size="36" dir="right"></clr-icon><br><br> </p>
                 <p>A smart contract may come with certain publicly exposed variables.<br>For example, a charity might make public the amount of money it has donated.<br>Choose a variable you want to see the history of.</p>
             </div>
-            <div class="no-graph-with-var" *ngIf="displayGraph && graphDatapoints.length === 0">
+            <div class="no-graph-with-var animated fadeIn" *ngIf="curDisplayState === DisplayState.displayingGraph && graphDatapoints.length === 0">
                 <p> There are no points to display </p>
+            </div>
+            <div class="no-graph-with-var" *ngIf="curDisplayState === DisplayState.awaitingInitialPoints">
+                <div class="ngwv-w">
+                    <p>
+                        Finding the first datapoints
+                    </p>
+                    <div class="progress loop"><progress></progress></div>
+                </div>
             </div>
         </td>
         <td class="cards-td" align="right">
-            <div class="card" id="variables">
-                <div class="card-header">
-                    Contract: {{this.curContractName}}
-                </div>
-                <div class="card-block">
-                    <div class="card-text">
-                        Address: {{this.curContractID}}
+            <div class="animated fadeIn">
+                <div class="card" id="variables">
+                    <div class="card-header" *ngIf="this.curContractName.length <= 25">
+                        Contract: {{this.curContractName}}
                     </div>
-                </div>
-                <div class="card-block">
-                    <div class="card-text">
-                        Click to view a variable:
-                        <br>
-                        <button type="button" class="btn btn-primary btn-sm" *ngFor="let m of methods" (click)="generateDatapoints(m)">{{m}}</button>
+                    <div class="card-header" *ngIf="this.curContractName.length > 25" [title]="this.curContractName">
+                        Contract: {{this.curContractName.slice(0,22)}}...
+                    </div>
+                    <div class="card-block">
+                        <table>
+                            <tr>
+                                <td style="padding: 0;">
+                                    <div class="card-text" style="text-align: center; font-size: 0.9em;">
+                                        Address: {{this.curContractID.substr(0, 20)}}...
+                                    </div>
+                                </td>
+                                <td align="right">
+                                    <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the address!" (click)="copyToClipboard(this.curContractID)">
+                                      <clr-icon shape="copy" style="color: #1998a2"></clr-icon>
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
+                        <div id="viewSourceCode" style="text-align: center;" *ngIf="this.curContractName !== 'unknown'">
+                            <a [href]="'https://etherscan.io/address/' + curContractID + '#code'" target="_blank ">View the contract's source code</a>
+                        </div>
+                    </div>
+                    <div class="card-block">
+                        <div class="card-text" *ngIf="relevantMethods.length === 0">
+                            No displayable variables in contract
+                        </div>
+                        <div class="card-text" *ngIf="relevantMethods.length !== 0">
+                            <div style="text-align: center;">
+                                Click to view a variable:
+                            </div>
+                            <button class="btn btn-sm var-btns animated fadeIn" *ngFor="let m of relevantMethods" (click)="generateDatapoints(m)">
+                          <div *ngIf="m.length <= 15"> {{m}} </div>
+                          <div *ngIf="m.length >= 16" title="{{m}}"> {{m.slice(0,13)}}..  </div>
+                        </button>
+                            <br>
+                            <div *ngIf="methodPages > 1" style="text-align: center">
+                                <button class="btn btn-link" (click)="methodsScroll(true)">
+                              <clr-icon shape="arrow left"></clr-icon>
+                            </button>
+                                <span>{{variableScroll + 1}} / {{methodPages}} &nbsp; </span>
+                                <button class="btn btn-link" (click)="methodsScroll(false)">
+                              <clr-icon shape="arrow right"></clr-icon>
+                            </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="card currViewing" *ngIf="displayGraph">
+            <div class="card currViewing animated fadeIn" *ngIf="curDisplayState === DisplayState.displayingGraph || curDisplayState === DisplayState.awaitingInitialPoints">
                 <div class="card-header">
                     Currently Viewing Variable
                 </div>
                 <div class="card-block">
-                    <div class="card-text">
-                        "{{this.lastMethod}}"
-                    </div>
+                    <button class="btn-primary btn btn-sm" style="cursor: default;">
+                      {{this.lastMethod}}
+                    </button>
                 </div>
-                <div *ngIf="progressBar !== 100" class="card-block">
+                <div *ngIf="progressBar !== 100" class="card-block progress-card">
                     <div class="progress-block">
-                        <label>{{this.progressBar}}%</label>
+                        {{this.progressBar}}%
                         <div class="progress-static">
                             <div class="progress-meter" [attr.data-value]="progressBar"></div>
                         </div>
                     </div>
-                    <div *ngIf="methodHasInitialResponse" class="card-text">
-                        Got points from block
-                        <br> {{this.cachedFrom}} to {{this.cachedTo}}
+                    <div class="card-text from-block-to-block">
+                        Got points from block {{this.cachedFrom}} to {{this.cachedTo}}
                     </div>
                 </div>
-                <div class="card-block">
+                <div class="card-block" *ngIf="datapointFilters !== undefined && datapointFilters.length !== 0">
                     <div class="card-text" *ngFor="let filter of datapointFilters; let i = index">
                         {{filter.message}}
                         <clr-icon shape="times" style="cursor:pointer;" (click)="deleteFilter(i)"></clr-icon>
                     </div>
                 </div>
             </div>
-            <div class="card filters" *ngIf="displayGraph">
+            <div class="card filters animated fadeIn" *ngIf="curDisplayState === DisplayState.displayingGraph">
                 <div class="card-header">
                     Filter the points on the graph
                 </div>
                 <div class="card-block">
                     <div class="btn-group btn-primary">
                         <button (click)="filterOnLast(1, 'hour')">1h</button>
-                        <button (click)="filterOnLast(11, 'hour')">12h</button>
-                        <button (click)="filterOnLast(0, 'day')">1d</button>
-                        <button (click)="filterOnLast(0, 'week')">1w</button>
-                        <button (click)="filterOnLast(0, 'month')">1m</button>
+                        <button (click)="filterOnLast(12, 'hour')">12h</button>
+                        <button (click)="filterOnLast(1, 'day')">1d</button>
+                        <button (click)="filterOnLast(1, 'week')">1w</button>
+                        <button (click)="filterOnLast(1, 'month')">1m</button>
                         <button (click)="filterOnLast(1, 'year')">1y</button>
                     </div>
                 </div>
@@ -135,7 +186,7 @@
                                     <input type="datetime-local" class="col-xs-12" id="endDate" name="endDate" ngModel>
                                 </div>
                                 <div class="row">
-                                    <button type="submit" class="btn btn-primary btn-submit">Filter</button>
+                                    <button type="submit" class="btn btn-primary btn-sm btn-submit">Filter</button>
                                 </div>
                             </section>
                         </form>

@@ -17,20 +17,32 @@ p {
         border-top: 1px solid #1998a2;
         border-radius: 0 0 5px 5px;
         cursor: pointer;
-      }
-      td:hover {
-        background: #eaeaea;
-      }
+      } // td:hover {
+      //   background: #eaeaea;
+      // }
     }
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
     width: 65%;
     height: 50%;
-    border-left: 1px solid #1998a2;
-    border-right: 1px solid #1998a2;
-    border-bottom: 1px solid #1998a2;
+    border-left: 2px solid #1998a2;
+    border-right: 2px solid #1998a2;
+    border-bottom: 2px solid #1998a2;
     border-radius: 0 0 5px 5px;
+  }
+  p {
+    font-size: 1em;
+    padding-left: 10px;
+  }
+  .nameMatch {
+    text-align: left;
+    font-weight: 600;
+    color: #1998a2;
+  }
+  .hashMatch {
+    text-align: left;
+    font-style: italic;
   }
 }
 
@@ -77,7 +89,7 @@ p {
         border-radius: 0;
       }
       border:0px;
-      border-radius: 0;
+      border-radius: 0 0 5px;
     }
 
     margin: 0 auto;
@@ -102,15 +114,19 @@ p {
 }
 
 .graph-table {
-  padding-top: 2%;
+  padding-top: 1%;
   height: 89%;
   width: 100%;
   table-layout: fixed;
   .graph-td {
     width: 80%;
     height: 100%;
+    .ngx-charts {
+      max-height: 100%;
+    }
     .graph-area {
       width: 100%;
+      height: 100%;
     }
     .no-graph-but-var {
       height: 100%;
@@ -124,16 +140,29 @@ p {
     .no-graph-with-var {
       height: 100%;
       width: 100%;
-      p {
+      .spinner {
+        text-align: center;
+        margin: 0 auto;
+      }
+      .ngwv-w {
         position: relative;
         top: 50%;
         transform: translateY(-50%);
-        text-align: center;
+        p {
+          text-align: center;
+          margin: 0 auto;
+        }
+        .progress {
+          width: 50%;
+          margin: 0 auto;
+        }
+        .progress:after {
+          background-color: #1998a2;
+        }
       }
     }
   }
   .cards-td {
-    overflow-x: hidden;
     width: 20%;
     height: 100%;
     vertical-align: top;
@@ -171,7 +200,7 @@ p {
   }
 
   .card {
-    margin-top: 1em;
+    margin-top: 0.3em;
     width: 100%;
     .card-header {
       text-align: center;
@@ -193,16 +222,63 @@ p {
   }
 
   #variables {
+    table {
+      width: 100%;
+    }
     .card-block {
       text-align: left;
-      .card-text {
-        button {
-          margin: 0;
-          margin: 2px 1px;
-        }
-      }
+      padding: 0 5px;
+      padding-bottom: 2px;
+      margin: 0;
+    }
+    width: 100%;
+    td {
+      padding: 0;
+      margin: 0;
     }
     margin-top: 0;
+    .var-btns {
+      background: #1998a2;
+      color: white;
+      outline: none;
+      border: 0px;
+      margin: 0 2px;
+      margin-bottom: 2px;
+    }
+    #viewSourceCode {
+      a {
+        color: #1998a2;
+        text-decoration: underline;
+        font-weight: 500;
+        padding: 0;
+        margin: 0;
+      }
+    }
+  }
+
+  .currViewing {
+    .progress-card {
+      .progress-block {
+        margin: 0;
+        padding: 0;
+        width: 80%;
+        margin: 0 auto;
+      }
+      .card-text {
+        font-size: 0.8em;
+        padding: 0;
+        margin: 0;
+      }
+      .progress-meter:before {
+        background-color: #1998a2;
+      }
+      .progress-meter {
+        margin-left: 2px;
+      }
+      .from-block-to-block {
+        font-size: 0.8em;
+      }
+    }
   }
 }
 
@@ -223,9 +299,72 @@ p {
   box-shadow: none;
 }
 
+.btn-link {
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-link:hover {
+  outline: none;
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-link:focus {
+  outline: none;
+}
+
+.btn:focus {
+  outline: none;
+}
+
 .btn-group {
   button {
     background-color: #1998a2;
     font-weight: 100;
   }
+}
+
+.btn-sm {
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-sm:hover {
+  outline: none;
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-sm:focus {
+  outline: none;
+}
+
+#matches {
+  .fadeIn {
+    -webkit-animation-duration: 0.1s;
+    -webkit-animation-delay: 0.1s;
+    -moz-animation-duration: 0.1s;
+    -moz-animation-delay: 0.1s;
+    -o-animation-duration: 0.1s;
+    -o-animation-delay: 0.1s;
+    animation-duration: 0.1s;
+    animation-delay: 0.1s;
+  }
+}
+
+
+.no-graph-but-var {
+  -vendor-animation-duration: 0.5s;
+  -vendor-animation-delay: 0.5s;
+  -vendor-animation-iteration-count: infinite;
+}
+
+a {
+  color: #1998a2;
+  text-decoration: underline;
 }
