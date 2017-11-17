@@ -277,6 +277,14 @@ export class ExplorerComponent {
   }
 
   updateGraph() {
+    let temp = []
+    let samples = 300;
+    let intervals = Math.floor(this.graphDatapoints.length / samples);
+    for (let i = 0; i < samples; i++) {
+      temp.push(this.graphDatapoints[i * intervals]);
+    }
+    this.graphDatapoints = temp;
+
     this.timesValues = [];
     if (this.graphDatapoints !== null && this.graphDatapoints !== undefined
       && this.graphDatapoints.length > 0) {
