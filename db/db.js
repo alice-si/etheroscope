@@ -300,7 +300,7 @@ module.exports = function (log) {
     })
   }
 
-  db.getLatestCachedBlockTime = function (callback) {
+  db.getLatestCachedBlockTime = function () {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
       var sql = 'select MAX(blockNumber) from blocks where userLog=0'
@@ -314,7 +314,7 @@ module.exports = function (log) {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
       let interspersed_pattern = pattern + '%'
-      var sql = 'select top 3 *, difference(contracthash, \'' + pattern + '\') as contractDiff' +
+      var sql = 'select top 5 *, difference(contracthash, \'' + pattern + '\') as contractDiff' +
       ' from contracts where contracthash LIKE \'' + interspersed_pattern +
       '\' order by contractDiff DESC;'
       request.query(sql).then((results) => {
@@ -330,7 +330,7 @@ module.exports = function (log) {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
       let interspersed_pattern = intersperse(pattern, '%')
-      var sql = 'select top 3 *, difference(name, \'' + pattern + '\') as nameDiff' +
+      var sql = 'select top 5 *, difference(name, \'' + pattern + '\') as nameDiff' +
       ' from contracts where name LIKE \'' + interspersed_pattern +
       '\' order by nameDiff DESC;'
       request.query(sql).then((results) => {
