@@ -103,20 +103,38 @@ module.exports = function (log) {
     })
   }
 
-    /* This function takes in a contract hash
-     * and returns a promise
-     */
-  db.getContractName = function (contractHash) {
+  db.updateContractWithABI = function (address, parsedContract) {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
-      var sql = "select name from Contracts where contractHash='" + contractHash + "'"
+      console.log('abi is: ')
+      console.log(parsedContract)
+      var sql = "update Contracts set abi='" + JSON.stringify(parsedContract) + "' where contractHash='" + address + "'"
+      request.query(sql)
+      .catch((err) => {
+        log.error('db.js: Error in updateContractWithABI')
+        log.error(err)
+      })
+    })
+  }
+
+  /* This function takes in a contract hash
+   * and returns a promise
+   */
+  db.getContract = function (contractHash) {
+    return new Promise(function (resolve, reject) {
+      var request = new mssql.Request(pool)
+      var sql = "select name, abi from Contracts where contractHash='" + contractHash + "'"
       request.query(sql)
         .then((results) => {
-          let name = null
+          let result = { contractName: null, parsedContract: null }
           if (results.rowsAffected[0] !== 0) {
-            name = results.recordset[0].name
+            result.contractName = results.recordset[0].name
+            let abi = results.recordset[0].abi
+            if (abi) {
+              result.parsedContract = JSON.parse(abi)
+            }
           }
-          return resolve(name)
+          return resolve(result)
         })
         .catch((err) => {
           log.error('db.js: Error in getContractName')
@@ -313,9 +331,9 @@ module.exports = function (log) {
   db.searchContractHash = function (pattern) {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
-      let interspersed_pattern = pattern + '%'
+      let interspersedPattern = pattern + '%'
       var sql = 'select top 5 *, difference(contracthash, \'' + pattern + '\') as contractDiff' +
-      ' from contracts where contracthash LIKE \'' + interspersed_pattern +
+      ' from contracts where contracthash LIKE \'' + interspersedPattern +
       '\' order by contractDiff DESC;'
       request.query(sql).then((results) => {
         return resolve(results.recordset)
@@ -329,9 +347,9 @@ module.exports = function (log) {
   db.searchContractName = function (pattern) {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
-      let interspersed_pattern = intersperse(pattern, '%')
+      let interspersedPattern = intersperse(pattern, '%')
       var sql = 'select top 5 *, difference(name, \'' + pattern + '\') as nameDiff' +
-      ' from contracts where name LIKE \'' + interspersed_pattern +
+      ' from contracts where name LIKE \'' + interspersedPattern +
       '\' order by nameDiff DESC;'
       request.query(sql).then((results) => {
         return resolve(results.recordset)
