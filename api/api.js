@@ -2,18 +2,17 @@ module.exports = function (app, db, io, log, validator) {
   var parity = require('./parity')(db, log, validator)
   let Promise = require('bluebird')
   var methodCachesInProgress = new Set()
-  let nameHashCache;
 
   function validAddress (address) {
-    return address.length == '42' && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) == '0x'
+    return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
   }
 
   app.get('/api/explore/:contractAddress', (req, res) => {
     let address = req.params.contractAddress
     if (!validAddress(address)) {
       log.debug('User requested something stupid')
-      let err = "Error - invalid contract hash"
-      return res.status(400).json(err);
+      let err = 'Error - invalid contract hash'
+      return res.status(400).json(err)
     }
 
     return parity.getContract(address)
@@ -28,13 +27,14 @@ module.exports = function (app, db, io, log, validator) {
         return res.status(400).json(err.message)
       })
   })
+
   app.get('/api/search/', (req, res) => {
-        return res.status(200).json([])
+    return res.status(200).json([])
   })
 
   app.get('/api/search/:string', (req, res) => {
     let searchStr = req.params.string
-    if (searchStr[0] == '0' && (searchStr[1] == 'x' || searchStr[1] == 'X' )) {
+    if (searchStr[0] === '0' && (searchStr[1] === 'x' || searchStr[1] === 'X')) {
       db.searchContractHash(searchStr.substr(2)).then((results) => {
         return res.status(200).json(results)
       })
@@ -140,7 +140,7 @@ module.exports = function (app, db, io, log, validator) {
             // If there is already a caching process, we don't need to set one up
             if (methodCachesInProgress.has(address + method)) {
               return
-           }
+            }
             methodCachesInProgress.add(address + method)
             log.debug('api.js: calling cacheMorePoints: from:', from, 'to:', to, 'latestBlock:', latestBlock)
             cacheMorePoints(address, method, parseInt(from), parseInt(to), parseInt(latestBlock))
