@@ -106,8 +106,6 @@ module.exports = function (log) {
   db.updateContractWithABI = function (address, parsedContract) {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
-      console.log('abi is: ')
-      console.log(parsedContract)
       var sql = "update Contracts set abi='" + JSON.stringify(parsedContract) + "' where contractHash='" + address + "'"
       request.query(sql)
       .catch((err) => {
