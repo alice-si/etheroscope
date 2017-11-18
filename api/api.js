@@ -128,7 +128,6 @@ module.exports = function (app, db, io, log, validator) {
         parity.getLatestBlock()
           .then((latestBlock) => {
             io.sockets.in(address + method).emit('latestBlock', { latestBlock: latestBlock })
-            log.debug('Result is', result)
             let from = result.cachedFrom
             let to = result.cachedUpTo
             if (from === null || to === null) {
