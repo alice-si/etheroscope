@@ -1,7 +1,6 @@
 import { Component } from "@angular/core";
 import { ContractService } from "../_services/contract.service";
 
-import { fadeInAnimation } from "../_animations/index";
 import { SlicePipe } from '@angular/common';
 import { Clipboard } from 'ts-clipboard';
 
@@ -21,9 +20,7 @@ enum DisplayState {
 
 @Component({
   styleUrls: ['./explorer.component.scss'],
-  templateUrl: './explorer.component.html',
-  animations: [fadeInAnimation]
-  // host: {'[@fadeInAnimation]': ''}
+  templateUrl: './explorer.component.html'
 })
 
 export class ExplorerComponent {
