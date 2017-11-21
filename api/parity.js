@@ -21,26 +21,28 @@ module.exports = function (db, log, validator) {
 
   parity.getContract = function (address) {
     return new Promise((resolve, reject) => {
-      db.getContractName(address.substr(2))
+      db.getContract(address.substr(2))
       .then((result) => {
-        if (result === null) {
-          db.addContracts([[address.substr(2), null]])
+        if (result.parsedContract === null) {
+          const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
+          const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
+          return axios.get(axiosGET + address + axiosAPI)
+            .then((res) => {
+              let parsedContract = parity.parseContract(res.data.result, address)
+              // Add the parsed contract to the database, assuming it is already in there (with a name)
+              db.updateContractWithABI(address.substr(2), parsedContract)
+                .catch((err) => {
+                  log.error('parity.js: Error adding contract abi to the db')
+                  log.error(err)
+                })
+              return resolve({ parsedContract: parsedContract, contractName: result })
+            })
+            .catch((err) => {
+              log.error('parity.js: Etherscan.io API error: ' + err)
+              return reject(err)
+            })
         }
-        // TODO: Queuing System for Etherscan API
-        const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
-        const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
-        return axios.get(axiosGET + address + axiosAPI)
-          .then((res) => {
-            let parsedContract = parity.parseContract(res.data.result, address)
-            // db.addContracts([[address.substr(2), null]], (err, res) => {
-            //   if (err) log.error('Error adding contract name to the db')
-            // })
-            return resolve({ parsedContract: parsedContract, contractName: result })
-          })
-          .catch((err) => {
-            log.error('parity.js: Etherscan.io API error: ' + err)
-            return reject(err)
-          })
+        return resolve(result)
       })
     })
   }
@@ -69,7 +71,7 @@ module.exports = function (db, log, validator) {
               variableNames.push(item.name)
             }
           })
-				  .then((results) => {
+            .then((results) => {
               return Promise.each(variableNames, (variableName) => {
                 db.addVariable([[address, variableName]], (err, res) => {
                   if (err) log.error('Error with caching variables: ' + err)
