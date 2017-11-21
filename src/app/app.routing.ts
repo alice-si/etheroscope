@@ -6,28 +6,13 @@ import { ExplorerComponent } from './explorer/explorer.component';
 
 const ROUTES = [
   { path: '',
-    component: HomeComponent,
-    data: {
-      animation: {
-        value: 'fadeInAnimation',
-      }
-    }
+    component: HomeComponent
   },
   { path: 'home',
-    component: HomeComponent,
-    data: {
-      animation: {
-        value: 'fadeInAnimation',
-      }
-    }
+    component: HomeComponent
   },
   { path: 'explorer',
-    component: ExplorerComponent,
-    data: {
-      animation: {
-        value: 'fadeInAnimation',
-      }
-    }
+    component: ExplorerComponent
   },
   { path: '**', redirectTo: '' }
 ]
