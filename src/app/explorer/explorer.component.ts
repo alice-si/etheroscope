@@ -99,9 +99,6 @@ export class ExplorerComponent {
         if (datapoints.results.length !== 0) {
           this.curDisplayState = DisplayState.displayingGraph;
           this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
-          this.methodDatapoints.sort((a, b) => {
-            return a[0] - b[0];
-          })
           this.removeDuplicateDatapoints();
           this.filterGraphDatapoints();
           this.updateGraph();
@@ -210,7 +207,6 @@ export class ExplorerComponent {
   filterGraphDatapoints() {
     this.graphDatapoints = this.methodDatapoints.filter( (point) => {
       let len = this.datapointFilters.length;
-      console.log('filter length: ' + len);
       for (let i = 0; i < len; i++) {
         if (!this.datapointFilters[i].filter(point)) {
           return false;
@@ -236,7 +232,10 @@ export class ExplorerComponent {
     this.filterGraphDatapoints();
     // if the graph goes back further than the start date, add a point at the start date
     // that is the last value currently seen
-    if (startDate > this.methodDatapoints[0][0]) {
+    let methodTimes = this.methodDatapoints.map((elem) => {return elem[0]});
+    let minDate = Math.min.apply(null, methodTimes);
+    console.log(minDate + ' mindate');
+    if (startDate > minDate) {
       this.graphDatapoints = [[startDate, this.graphDatapoints[0][1]]].concat(this.graphDatapoints);
     }
     this.updateGraph();
@@ -287,7 +286,6 @@ export class ExplorerComponent {
     this.timesValues = [];
     if (this.graphDatapoints !== null && this.graphDatapoints !== undefined
       && this.graphDatapoints.length > 0) {
-      //TODO remove?
       this.graphDatapoints.sort((a, b) => {
         return a[0] - b[0];
       })
