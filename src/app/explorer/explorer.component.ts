@@ -290,7 +290,7 @@ export class ExplorerComponent {
         return a[0] - b[0];
       })
 
-      //add in a point at the current time
+      // add in a point at the current time
       let curTime = Math.round(new Date().getTime() / 1000);
       this.graphDatapoints.push([curTime,
         this.graphDatapoints[this.graphDatapoints.length - 1][1]]);
