@@ -46,18 +46,13 @@ module.exports = function (app, db, io, log, validator) {
     }
   })
 
-  function sendDataPointsFromParity (contractAddress, method, from, to,
+  function sendDataPointsFromParity (contractInfo, contractAddress, method, from, to,
     totalFrom, totalTo) {
     log.debug('Sending history from parity')
     // First we obtain the contract.
-    let contract = null
+    let contract = contractInfo.parsedContract
     return new Promise((resolve, reject) => {
-      parity.getContract(contractAddress)
-        // Then, we get the history of transactions
-      .then(function (contractInfo) {
-        contract = contractInfo.parsedContract
-        return parity.getHistory(contractAddress, method, from, to, totalFrom, totalTo)
-      })
+      parity.getHistory(contractAddress, method, from, to, totalFrom, totalTo)
       .then(function (events) {
         return parity.generateDataPoints(events, contract, method, from, to,
           totalFrom, totalTo)
@@ -142,7 +137,10 @@ module.exports = function (app, db, io, log, validator) {
             }
             methodCachesInProgress.add(address + method)
             log.debug('api.js: calling cacheMorePoints: from:', from, 'to:', to, 'latestBlock:', latestBlock)
-            cacheMorePoints(address, method, parseInt(from), parseInt(to), parseInt(latestBlock))
+            parity.getContract(address)
+            .then((contractInfo) => {
+              cacheMorePoints(contractInfo, address, method, parseInt(from), parseInt(to), parseInt(latestBlock))
+            })
           })
       })
       .catch((err) => {
@@ -152,23 +150,24 @@ module.exports = function (app, db, io, log, validator) {
 
   // from, to and latestBlock are inclusive
   // pre: from, to, latestBlock are numbers, not strings
-  function cacheMorePoints (address, method, from, to, latestBlock) {
+  function cacheMorePoints (contractInfo, address, method, from, to, latestBlock) {
     const chunkSize = 1000
     if (to === latestBlock) {
       if (from === 1) {
+        log.info('Cached all points for ' + address + ' ' + method)
         methodCachesInProgress.delete(address + method)
         return
       }
       let newFrom = Math.max(from - chunkSize, 1)
-      sendDataPointsFromParity(address, method, newFrom, from - 1, newFrom, to)
+      sendDataPointsFromParity(contractInfo, address, method, newFrom, from - 1, newFrom, to)
       .then(() => {
-        cacheMorePoints(address, method, newFrom, to, latestBlock)
+        cacheMorePoints(contractInfo, address, method, newFrom, to, latestBlock)
       })
     } else {
       let newTo = Math.min(to + chunkSize, latestBlock)
-      sendDataPointsFromParity(address, method, to + 1, newTo, from, newTo)
+      sendDataPointsFromParity(contractInfo, address, method, to + 1, newTo, from, newTo)
       .then(() => {
-        cacheMorePoints(address, method, from, newTo, latestBlock)
+        cacheMorePoints(contractInfo, address, method, from, newTo, latestBlock)
       })
     }
   }
