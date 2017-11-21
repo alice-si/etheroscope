@@ -207,6 +207,7 @@ export class ExplorerComponent {
   filterGraphDatapoints() {
     this.graphDatapoints = this.methodDatapoints.filter( (point) => {
       let len = this.datapointFilters.length;
+      console.log('filter length: ' + len);
       for (let i = 0; i < len; i++) {
         if (!this.datapointFilters[i].filter(point)) {
           return false;
@@ -265,13 +266,17 @@ export class ExplorerComponent {
   }
 
   updateGraph() {
-    let temp = []
-    let samples = 300;
-    let intervals = Math.floor(this.graphDatapoints.length / samples);
-    for (let i = 0; i < samples; i++) {
-      temp.push(this.graphDatapoints[i * intervals]);
+    const maxPoints = 300;
+    if (this.graphDatapoints.length > maxPoints) {
+      let temp = []
+      let intervals = Math.floor(this.graphDatapoints.length / maxPoints);
+      for (let i = 0; i < maxPoints; i++) {
+        temp.push(this.graphDatapoints[i * intervals]);
+      }
+      this.graphDatapoints = temp;
+      console.log('graph length: ' + this.graphDatapoints.length);
+      console.log(this.graphDatapoints);
     }
-    this.graphDatapoints = temp;
 
     this.timesValues = [];
     if (this.graphDatapoints !== null && this.graphDatapoints !== undefined
