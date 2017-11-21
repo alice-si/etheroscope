@@ -124,12 +124,12 @@ module.exports = function (log) {
       var sql = "select name, abi from Contracts where contractHash='" + contractHash + "'"
       request.query(sql)
         .then((results) => {
-          let result = { contractName: null, parsedContract: null }
+          let result = { contractName: null, contract: null }
           if (results.rowsAffected[0] !== 0) {
             result.contractName = results.recordset[0].name
             let abi = results.recordset[0].abi
             if (abi) {
-              result.parsedContract = JSON.parse(abi)
+              result.contract = JSON.parse(abi)
             }
           }
           return resolve(result)

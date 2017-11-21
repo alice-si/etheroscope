@@ -23,26 +23,28 @@ module.exports = function (db, log, validator) {
     return new Promise((resolve, reject) => {
       db.getContract(address.substr(2))
       .then((result) => {
-        if (result.parsedContract === null) {
+        // If we don't have the contract, get it from etherscan
+        if (result.contract === null) {
           const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
           const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
           return axios.get(axiosGET + address + axiosAPI)
             .then((res) => {
               let parsedContract = parity.parseContract(res.data.result, address)
-              // Add the parsed contract to the database, assuming it is already in there (with a name)
-              db.updateContractWithABI(address.substr(2), parsedContract)
+              // Add the contract to the database, assuming it is already in there (with a name)
+              db.updateContractWithABI(address.substr(2), res.data.result)
                 .catch((err) => {
                   log.error('parity.js: Error adding contract abi to the db')
                   log.error(err)
                 })
-              return resolve({ parsedContract: parsedContract, contractName: result })
+              return resolve({ parsedContract: parsedContract, contractName: result.contractName })
             })
             .catch((err) => {
               log.error('parity.js: Etherscan.io API error: ' + err)
               return reject(err)
             })
         }
-        return resolve(result)
+        let parsedContract = parity.parseContract(result.contract, address)
+        return resolve({ contractName: result.contractName, parsedContract: parsedContract })
       })
     })
   }
