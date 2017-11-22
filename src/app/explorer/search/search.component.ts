@@ -1,7 +1,6 @@
-import { Output, Component, Optional, Host, Inject, forwardRef } from '@angular/core';
+import { Output, Component, EventEmitter, Input } from '@angular/core';
 import { Router } from '@angular/router';
 import { ContractService } from "../../_services/contract.service";
-import { ExplorerComponent } from "../explorer.component";
 
 @Component({
   selector: 'search-bar',
@@ -10,17 +9,17 @@ import { ExplorerComponent } from "../explorer.component";
 })
 
 export class SearchBarComponent {
+  @Output() exploreContractEvent = new EventEmitter<string>();
+  badRequest: boolean;
   matches: any;
   searchMatch: number;
   userSearching: boolean;
   contractService: any;
-  parentComponent: any;
-  constructor(private service: ContractService,
-    @Optional() @Host() @Inject(forwardRef(() => ExplorerComponent)) explorerComponent?: ExplorerComponent) {
-    this.parentComponent = explorerComponent;
+  constructor(private service: ContractService) {
     this.contractService = service;
     this.searchMatch = 0;
     this.userSearching = true;
+    this.badRequest = false;
   }
 
   searchContracts(pattern: string) {
@@ -44,9 +43,24 @@ export class SearchBarComponent {
     })
   }
 
+  exploreContractMatches(searchbar: string) {
+    let pattern;
+    if (this.matches.length === 0) {
+      pattern = searchbar;
+    } else {
+      pattern = '0x' + this.matches[this.searchMatch].contractHash;
+    }
+    this.exploreContract(pattern);
+  }
+
   exploreContract(contract: string) {
     this.userSearching = false;
-    this.parentComponent.exploreContract(contract);
+    if (contract[0] !== '0' && (contract[1] !== 'x' && contract[1] !== 'X') && contract.length !== 42) {
+      this.badRequest = true;
+    } else {
+      this.badRequest = true;
+      this.exploreContractEvent.emit(contract);
+    }
   }
 
   decSearch() {
