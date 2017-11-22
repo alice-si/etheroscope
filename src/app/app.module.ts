@@ -19,6 +19,7 @@ import { GraphComponent } from "./explorer/graph/graph.component";
 
 // Services
 import { ContractService } from "./_services/contract.service";
+import { GraphService } from "./_services/graph.service";
 
 
 
@@ -43,7 +44,8 @@ const config: SocketIoConfig = { url: environment.socketURL, options: {} };
     ROUTING
   ],
   providers: [
-    ContractService
+    ContractService,
+    GraphService
   ],
   bootstrap: [AppComponent]
 })
