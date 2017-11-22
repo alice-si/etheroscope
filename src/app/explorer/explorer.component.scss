@@ -26,47 +26,8 @@ p {
   .graph-td {
     width: 80%;
     height: 100%;
-    .ngx-charts {
-      max-height: 100%;
-    }
-    .graph-area {
-      width: 100%;
-      height: 100%;
-    }
-    .no-graph-but-var {
-      height: 100%;
-      width: 100%;
-      vertical-align: top;
-      p {
-        text-align: right;
-      }
-      padding: 0 20px;
-    }
-    .no-graph-with-var {
-      height: 100%;
-      width: 100%;
-      .spinner {
-        text-align: center;
-        margin: 0 auto;
-      }
-      .ngwv-w {
-        position: relative;
-        top: 50%;
-        transform: translateY(-50%);
-        p {
-          text-align: center;
-          margin: 0 auto;
-        }
-        .progress {
-          width: 50%;
-          margin: 0 auto;
-        }
-        .progress:after {
-          background-color: #1998a2;
-        }
-      }
-    }
   }
+
   .cards-td {
     width: 20%;
     height: 100%;
