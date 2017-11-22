@@ -140,7 +140,7 @@
                 </div>
                 <div *ngIf="progressBar !== 100" class="card-block progress-card">
                     <div class="progress-block">
-                        {{this.progressBar}}%
+                        <label>{{this.progressBar}}%</label>
                         <div class="progress-static">
                             <div class="progress-meter" [attr.data-value]="progressBar"></div>
                         </div>
