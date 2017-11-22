@@ -58,7 +58,7 @@ export class SearchBarComponent {
     if (contract[0] !== '0' && (contract[1] !== 'x' && contract[1] !== 'X') && contract.length !== 42) {
       this.badRequest = true;
     } else {
-      this.badRequest = true;
+      this.badRequest = false;
       this.exploreContractEvent.emit(contract);
     }
   }
