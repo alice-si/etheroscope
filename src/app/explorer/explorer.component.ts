@@ -1,9 +1,7 @@
 import { Component } from "@angular/core";
 import { ContractService } from "../_services/contract.service";
-
-import { SlicePipe } from '@angular/common';
+import { SearchBarComponent } from "./search/search.component";
 import { Clipboard } from 'ts-clipboard';
-
 
 enum FilterGroup {
   dates,
@@ -19,8 +17,8 @@ enum DisplayState {
 };
 
 @Component({
-  styleUrls: ['./explorer.component.scss'],
-  templateUrl: './explorer.component.html'
+  styleUrls: ['./explorer.component.scss', './explorer.component.global.scss'],
+  templateUrl: './explorer.component.html',
 })
 
 export class ExplorerComponent {
@@ -28,7 +26,6 @@ export class ExplorerComponent {
   single: any[];
   multi: any[];
 
-  contractHash: any[] = [{"name": "Alice.si", "hash": "0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C"}]
   curDisplayState: DisplayState;
   curContractID: string;
   curContractName: string;
@@ -41,7 +38,6 @@ export class ExplorerComponent {
   lastContract: string;
   placeholder: string;
   datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
-  matches: any;
   cachedFrom: number;
   cachedTo: number;
   latestBlock: number;
@@ -51,7 +47,6 @@ export class ExplorerComponent {
   userSearching: boolean;
   variableScroll: number;
   relevantMethods: any;
-  searchMatch: number;
 
   methodPages: number;
 
@@ -113,7 +108,6 @@ export class ExplorerComponent {
 
   private initialiseVariables() {
     this.variableScroll = 0;
-    this.searchMatch = 0;
     this.progressBar = 0;
     this.curContractID = '';
     this.curContractName = '';
@@ -128,7 +122,6 @@ export class ExplorerComponent {
     this.graphDatapoints = [];
     this.methodDatapoints = [];
     this.datapointFilters = [];
-    this.userSearching = true;
     this.curDisplayState = DisplayState.noContract;
     this.DisplayState = DisplayState;
   }
@@ -239,7 +232,6 @@ export class ExplorerComponent {
   }
 
   exploreContract(contract: string) {
-    this.userSearching = false;
     this.curContractID = contract;
     this.contractService.exploreContract(contract).subscribe(
       (contractInfo) => {
@@ -316,66 +308,8 @@ export class ExplorerComponent {
     }
   }
 
-  exploreCompany() {
-    this.exploreContract(this.selectedCompany.hash);
-  }
-
-  selectCompany(hash: string) {
-    this.exploreContract(hash);
-  }
-
-  searchContracts(pattern: string) {
-    this.contractService.searchContracts(pattern).subscribe(
-      (matches) => {
-        if (JSON.stringify(this.matches) !== JSON.stringify(matches)) {
-          this.matches = matches;
-          this.userSearching = true;
-        }
-        if (this.matches.length === 0) {
-          this.searchMatch = 0;
-        } else if (this.matches.length <= this.searchMatch) {
-          this.searchMatch = this.matches.length - 1;
-        }
-      },
-      (error) => {
-        this.matches = null;
-        console.log(error);
-      },
-      () => {
-      })
-  }
-
   copyToClipboard(clip: string) {
     Clipboard.copy(clip);
   }
 
-  decSearch() {
-    if (this.matches !== undefined) {
-      if (this.searchMatch > 0 && this.searchMatch < this.matches.length) {
-        this.searchMatch -= 1;
-      }
-    }
-  }
-
-  incSearch() {
-    if (this.matches !== undefined) {
-      if (this.searchMatch < 4 && this.searchMatch < this.matches.length) {
-        this.searchMatch += 1;
-      }
-    }
-  }
-
-  searchMatchFn(index: number) {
-    if (index === this.searchMatch) {
-      return '#eaeaea'
-    }
-    return '#fafafa'
-  }
-
-  checkCursorInSearchArea(event: any) {
-    if (event.target.id !== 'searchBar') {
-      this.userSearching = false;
-    }
-
-  }
 }
