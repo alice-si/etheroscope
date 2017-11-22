@@ -190,4 +190,8 @@ export class ExplorerComponent {
     this.graphComponent.generateDatapoints(method)
   }
 
+  openSourceCode(){
+    let addr = 'https://etherscan.io/address/' + this.curContractID + '#code';
+    window.open(addr, "_blank");
+  }
 }
