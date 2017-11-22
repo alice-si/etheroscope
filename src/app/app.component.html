@@ -15,17 +15,17 @@
             <a class="nav-link" href="http://etheroscope.alice.si/"><span class="nav-text">Alice.si</span></a>
         </div>
         <div class="header-actions">
-            <button type="button" class="button btn-primary" (click)="openModal()">
+            <button type="button" class="button btn-primary" (click)="helpModal = true">
             <clr-icon shape="info-circle" size="36" style="color:white"></clr-icon>
       </button>
         </div>
     </clr-header>
     <div class="content-container" style="max-width:100% height: 80%;">
-      <div>
-        <router-outlet #outlet="outlet"></router-outlet>
-      </div>
+        <div>
+            <router-outlet #outlet="outlet"></router-outlet>
+        </div>
     </div>
-    <clr-modal [(clrModalOpen)]="helpModalOpen" [clrModalSize]="'xl'">
+    <clr-modal [(clrModalOpen)]="helpModal" [clrModalSize]="'xl'">
         <div class="modal-body">
             <h3 class="modal-title">Guide to using Etheroscope</h3>
             <p>

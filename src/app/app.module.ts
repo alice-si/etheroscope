@@ -1,4 +1,4 @@
-// import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -11,6 +11,7 @@ import { AppComponent } from './app.component';
 import { ROUTING } from "./app.routing";
 import { HomeComponent } from "./home/home.component";
 import { ExplorerComponent } from "./explorer/explorer.component";
+import { SearchBarComponent } from "./explorer/search/search.component";
 
 import { ContractService } from "./_services/contract.service";
 import { SocketIoModule, SocketIoConfig } from 'ng-socket-io';
@@ -24,9 +25,11 @@ const config: SocketIoConfig = { url: environment.socketURL, options: {} };
     declarations: [
         AppComponent,
         HomeComponent,
-        ExplorerComponent
+        ExplorerComponent,
+        SearchBarComponent
         ],
     imports: [
+        BrowserAnimationsModule,
         BrowserModule,
         FormsModule,
         SelectModule,
