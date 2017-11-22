@@ -3,9 +3,9 @@
       <table id="search-table" class="animated fadeIn">
           <tr>
               <td class="search-bar">
-                  <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract('0x' + matches[searchMatch].contractHash)" value="{{parentComponent.placeholder}}" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
+                  <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContractMatches(searchBar.value)" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
                   <div id="button-wrapper">
-                      <clr-icon *ngIf="parentComponent.displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
+                    <clr-icon *ngIf="badRequest" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
                   </div>
               </td>
               <td class="search-button">

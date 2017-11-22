@@ -31,10 +31,9 @@ export class ExplorerComponent {
   curContractName: string;
   methods: string[];
   displayMethods: boolean;
-  displayBadExploreRequestWarning: boolean;
   // graphDatapoints: number[][];
   placeholder: string;
-  // datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
+  datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
   cachedFrom: number;
   cachedTo: number;
   latestBlock: number;
@@ -120,11 +119,11 @@ export class ExplorerComponent {
   //   this.addFilterOnDatesBetween(to, now);
   // }
 
-  // deleteFilter(index: number) {
-  //   this.datapointFilters.splice(index, 1);
-  //   this.filterGraphDatapoints();
-  //   this.updateGraph();
-  // }
+  deleteFilter(index: number) {
+    this.datapointFilters.splice(index, 1);
+    // this.filterGraphDatapoints();
+    // this.updateGraph();
+  }
 
   // addFilterOnDatesBetween(startDate: number, endDate: number) {
   //   let startDisplayDate = new Date(0);
@@ -169,13 +168,12 @@ export class ExplorerComponent {
       },
       (error) => {
         if (error.status === 400) {
-          this.displayBadExploreRequestWarning = true;
+          console.log('Error in retrieving contracts')
         }
       },
       () => {
         this.placeholder = contract;
         console.log("completed contract exploring");
-        this.displayBadExploreRequestWarning = false;
         this.displayMethods = true;
       }
     );
@@ -190,8 +188,21 @@ export class ExplorerComponent {
     this.graphComponent.generateDatapoints(method)
   }
 
-  openSourceCode(){
+  openSourceCode() {
     let addr = 'https://etherscan.io/address/' + this.curContractID + '#code';
     window.open(addr, "_blank");
   }
+
+  //filterGraphDatapoints() {
+  //  this.graphDatapoints = this.methodDatapoints.filter( (point) => {
+  //    let len = this.datapointFilters.length;
+  //    for (let i = 0; i < len; i++) {
+  //      if (!this.datapointFilters[i].filter(point)) {
+  //        return false;
+  //      }
+  //    }
+  //    return true;
+  //  })
+  //}
+
 }

@@ -1,5 +1,4 @@
-<search-bar>
-</search-bar>
+<search-bar (exploreContractEvent)="exploreContract($event)"> </search-bar>
 <!-- Help Message without a graph -->
 <div class="no-graph" *ngIf="curDisplayState === DisplayState.noContract" (click)="userSearching = false;">
     <p *ngIf="curDisplayState === DisplayState.noContract" class="animated fadeInUp">
