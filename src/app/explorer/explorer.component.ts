@@ -1,19 +1,12 @@
 import { Component, ViewChild } from "@angular/core";
 import { ContractService } from "../_services/contract.service";
+import { GraphService } from "../_services/graph.service";
 import { Clipboard } from 'ts-clipboard';
 import { GraphComponent } from './graph/graph.component';
 
 enum FilterGroup {
   dates,
     values
-};
-
-enum DisplayState {
-  noContract,
-    newContract,
-    awaitingInitialResponse,
-    awaitingInitialPoints,
-    displayingGraph
 };
 
 @Component({
@@ -23,21 +16,16 @@ enum DisplayState {
 
 export class ExplorerComponent {
   @ViewChild(GraphComponent) graphComponent: GraphComponent;
-  DisplayState: any;
   single: any[];
+  graphService: any;
 
-  curDisplayState: DisplayState;
-  curContractID: string;
   curContractName: string;
   methods: string[];
   displayMethods: boolean;
   // graphDatapoints: number[][];
   placeholder: string;
   datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
-  cachedFrom: number;
-  cachedTo: number;
   latestBlock: number;
-  progressBar: number;
   selectedCompany: any;
   userSearching: boolean;
   variableScroll: number;
@@ -45,8 +33,9 @@ export class ExplorerComponent {
 
   methodPages: number;
 
-  constructor(private contractService: ContractService) {
+  constructor(private contractService: ContractService, private gs: GraphService) {
     this.initialiseVariables();
+    this.graphService = gs;
     this.contractService.latestBlockEvent().subscribe(
       (latestBlock: any) => {
         this.latestBlock = latestBlock.latestBlock;
@@ -55,18 +44,13 @@ export class ExplorerComponent {
   }
 
   private initialiseVariables() {
-    this.variableScroll = 0;
-    this.progressBar = 0;
-    this.curContractID = '';
     this.curContractName = '';
     this.placeholder = null;
     this.single = [];
     this.displayMethods = false;
     this.methods = [];
-    // this.graphDatapoints = [];
+    this.variableScroll = 0;
     // this.datapointFilters = [];
-    this.curDisplayState = DisplayState.noContract;
-    this.DisplayState = DisplayState;
   }
 
   methodsScroll(back: boolean) {
@@ -151,10 +135,10 @@ export class ExplorerComponent {
   // }
 
   exploreContract(contract: string) {
-    this.curContractID = contract;
+    this.graphService.curContractID = contract;
     this.contractService.exploreContract(contract).subscribe(
       (contractInfo) => {
-        this.curDisplayState = DisplayState.newContract;
+        this.graphService.curDisplayState = this.graphService.DisplayState.newContract;
         console.log('Contract INFO');
         console.log(contractInfo);
         this.methods = contractInfo.variableNames;
@@ -189,20 +173,20 @@ export class ExplorerComponent {
   }
 
   openSourceCode() {
-    let addr = 'https://etherscan.io/address/' + this.curContractID + '#code';
+    let addr = 'https://etherscan.io/address/' + this.graphService.curContractID + '#code';
     window.open(addr, "_blank");
   }
 
-  //filterGraphDatapoints() {
-  //  this.graphDatapoints = this.methodDatapoints.filter( (point) => {
-  //    let len = this.datapointFilters.length;
-  //    for (let i = 0; i < len; i++) {
-  //      if (!this.datapointFilters[i].filter(point)) {
-  //        return false;
-  //      }
-  //    }
-  //    return true;
-  //  })
-  //}
+  // filterGraphDatapoints() {
+  //   this.graphDatapoints = this.methodDatapoints.filter( (point) => {
+  //     let len = this.datapointFilters.length;
+  //     for (let i = 0; i < len; i++) {
+  //       if (!this.datapointFilters[i].filter(point)) {
+  //         return false;
+  //       }
+  //     }
+  //     return true;
+  //   })
+  // }
 
 }

@@ -1,6 +1,7 @@
 import { Output, Component, Optional, Host, Inject, forwardRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ContractService } from "../../_services/contract.service";
+import { GraphService } from "../../_services/graph.service";
 import { ExplorerComponent } from "../explorer.component";
 
 @Component({
@@ -10,7 +11,7 @@ import { ExplorerComponent } from "../explorer.component";
 })
 
 export class GraphComponent {
-  parentComponent: any;
+  graphService: any;
   graphDatapoints: number[][];
   timesValues: any[];
   lastMethod: string;
@@ -40,10 +41,9 @@ export class GraphComponent {
 
 
 
-  constructor(private service: ContractService,
-    @Optional() @Host() @Inject(forwardRef(() => ExplorerComponent)) explorerComponent?: ExplorerComponent) {
+  constructor(private service: ContractService, private gs: GraphService) {
+    this.graphService = gs;
     this.contractService = service;
-    this.parentComponent = explorerComponent;
     this.graphDatapoints = [];
     this.timesValues = [];
     this.multi = [];
@@ -52,22 +52,21 @@ export class GraphComponent {
     this.methodDatapoints = [];
     this.contractService.getHistoryEvent().subscribe(
       (datapoints: any) => {
-        let curDisplayState = this.parentComponent.curDisplayState
-        let DisplayState = this.parentComponent.DisplayState
-        let cachedFrom = this.parentComponent.cachedFrom
-        let cachedTo = this.parentComponent.cachedTo
+        let DisplayState = this.graphService.DisplayState
+        let cachedFrom = this.graphService.cachedFrom
+        let cachedTo = this.graphService.cachedTo
         if (datapoints.error) { return; }
-        if (curDisplayState === DisplayState.awaitingInitialResponse) {
-          this.parentComponent.curDisplayState = DisplayState.awaitingInitialPoints;
-          this.parentComponent.cachedFrom = parseInt(datapoints.from, 10);
-          this.parentComponent.cachedTo = parseInt(datapoints.to, 10);
+        if (this.graphService.curDisplayState === DisplayState.awaitingInitialResponse) {
+          this.graphService.curDisplayState = DisplayState.awaitingInitialPoints;
+          this.graphService.cachedFrom = parseInt(datapoints.from, 10);
+          this.graphService.cachedTo = parseInt(datapoints.to, 10);
         } else {
-          this.parentComponent.cachedFrom = Math.min(cachedFrom, parseInt(datapoints.from, 10));
-          this.parentComponent.cachedTo = Math.max(cachedTo, parseInt(datapoints.to, 10));
+          this.graphService.cachedFrom = Math.min(cachedFrom, parseInt(datapoints.from, 10));
+          this.graphService.cachedTo = Math.max(cachedTo, parseInt(datapoints.to, 10));
         }
-        this.parentComponent.progressBar = Math.ceil(100 * (cachedTo - cachedFrom) / this.parentComponent.latestBlock);
+        this.graphService.progressBar = Math.ceil(100 * (cachedTo - cachedFrom) / this.graphService.latestBlock);
         if (datapoints.results.length !== 0) {
-          this.parentComponent.curDisplayState = DisplayState.displayingGraph;
+          this.graphService.curDisplayState = DisplayState.displayingGraph;
           this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
           // this.removeDuplicateDatapoints();
           // this.graphDatapoints = this.methodDatapoints;
@@ -120,16 +119,16 @@ export class GraphComponent {
 
   generateDatapoints(method: string) {
     // let curContractID = this.parentComponent.curContractID
-    if (method !== this.lastMethod || this.parentComponent.curContractID !== this.lastContract ||
+    if (method !== this.lastMethod || this.graphService.curContractID !== this.lastContract ||
       this.lastContract === null || this.lastMethod === null) {
       this.contractService.leaveMethod(this.lastContract, this.lastMethod);
-      this.parentComponent.progressBar = 0;
-      this.parentComponent.curDisplayState = this.parentComponent.DisplayState.awaitingInitialResponse;
-      this.lastContract = this.parentComponent.curContractID;
+      this.graphService.progressBar = 0;
+      this.graphService.curDisplayState = this.graphService.DisplayState.awaitingInitialResponse;
+      this.lastContract = this.graphService.curContractID;
       this.lastMethod = method;
       // flush the current method datapoints
       this.methodDatapoints = [];
-      this.contractService.generateDatapoints(this.parentComponent.curContractID, method);
+      this.contractService.generateDatapoints(this.graphService.curContractID, method);
     }
   }
 

@@ -1,7 +1,7 @@
 <search-bar (exploreContractEvent)="exploreContract($event)"> </search-bar>
 <!-- Help Message without a graph -->
-<div class="no-graph" *ngIf="curDisplayState === DisplayState.noContract" (click)="userSearching = false;">
-    <p *ngIf="curDisplayState === DisplayState.noContract" class="animated fadeInUp">
+<div class="no-graph" *ngIf="graphService.curDisplayState === graphService.DisplayState.noContract" (click)="userSearching = false;">
+    <p *ngIf="graphService.curDisplayState === graphService.DisplayState.noContract" class="animated fadeInUp">
         <clr-icon shape="arrow" size="36"></clr-icon><br> First, enter a contract to explore. This could be a contract's hash, or a name the contract is associated with.<br> Click <u><a (click)="exploreContract('0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C')">here</a></u> to see an example!<br><br><br><br>
         <clr-icon shape="scroll" size="36"></clr-icon>
         <clr-icon shape="arrow" dir="right" size="36"></clr-icon>
@@ -20,7 +20,7 @@
 
 
 <!-- basic state when user indicates a contract -->
-<table *ngIf="curDisplayState !== DisplayState.noContract" class="graph-table" (click)="userSearching = false;">
+<table *ngIf="graphService.curDisplayState !== graphService.DisplayState.noContract" class="graph-table" (click)="userSearching = false;">
     <tr>
         <td class="graph-td">
             <graph-comp>
@@ -40,11 +40,11 @@
                             <tr>
                                 <td style="padding: 0;">
                                     <div class="card-text" style="text-align: center; font-size: 0.9em;">
-                                        Address: {{this.curContractID.substr(0, 20)}}...
+                                        Address: {{this.graphService.curContractID.substr(0, 20)}}...
                                     </div>
                                 </td>
                                 <td align="right">
-                                    <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the address!" (click)="copyToClipboard(this.curContractID)">
+                                    <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the address!" (click)="copyToClipboard(this.graphService.curContractID)">
                                       <clr-icon shape="copy" style="color: #1998a2"></clr-icon>
                                     </button>
                                 </td>
@@ -82,7 +82,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card currViewing animated fadeIn" *ngIf="curDisplayState === DisplayState.displayingGraph || curDisplayState === DisplayState.awaitingInitialPoints">
+            <div class="card currViewing animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingGraph || graphService.curDisplayState === graphService.DisplayState.awaitingInitialPoints">
                 <div class="card-header">
                     Currently Viewing Variable
                 </div>
@@ -109,7 +109,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card filters animated fadeIn" *ngIf="curDisplayState === DisplayState.displayingGraph">
+            <div class="card filters animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingGraph">
                 <div class="card-header">
                     Filter the points on the graph
                 </div>
