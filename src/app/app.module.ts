@@ -1,4 +1,4 @@
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+// import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -27,7 +27,6 @@ const config: SocketIoConfig = { url: environment.socketURL, options: {} };
         ExplorerComponent
         ],
     imports: [
-        BrowserAnimationsModule,
         BrowserModule,
         FormsModule,
         SelectModule,
