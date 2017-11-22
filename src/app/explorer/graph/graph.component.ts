@@ -12,13 +12,10 @@ import { ExplorerComponent } from "../explorer.component";
 
 export class GraphComponent {
   graphService: any;
-  graphDatapoints: number[][];
-  timesValues: any[];
+  // graphDatapoints: number[][];
   lastMethod: string;
-  multi: any[];
   lastContract: string;
   contractService: any;
-  methodDatapoints: number[][];
 
 
   // Graph options
@@ -44,12 +41,8 @@ export class GraphComponent {
   constructor(private service: ContractService, private gs: GraphService) {
     this.graphService = gs;
     this.contractService = service;
-    this.graphDatapoints = [];
-    this.timesValues = [];
-    this.multi = [];
     this.lastContract = null;
     this.lastMethod = null;
-    this.methodDatapoints = [];
     this.contractService.getHistoryEvent().subscribe(
       (datapoints: any) => {
         let DisplayState = this.graphService.DisplayState
@@ -67,11 +60,10 @@ export class GraphComponent {
         this.graphService.progressBar = Math.ceil(100 * (cachedTo - cachedFrom) / this.graphService.latestBlock);
         if (datapoints.results.length !== 0) {
           this.graphService.curDisplayState = DisplayState.displayingGraph;
-          this.methodDatapoints = this.methodDatapoints.concat(datapoints.results);
-          // this.removeDuplicateDatapoints();
-          // this.graphDatapoints = this.methodDatapoints;
-          this.filterGraphDatapoints();
-          this.updateGraph();
+          this.graphService.methodDatapoints = this.graphService.methodDatapoints.concat(datapoints.results);
+          this.removeDuplicateDatapoints();
+          this.graphService.filterGraphDatapoints();
+          this.graphService.updateGraph();
         }
       },
       (error) => {
@@ -79,42 +71,9 @@ export class GraphComponent {
       },
       () => {
         console.log("completed data point generation");
-        this.updateGraph();
+        this.graphService.updateGraph();
       }
     );
-  }
-
-  updateGraph() {
-    const maxPoints = 300;
-    if (this.graphDatapoints.length > maxPoints) {
-      let temp = []
-      let intervals = Math.floor(this.graphDatapoints.length / maxPoints);
-      for (let i = 0; i < maxPoints; i++) {
-        temp.push(this.graphDatapoints[i * intervals]);
-      }
-      this.graphDatapoints = temp;
-    }
-
-    this.timesValues = [];
-    if (this.graphDatapoints !== null && this.graphDatapoints !== undefined
-      && this.graphDatapoints.length > 0) {
-      this.graphDatapoints.sort((a, b) => {
-        return a[0] - b[0];
-      })
-
-      // add in a point at the current time
-      let curTime = Math.round(new Date().getTime() / 1000);
-      this.graphDatapoints.push([curTime,
-        this.graphDatapoints[this.graphDatapoints.length - 1][1]]);
-
-      this.timesValues = [];
-      this.graphDatapoints.forEach((elem) => {
-        let date = new Date(0);
-        date.setUTCSeconds(+elem[0]);
-        this.timesValues.push({"name": date, "value": +elem[1]});
-      })
-      this.multi = [...[{ "name": "", "series": this.timesValues}]];
-    }
   }
 
   generateDatapoints(method: string) {
@@ -127,7 +86,7 @@ export class GraphComponent {
       this.lastContract = this.graphService.curContractID;
       this.lastMethod = method;
       // flush the current method datapoints
-      this.methodDatapoints = [];
+      this.graphService.methodDatapoints = [];
       this.contractService.generateDatapoints(this.graphService.curContractID, method);
     }
   }
@@ -135,7 +94,7 @@ export class GraphComponent {
   removeDuplicateDatapoints() {
     // get rid of datapoints with duplicate times
     let seenTime = {};
-    this.methodDatapoints = this.methodDatapoints.filter( (point) => {
+    this.graphService.methodDatapoints = this.graphService.methodDatapoints.filter( (point) => {
       if (seenTime.hasOwnProperty(point[0])) {
         return false;
       }
@@ -143,18 +102,4 @@ export class GraphComponent {
       return true;
     });
   }
-
-  filterGraphDatapoints() {
-    this.graphDatapoints = this.methodDatapoints;
-    // this.graphDatapoints.filter( (point) => {
-    //   let len = this.datapointFilters.length;
-    //   for (let i = 0; i < len; i++) {
-    //     if (!this.datapointFilters[i].filter(point)) {
-    //       return false;
-    //     }
-    //   }
-    //   return true;
-    // })
-  }
-
 }
