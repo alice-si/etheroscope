@@ -1,27 +1,29 @@
-<div class="contractVarSelect" (click)="checkCursorInSearchArea($event)">
-    <table id="search-table" class="animated fadeIn">
-        <tr>
-            <td class="search-bar">
-                <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract('0x' + matches[searchMatch].contractHash)" value="{{placeholder}}" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
-                <div id="button-wrapper">
-                    <clr-icon *ngIf="displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
-                </div>
-            </td>
-            <td class="search-button">
-                <button type="button" class="btn btn-sm btn-primary" (click)="exploreContract(searchBar.value)">
-                  <clr-icon shape="search" size="20"> </clr-icon>
-                </button>
-            </td>
-        </tr>
-    </table>
-</div>
-<div id="matches" *ngIf="matches !== undefined && matches.length !== 0 && userSearching" (mouseenter)="userSearching = true" class="animated fadeIn">
-    <table>
-        <tr *ngFor="let match of matches; let i = index" (click)="exploreContract('0x' + match.contractHash)">
-            <td align="center" [style.background-color]="searchMatchFn(i)">
-                <p class="nameMatch">{{match.name}} </p>
-                <p class="hashMatch">Hash: 0x{{match.contractHash}}</p>
-            </td>
-        </tr>
-    </table>
-</div>
+<span>
+  <div class="contractVarSelect" (click)="checkCursorInSearchArea($event)">
+      <table id="search-table" class="animated fadeIn">
+          <tr>
+              <td class="search-bar">
+                  <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContract('0x' + matches[searchMatch].contractHash)" value="{{parentComponent.placeholder}}" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
+                  <div id="button-wrapper">
+                      <clr-icon *ngIf="parentComponent.displayBadExploreRequestWarning" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
+                  </div>
+              </td>
+              <td class="search-button">
+                  <button type="button" class="btn btn-sm btn-primary" (click)="exploreContract(searchBar.value)">
+                    <clr-icon shape="search" size="20"> </clr-icon>
+                  </button>
+              </td>
+          </tr>
+      </table>
+  </div>
+  <div id="matches" *ngIf="matches !== undefined && matches.length !== 0 && userSearching" (mouseenter)="userSearching = true" class="animated fadeIn">
+      <table>
+          <tr *ngFor="let match of matches; let i = index" (click)="exploreContract('0x' + match.contractHash)">
+              <td align="center" [style.background-color]="searchMatchFn(i)">
+                  <p class="nameMatch">{{match.name}} </p>
+                  <p class="hashMatch">Hash: 0x{{match.contractHash}}</p>
+              </td>
+          </tr>
+      </table>
+  </div>
+</span>
