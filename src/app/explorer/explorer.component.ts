@@ -22,9 +22,8 @@ export class ExplorerComponent {
   curContractName: string;
   methods: string[];
   displayMethods: boolean;
-  // graphDatapoints: number[][];
   placeholder: string;
-  datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
+  // datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
   latestBlock: number;
   selectedCompany: any;
   userSearching: boolean;
@@ -104,35 +103,35 @@ export class ExplorerComponent {
   // }
 
   deleteFilter(index: number) {
-    this.datapointFilters.splice(index, 1);
-    // this.filterGraphDatapoints();
-    // this.updateGraph();
+    this.graphService.datapointFilters.splice(index, 1);
+    this.graphService.filterGraphDatapoints();
+    this.graphService.updateGraph();
   }
 
-  // addFilterOnDatesBetween(startDate: number, endDate: number) {
-  //   let startDisplayDate = new Date(0);
-  //   let endDisplayDate = new Date(0);
-  //   startDisplayDate.setUTCSeconds(+startDate);
-  //   endDisplayDate.setUTCSeconds(+endDate);
-  //   let message = "Dates between " + startDisplayDate.toLocaleString()
-  //     + " - " + endDisplayDate.toLocaleString();
-  //   this.datapointFilters[FilterGroup.dates] = {
-  //     message: message,
-  //     filter: (point) => {
-  //       return point[0] >= startDate && point[0] <= endDate;
-  //     }
-  //   };
-  //   this.filterGraphDatapoints();
-  //   // if the graph goes back further than the start date, add a point at the start date
-  //   // that is the last value currently seen
-  //   let methodTimes = this.methodDatapoints.map((elem) => {return elem[0]});
-  //   let minDate = Math.min.apply(null, methodTimes);
-  //   console.log(minDate + ' mindate');
-  //   if (startDate > minDate) {
-  //     this.graphDatapoints = [[startDate, this.graphDatapoints[0][1]]].concat(this.graphDatapoints);
-  //   }
-  //   this.updateGraph();
-  // }
+  addFilterOnDatesBetween(startDate: number, endDate: number) {
+    let startDisplayDate = new Date(0);
+    let endDisplayDate = new Date(0);
+    startDisplayDate.setUTCSeconds(+startDate);
+    endDisplayDate.setUTCSeconds(+endDate);
+    let message = "Dates between " + startDisplayDate.toLocaleString()
+      + " - " + endDisplayDate.toLocaleString();
+    this.graphService.datapointFilters[FilterGroup.dates] = {
+      message: message,
+      filter: (point) => {
+        return point[0] >= startDate && point[0] <= endDate;
+      }
+    };
+    this.graphService.filterGraphDatapoints();
+    // if the graph goes back further than the start date, add a point at the start date
+    // that is the last value currently seen
+    let methodTimes = this.graphService.methodDatapoints.map((elem) => {return elem[0]});
+    let minDate = Math.min.apply(null, methodTimes);
+    console.log(minDate + ' mindate');
+    if (startDate > minDate) {
+      this.graphService.graphDatapoints = [[startDate, this.graphService.graphDatapoints[0][1]]].concat(this.graphService.graphDatapoints);
+    }
+    this.graphService.updateGraph();
+  }
 
   exploreContract(contract: string) {
     this.graphService.curContractID = contract;
@@ -176,17 +175,5 @@ export class ExplorerComponent {
     let addr = 'https://etherscan.io/address/' + this.graphService.curContractID + '#code';
     window.open(addr, "_blank");
   }
-
-  // filterGraphDatapoints() {
-  //   this.graphDatapoints = this.methodDatapoints.filter( (point) => {
-  //     let len = this.datapointFilters.length;
-  //     for (let i = 0; i < len; i++) {
-  //       if (!this.datapointFilters[i].filter(point)) {
-  //         return false;
-  //       }
-  //     }
-  //     return true;
-  //   })
-  // }
 
 }
