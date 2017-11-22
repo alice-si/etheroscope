@@ -69,7 +69,7 @@
                             </tr>
                         </table>
                         <div id="viewSourceCode" style="text-align: center;" *ngIf="this.curContractName !== 'unknown'">
-                            <a [href]="'https://etherscan.io/address/' + curContractID + '#code'" target="_blank ">View the contract's source code</a>
+                            <button class="btn btn-sm view-src-btn" (click)="openSourceCode()">View the contract's source code</button>
                         </div>
                     </div>
                     <div class="card-block">
