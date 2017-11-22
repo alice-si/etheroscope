@@ -133,17 +133,7 @@ module.exports = function (db, log, validator) {
     return new Promise((resolve, reject) => {
       filter.get((error, result) => {
         if (!error) {
-          log.debug('parity.js: Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
-          log.debug('parity.js: From', startBlock, 'to', endBlock)
-          db.updateFromTo(address.substr(2), method, totalFrom, totalTo)
-            .then(() => {
-              log.debug('parity.js: Updating cached address')
-              return resolve(result)
-            })
-            .catch((err) => {
-              log.error('parity.js: db update error: ', err)
-              return reject(err)
-            })
+          return resolve(result)
         } else {
           return reject(error)
         }
@@ -155,9 +145,9 @@ module.exports = function (db, log, validator) {
     totalFrom, totalTo) {
     let prevTime = 0
     return new Promise((resolve, reject) => {
-      log.debug('Generating data points')
+      //log.debug('Generating data points')
       Promise.map(eventsA, (event) => {
-        // [(t,v,b)]
+        // [(time, value, blockNum)]
         return Promise.all([parity.getBlockTime(event.blockNumber.valueOf()),
           parity.queryAtBlock(contract[method], event.blockNumber.valueOf()), event.blockNumber.valueOf()])
       })
@@ -166,10 +156,20 @@ module.exports = function (db, log, validator) {
           let updates = time !== prevTime
           if (updates) {
             prevTime = time
-            db.addDataPoints([[contract.address.substr(2), method, blockNum, val]])
           }
           return updates
         })
+      })
+      .then((events) => {
+        db.addDataPoints(contract.address.substr(2), method, events, totalFrom, totalTo)
+          .then(() => {
+            if (events.length > 0) {
+              log.debug('Added ' + events.length + ' data points for ' + contract.address + ' ' + method)
+            }
+            //log.debug('parity.js: Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
+            //log.debug('parity.js: From', startBlock, 'to', endBlock)
+          })
+        return events 
       })
       .then((events) => {
         resolve(events.sort((a, b) => {

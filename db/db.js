@@ -21,6 +21,34 @@ const pool = new mssql.ConnectionPool({
   }
 })
 
+/* DEFINE TABLES FOR BULK INSERT
+ * Here we define the table schema
+ * so that we can use them for bulk inserts
+ */
+/* Variables Table
+ */
+function getNewVariablesTable () {
+  var variablesTable = new mssql.Table('variables')
+  variablesTable.create = true
+  variablesTable.columns.add('contractHash', mssql.VarChar(40), {nullable: false, primary: true})
+  variablesTable.columns.add('variableName', mssql.VarChar(50), {nullable: false, primary: true})
+  variablesTable.columns.add('cachedFrom',   mssql.BigInt, {nullable: true})
+  variablesTable.columns.add('cachedUpTo',   mssql.BigInt, {nullable: true})
+  return variablesTable
+}
+
+/* DataPoints Table
+ */
+function getNewDataPointsTable () {
+  var dataPointsTable = new mssql.Table('dataPoints')
+  dataPointsTable.create = true
+  dataPointsTable.columns.add('contractHash', mssql.VarChar(40), {nullable: false, primary: true})
+  dataPointsTable.columns.add('variableName', mssql.VarChar(50), {nullable: false, primary: true})
+  dataPointsTable.columns.add('blockNumber',  mssql.BigInt, {nullable: false})
+  dataPointsTable.columns.add('value',  mssql.VarChar(78), {nullable: false})
+  return dataPointsTable
+}
+
 /* A function to build a set of values
  * to be inserted in an sql statement.
  * Each record is represented as an array of
@@ -142,43 +170,46 @@ module.exports = function (log) {
     })
   }
 
-  /* This function takes in an array of arrays of the form:
-   * values = ['0x0123456789', 'id', blockNumber, 'value']
-   * and a callback function (err, result)
+  /* This function takes in a contract address, method and
+   * array of arrays of the form: [[time, 'value', blockNum]]
+   * time is currently ignored
    */
-  db.addDataPoints = function (values) {
+  db.addDataPoints = function (contractAddress, method, values, from, to) {
     return new Promise(function (resolve, reject) {
-      var request = new mssql.Request(pool)
-      var valueString = buildValueString(values)
-      var sql =
-        'insert into DataPoints ' +
-        '(contractHash, variableName, blockNumber, value) values ' +
-        valueString + ';'
-      request.query(sql)
+
+      let dataPointsTable = getNewDataPointsTable()
+      values.forEach((elem) => {
+        dataPointsTable.rows.add(contractAddress, method, elem[2], elem[1])
+      })
+
+      var transaction = new mssql.Transaction(pool)
+      var request = new mssql.Request(transaction);
+
+      transaction.begin()
+        .then(() => {
+          return request.bulk(dataPointsTable)
+        })
+        .then(() => {
+          var sql = 
+            "update variables set cachedFrom='" + from + "' where contractHash='" + contractAddress +
+             "' and variableName='" + method + "';" +
+            "update variables set cachedUpTo='" + to + "' where contractHash='" + contractAddress +
+             "' and variableName='" + method + "';"
+          return request.query(sql)
+        })
+        .then(() => {
+          return transaction.commit()
+        })
         .then(() => {
           return resolve()
         })
         .catch((err) => {
           log.error('db.js: Error in addDataPoints')
-          log.error(err)
-          return reject(err)
-        })
-    })
-  }
-
-  db.updateFromTo = function (contractHash, method, from, to) {
-    return new Promise(function (resolve, reject) {
-      var request = new mssql.Request(pool)
-      var sql = "update variables set cachedFrom='" + from + "' where contractHash='" + contractHash + "' and variableName='" + method + "';" +
-      "update variables set cachedUpTo='" + to + "' where contractHash='" + contractHash + "' and variableName='" + method + "';"
-      request.query(sql)
-        .then(() => {
-          return resolve()
-        })
-        .catch((err) => {
-          log.error('db.js: Error in updateFromTo')
-          log.error(err)
-          return reject(err)
+          log.error(err)        
+          transaction.rollback()
+            .then(() => {
+              return reject(err)
+            })
         })
     })
   }
@@ -364,5 +395,6 @@ module.exports = function (log) {
     })
     return ('%' + str.join(''))
   }
+
   return db
 }
