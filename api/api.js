@@ -34,16 +34,17 @@ module.exports = function (app, db, io, log, validator) {
 
   app.get('/api/search/:string', (req, res) => {
     let searchStr = req.params.string
-    if (searchStr[0] === '0' && (searchStr[1] === 'x' || searchStr[1] === 'X')) {
-      db.searchContractHash(searchStr.substr(2)).then((results) => {
-        return res.status(200).json(results)
-      })
-    } else {
-      console.log(searchStr)
-      db.searchContractName(searchStr).then((results) => {
-        return res.status(200).json(results)
-      })
+    let variables = null
+    let transactions = null
+    if (typeof req.body.variables != 'undefined') {
+      variables = req.body.variables
     }
+    if (typeof req.body.transactions != 'undefined') {
+      transactions = req.body.transactions
+    }
+    db.searchContract(searchStr, variables, transactions).then((results) => {
+      return res.status(200).json(results)
+    })
   })
 
   function sendDataPointsFromParity (contractInfo, contractAddress, method, from, to,
