@@ -1,4 +1,4 @@
-import { Output, Component, Optional, Host, Inject, forwardRef } from '@angular/core';
+import { Output, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { ContractService } from "../../_services/contract.service";
 import { GraphService } from "../../_services/graph.service";
@@ -12,11 +12,6 @@ import { ExplorerComponent } from "../explorer.component";
 
 export class GraphComponent {
   graphService: any;
-  // graphDatapoints: number[][];
-  lastMethod: string;
-  lastContract: string;
-  contractService: any;
-
 
   // Graph options
   showXAxis = true;
@@ -38,12 +33,9 @@ export class GraphComponent {
 
 
 
-  constructor(private service: ContractService, private gs: GraphService) {
+  constructor(private gs: GraphService) {
     this.graphService = gs;
-    this.contractService = service;
-    this.lastContract = null;
-    this.lastMethod = null;
-    this.contractService.getHistoryEvent().subscribe(
+    this.graphService.contractService.getHistoryEvent().subscribe(
       (datapoints: any) => {
         let DisplayState = this.graphService.DisplayState
         let cachedFrom = this.graphService.cachedFrom
@@ -57,6 +49,7 @@ export class GraphComponent {
           this.graphService.cachedFrom = Math.min(cachedFrom, parseInt(datapoints.from, 10));
           this.graphService.cachedTo = Math.max(cachedTo, parseInt(datapoints.to, 10));
         }
+        console.log("checking latestBlock", this.graphService.latestBlock)
         this.graphService.progressBar = Math.ceil(100 * (cachedTo - cachedFrom) / this.graphService.latestBlock);
         if (datapoints.results.length !== 0) {
           this.graphService.curDisplayState = DisplayState.displayingGraph;
@@ -74,21 +67,6 @@ export class GraphComponent {
         this.graphService.updateGraph();
       }
     );
-  }
-
-  generateDatapoints(method: string) {
-    // let curContractID = this.parentComponent.curContractID
-    if (method !== this.lastMethod || this.graphService.curContractID !== this.lastContract ||
-      this.lastContract === null || this.lastMethod === null) {
-      this.contractService.leaveMethod(this.lastContract, this.lastMethod);
-      this.graphService.progressBar = 0;
-      this.graphService.curDisplayState = this.graphService.DisplayState.awaitingInitialResponse;
-      this.lastContract = this.graphService.curContractID;
-      this.lastMethod = method;
-      // flush the current method datapoints
-      this.graphService.methodDatapoints = [];
-      this.contractService.generateDatapoints(this.graphService.curContractID, method);
-    }
   }
 
   removeDuplicateDatapoints() {

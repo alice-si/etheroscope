@@ -16,6 +16,7 @@ import { HomeComponent } from "./home/home.component";
 import { ExplorerComponent } from "./explorer/explorer.component";
 import { SearchBarComponent } from "./explorer/search/search.component";
 import { GraphComponent } from "./explorer/graph/graph.component";
+import { CardsComponent } from "./explorer/cards/cards.component";
 
 // Services
 import { ContractService } from "./_services/contract.service";
@@ -31,7 +32,8 @@ const config: SocketIoConfig = { url: environment.socketURL, options: {} };
     HomeComponent,
     ExplorerComponent,
     SearchBarComponent,
-    GraphComponent
+    GraphComponent,
+    CardsComponent
   ],
   imports: [
     BrowserAnimationsModule,
