@@ -74,7 +74,7 @@
         </div>
     </div>
     <div class="card-block" *ngIf="graphService.datapointFilters !== undefined && graphService.datapointFilters.length !== 0">
-        <div class="card-text" *ngFor="let filter of datapointFilters; let i = index">
+        <div class="card-text" *ngFor="let filter of graphService.datapointFilters; let i = index">
             {{filter.message}}
             <clr-icon shape="times" style="cursor:pointer;" (click)="deleteFilter(i)"></clr-icon>
         </div>
