@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from "rxjs/Observable";
+import { ContractService } from "./contract.service";
 
 enum ds {
   noContract,
@@ -11,6 +12,7 @@ enum ds {
 
 @Injectable()
 export class GraphService {
+  contractService: any;
 
   DisplayState = ds;
   curDisplayState: ds;
@@ -21,11 +23,21 @@ export class GraphService {
   datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
   graphDatapoints: number[][];
   methodDatapoints: number[][];
+  curContractName: string;
   timesValues: any[];
   multi: any[];
+  methods: string[];
+  relevantMethods: any;
+  lastMethod: string;
+  lastContract: string;
+  methodPages: number;
 
-  constructor() {
+
+
+  constructor(private service: ContractService) {
+    this.contractService = service;
     this.curDisplayState = this.DisplayState.noContract;
+    this.curContractName = '';
     this.progressBar = 0;
     this.curContractID = '';
     this.datapointFilters = [];
@@ -33,6 +45,9 @@ export class GraphService {
     this.methodDatapoints = [];
     this.timesValues = [];
     this.multi = [];
+    this.methods = [];
+    this.lastContract = null;
+    this.lastMethod = null;
   }
 
   updateGraph() {
@@ -68,6 +83,18 @@ export class GraphService {
     }
   }
 
+  generateDatapoints(method: string) {
+    if (method !== this.lastMethod || this.curContractID !== this.lastContract ||
+      this.lastContract === null || this.lastMethod === null) {
+      this.contractService.leaveMethod(this.lastContract, this.lastMethod);
+      this.progressBar = 0;
+      this.curDisplayState = this.DisplayState.awaitingInitialResponse;
+      this.lastContract = this.curContractID;
+      this.lastMethod = method;
+      this.methodDatapoints = []; // flush the current method datapoints
+      this.contractService.generateDatapoints(this.curContractID, method);
+    }
+  }
 
 
   filterGraphDatapoints() {
