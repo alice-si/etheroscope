@@ -23,6 +23,7 @@ export class GraphComponent {
   showYAxisLabel = true;
   yAxisLabel = 'Value';
   timeline = true;
+  animations = false;
 
   colorScheme = {
     domain: ['#1998a2', '#A10A28', '#C7B42C', '#AAAAAA']
