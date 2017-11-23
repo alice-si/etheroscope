@@ -3,7 +3,7 @@
       <table id="search-table" class="animated fadeIn">
           <tr>
               <td class="search-bar">
-                  <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContractMatches(searchBar.value)" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="userSearching = true">
+                  <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContractMatches(searchBar.value)" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="graphService.userSearching = true">
                   <div id="button-wrapper">
                     <clr-icon *ngIf="badRequest" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
                   </div>
@@ -16,7 +16,7 @@
           </tr>
       </table>
   </div>
-  <div id="matches" *ngIf="matches !== undefined && matches.length !== 0 && userSearching" (mouseenter)="userSearching = true" class="animated fadeIn">
+  <div id="matches" *ngIf="matches !== undefined && matches.length !== 0 && graphService.userSearching" (mouseenter)="graphService.userSearching = true" class="animated fadeIn">
       <table>
           <tr *ngFor="let match of matches; let i = index" (click)="exploreContract('0x' + match.contractHash)">
               <td align="center" [style.background-color]="searchMatchFn(i)">

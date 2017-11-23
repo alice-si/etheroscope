@@ -11,13 +11,9 @@ import { GraphComponent } from './graph/graph.component';
 export class ExplorerComponent {
   single: any[];
   graphService: any;
-
-  // methods: string[];
   displayMethods: boolean;
   placeholder: string;
-  // datapointFilters: {message: string, filter: ((datapoint: any[]) => boolean)}[];
   selectedCompany: any;
-  userSearching: boolean;
 
   constructor(private contractService: ContractService, private gs: GraphService) {
     this.initialiseVariables();
@@ -62,6 +58,12 @@ export class ExplorerComponent {
         this.displayMethods = true;
       }
     );
+  }
+
+  checkCursorInSearchArea(event: any) {
+    if (event.target.id !== 'searchBar') {
+      this.graphService.userSearching = false;
+    }
   }
 
 }

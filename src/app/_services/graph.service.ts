@@ -31,6 +31,7 @@ export class GraphService {
   lastMethod: string;
   lastContract: string;
   methodPages: number;
+  userSearching: boolean;
 
 
 
@@ -48,6 +49,7 @@ export class GraphService {
     this.methods = [];
     this.lastContract = null;
     this.lastMethod = null;
+    this.userSearching = true;
   }
 
   updateGraph() {

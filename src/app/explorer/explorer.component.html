@@ -1,6 +1,6 @@
 <search-bar (exploreContractEvent)="exploreContract($event)"> </search-bar>
 <!-- Help Message without a graph -->
-<div class="no-graph" *ngIf="graphService.curDisplayState === graphService.DisplayState.noContract" (click)="userSearching = false;">
+<div class="no-graph" *ngIf="graphService.curDisplayState === graphService.DisplayState.noContract" (click)="graphService.userSearching = false;">
     <p *ngIf="graphService.curDisplayState === graphService.DisplayState.noContract" class="animated fadeInUp">
         <clr-icon shape="arrow" size="36"></clr-icon><br> First, enter a contract to explore. This could be a contract's hash, or a name the contract is associated with.<br> Click <u><a (click)="exploreContract('0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C')">here</a></u> to see an example!<br><br><br><br>
         <clr-icon shape="scroll" size="36"></clr-icon>
@@ -20,7 +20,7 @@
 
 
 <!-- basic state when user indicates a contract -->
-<table *ngIf="graphService.curDisplayState !== graphService.DisplayState.noContract" class="graph-table" (click)="userSearching = false;">
+<table *ngIf="graphService.curDisplayState !== graphService.DisplayState.noContract" class="graph-table" (click)="graphService.userSearching = false;">
     <tr>
         <td class="graph-td">
             <graph-comp>

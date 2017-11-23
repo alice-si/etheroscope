@@ -1,6 +1,7 @@
 import { Output, Component, EventEmitter, Input } from '@angular/core';
 import { Router } from '@angular/router';
 import { ContractService } from "../../_services/contract.service";
+import { GraphService } from "../../_services/graph.service";
 
 @Component({
   selector: 'search-bar',
@@ -11,15 +12,15 @@ import { ContractService } from "../../_services/contract.service";
 export class SearchBarComponent {
   @Output() exploreContractEvent = new EventEmitter<string>();
   badRequest: boolean;
+  graphService: any;
   matches: any;
   searchMatch: number;
-  userSearching: boolean;
   contractService: any;
-  constructor(private service: ContractService) {
+  constructor(private service: ContractService, private gs: GraphService) {
     this.contractService = service;
     this.searchMatch = 0;
-    this.userSearching = true;
     this.badRequest = false;
+    this.graphService = gs;
   }
 
   searchContracts(pattern: string) {
@@ -27,7 +28,7 @@ export class SearchBarComponent {
       (matches) => {
         if (JSON.stringify(this.matches) !== JSON.stringify(matches)) {
           this.matches = matches;
-          this.userSearching = true;
+          this.graphService.userSearching = true;
         }
         if (this.matches.length === 0) {
           this.searchMatch = 0;
@@ -54,7 +55,7 @@ export class SearchBarComponent {
   }
 
   exploreContract(contract: string) {
-    this.userSearching = false;
+    this.graphService.userSearching = false;
     if (contract[0] !== '0' && (contract[1] !== 'x' && contract[1] !== 'X') && contract.length !== 42) {
       this.badRequest = true;
     } else {
@@ -86,9 +87,4 @@ export class SearchBarComponent {
     return '#fafafa'
   }
 
-  checkCursorInSearchArea(event: any) {
-    if (event.target.id !== 'searchBar') {
-      this.userSearching = false;
-    }
-  }
 }

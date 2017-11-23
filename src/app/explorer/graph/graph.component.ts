@@ -49,7 +49,6 @@ export class GraphComponent {
           this.graphService.cachedFrom = Math.min(cachedFrom, parseInt(datapoints.from, 10));
           this.graphService.cachedTo = Math.max(cachedTo, parseInt(datapoints.to, 10));
         }
-        console.log("checking latestBlock", this.graphService.latestBlock)
         this.graphService.progressBar = Math.ceil(100 * (cachedTo - cachedFrom) / this.graphService.latestBlock);
         if (datapoints.results.length !== 0) {
           this.graphService.curDisplayState = DisplayState.displayingGraph;
