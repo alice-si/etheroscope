@@ -6,7 +6,7 @@
                   <input type="text" id="searchBar" #searchBar (keyup.enter)="exploreContractMatches(searchBar.value)" (keyup.ArrowUp)="decSearch()" (keyup.ArrowDown)="incSearch()" (keyup)="searchContracts(searchBar.value)" autofocus (focus)="graphService.userSearching = true">
               </td>
               <td class="bad-request">
-                    <clr-icon  *ngIf="badRequest" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
+                    <clr-icon  *ngIf="graphService.badRequest" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
               </td>
               <td class="advanced-search">
                   <button type="button" class="btn-sm btn-primary">

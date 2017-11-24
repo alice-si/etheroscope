@@ -11,7 +11,7 @@ import { GraphService } from "../../_services/graph.service";
 
 export class SearchBarComponent {
   @Output() exploreContractEvent = new EventEmitter<string>();
-  badRequest: boolean;
+  // badRequest: boolean;
   graphService: any;
   matches: any;
   searchMatch: number;
@@ -19,7 +19,7 @@ export class SearchBarComponent {
   constructor(private service: ContractService, private gs: GraphService) {
     this.contractService = service;
     this.searchMatch = 0;
-    this.badRequest = false;
+    // this.badRequest = false;
     this.graphService = gs;
   }
 
@@ -57,9 +57,10 @@ export class SearchBarComponent {
   exploreContract(contract: string) {
     this.graphService.userSearching = false;
     if (contract[0] !== '0' && (contract[1] !== 'x' && contract[1] !== 'X') && contract.length !== 42) {
-      this.badRequest = true;
+      console.log('bad request????')
+      this.graphService.badRequest = true;
     } else {
-      this.badRequest = false;
+      this.graphService.badRequest = false;
       this.exploreContractEvent.emit(contract);
     }
   }
