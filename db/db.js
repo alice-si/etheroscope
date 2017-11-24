@@ -32,8 +32,8 @@ function getNewVariablesTable () {
   variablesTable.create = true
   variablesTable.columns.add('contractHash', mssql.VarChar(40), {nullable: false, primary: true})
   variablesTable.columns.add('variableName', mssql.VarChar(50), {nullable: false, primary: true})
-  variablesTable.columns.add('cachedFrom',   mssql.BigInt, {nullable: true})
-  variablesTable.columns.add('cachedUpTo',   mssql.BigInt, {nullable: true})
+  variablesTable.columns.add('cachedFrom', mssql.BigInt, {nullable: true})
+  variablesTable.columns.add('cachedUpTo', mssql.BigInt, {nullable: true})
   return variablesTable
 }
 
@@ -44,8 +44,8 @@ function getNewDataPointsTable () {
   dataPointsTable.create = true
   dataPointsTable.columns.add('contractHash', mssql.VarChar(40), {nullable: false, primary: true})
   dataPointsTable.columns.add('variableName', mssql.VarChar(50), {nullable: false, primary: true})
-  dataPointsTable.columns.add('blockNumber',  mssql.BigInt, {nullable: false})
-  dataPointsTable.columns.add('value',  mssql.VarChar(78), {nullable: false})
+  dataPointsTable.columns.add('blockNumber', mssql.BigInt, {nullable: false})
+  dataPointsTable.columns.add('value', mssql.VarChar(78), {nullable: false})
   return dataPointsTable
 }
 
