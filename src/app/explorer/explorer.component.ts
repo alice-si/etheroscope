@@ -46,6 +46,7 @@ export class ExplorerComponent {
         } else {
           this.graphService.curContractName = contractInfo.contractName;
         }
+        this.graphService.badRequest = false;
       },
       (error) => {
         if (error.status === 400) {

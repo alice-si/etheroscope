@@ -33,6 +33,8 @@ export class GraphService {
   methodPages: number;
   userSearching: boolean;
 
+  badRequest: boolean;
+
 
 
   constructor(private service: ContractService) {
