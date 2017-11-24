@@ -1,7 +1,8 @@
-import { Output, Component, EventEmitter, Input } from '@angular/core';
+import { Output, Component, EventEmitter, Input, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { ContractService } from "../../_services/contract.service";
 import { GraphService } from "../../_services/graph.service";
+import { Wizard } from "clarity-angular";
 
 @Component({
   selector: 'search-bar',
@@ -10,17 +11,22 @@ import { GraphService } from "../../_services/graph.service";
 })
 
 export class SearchBarComponent {
+  @ViewChild("wizard") wizard: Wizard;
+  @ViewChild("number") numberFi: any;
+
   @Output() exploreContractEvent = new EventEmitter<string>();
   badRequest: boolean;
   graphService: any;
   matches: any;
   searchMatch: number;
   contractService: any;
+  openWizard: boolean;
   constructor(private service: ContractService, private gs: GraphService) {
     this.contractService = service;
     this.searchMatch = 0;
     this.badRequest = false;
     this.graphService = gs;
+    this.openWizard = false;
   }
 
   searchContracts(pattern: string) {
@@ -87,4 +93,9 @@ export class SearchBarComponent {
     return '#fafafa'
   }
 
+  model = {
+      name: "",
+      favorite: "",
+      number: ""
+  };
 }
