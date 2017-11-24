@@ -1,0 +1,122 @@
+<div class="animated fadeIn">
+    <div class="card" id="variables">
+        <div class="card-header" *ngIf="graphService.curContractName.length <= 25">
+            Contract: {{graphService.curContractName}}
+        </div>
+        <div class="card-header" *ngIf="graphService.curContractName.length > 25" [title]="this.curContractName">
+            Contract: {{graphService.curContractName.slice(0,22)}}...
+        </div>
+        <div class="card-block">
+            <table>
+                <tr>
+                    <td style="padding: 0;">
+                        <div class="card-text" style="text-align: center; font-size: 0.9em;">
+                            Address: {{this.graphService.curContractID.substr(0, 20)}}...
+                        </div>
+                    </td>
+                    <td align="right">
+                        <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the address!" (click)="copyToClipboard(this.graphService.curContractID)">
+                          <clr-icon shape="copy" style="color: #1998a2"></clr-icon>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <div id="viewSourceCode" style="text-align: center;" *ngIf="graphService.curContractName !== 'unknown'">
+                        <button class="btn btn-sm view-src-btn" (click)="openSourceCode()">View the contract's source code</button>
+                    </div>
+                </tr>
+            </table>
+        </div>
+        <div class="card-block">
+            <div class="card-text" *ngIf="graphService.relevantMethods.length === 0">
+                No displayable variables in contract
+            </div>
+            <div class="card-text" *ngIf="graphService.relevantMethods.length !== 0">
+                <div style="text-align: center;">
+                    Click to view a variable:
+                </div>
+                <button class="btn btn-sm var-btns animated fadeIn" *ngFor="let m of graphService.relevantMethods" (click)="generateDatapoints(m)">
+                          <div *ngIf="m.length <= 15"> {{m}} </div>
+                          <div *ngIf="m.length >= 16" title="{{m}}"> {{m.slice(0,13)}}..  </div>
+                        </button>
+                <br>
+                <div *ngIf="graphService.methodPages > 1" style="text-align: center">
+                    <button class="btn btn-link" (click)="methodsScroll(true)">
+                              <clr-icon shape="arrow left"></clr-icon>
+                            </button>
+                    <span>{{variableScroll + 1}} / {{graphService.methodPages}} &nbsp; </span>
+                    <button class="btn btn-link" (click)="methodsScroll(false)">
+                              <clr-icon shape="arrow right"></clr-icon>
+                            </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card currViewing animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingGraph || graphService.curDisplayState === graphService.DisplayState.awaitingInitialPoints">
+    <div class="card-header">
+        Currently Viewing Variable
+    </div>
+    <div class="card-block">
+        <button class="btn-primary btn btn-sm" style="cursor: default;">
+                      {{this.graphService.lastMethod}}
+                    </button>
+    </div>
+    <div *ngIf="graphService.progressBar !== 100" class="card-block progress-card">
+        <div class="progress-block">
+            <label>{{graphService.progressBar}}%</label>
+            <div class="progress-static">
+                <div class="progress-meter" [attr.data-value]="graphService.progressBar"></div>
+            </div>
+        </div>
+        <div class="card-text from-block-to-block">
+            Got points from block {{graphService.cachedFrom}} to {{graphService.cachedTo}}
+        </div>
+    </div>
+    <div class="card-block" *ngIf="graphService.datapointFilters !== undefined && graphService.datapointFilters.length !== 0">
+        <div class="card-text" *ngFor="let filter of graphService.datapointFilters; let i = index">
+            {{filter.message}}
+            <clr-icon shape="times" style="cursor:pointer;" (click)="deleteFilter(i)"></clr-icon>
+        </div>
+    </div>
+</div>
+<div class="card filters animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingGraph">
+    <div class="card-header">
+        Filter the points on the graph
+    </div>
+    <div class="card-block">
+        <div class="btn-group btn-primary">
+            <button (click)="filterOnLast(1, 'hour')">1h</button>
+            <button (click)="filterOnLast(12, 'hour')">12h</button>
+            <button (click)="filterOnLast(1, 'day')">1d</button>
+            <button (click)="filterOnLast(1, 'week')">1w</button>
+            <button (click)="filterOnLast(1, 'month')">1m</button>
+            <button (click)="filterOnLast(1, 'year')">1y</button>
+        </div>
+    </div>
+    <div class="card-block">
+        <div class="card-text container" style="text-align: left">
+
+            <form #f="ngForm" (ngSubmit)="newFilterFromForm(f.value)">
+                <section class="form-block">
+                    <div class="section">
+                    </div>
+                    <div class="form-group row">
+                        <div for="startDate" class="col-xs-12"> Starting from date: </div>
+                        <input type="datetime-local" class="col-xs-12" id="startDate" name="startDate" ngModel>
+                    </div>
+                    <div class="form-group row">
+                        <div for="endDate" class="col-xs-12">
+                            Ending at date:
+                        </div>
+                        <input type="datetime-local" class="col-xs-12" id="endDate" name="endDate" ngModel>
+                    </div>
+                    <div class="row">
+                        <button type="submit" class="btn btn-primary btn-sm btn-submit">Filter</button>
+                    </div>
+                </section>
+            </form>
+
+        </div>
+    </div>
+</div>
