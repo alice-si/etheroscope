@@ -1,0 +1,64 @@
+.btn-primary {
+  background-color: #1998a2;
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-primary:hover {
+  outline: none;
+  background-color: #1998a2;
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-link {
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-link:hover {
+  outline: none;
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-link:focus {
+  outline: none;
+}
+
+.btn:focus {
+  outline: none;
+}
+
+.btn-group {
+  button {
+    background-color: #1998a2;
+    font-weight: 100;
+  }
+}
+
+.btn-sm {
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-sm:hover {
+  outline: none;
+  font-weight: 100;
+  border: 0px;
+  box-shadow: none;
+}
+
+.btn-sm:focus {
+  outline: none;
+}
+
+a {
+  color: #1998a2;
+  text-decoration: underline;
+}
