@@ -73,16 +73,16 @@ module.exports = function (db, log, validator) {
               variableNames.push(item.name)
             }
           })
-            .then((results) => {
-              return Promise.each(variableNames, (variableName) => {
-                db.addVariable([[address, variableName]], (err, res) => {
-                  if (err) log.error('Error with caching variables: ' + err)
-                })
+          .then((results) => {
+            return Promise.each(variableNames, (variableName) => {
+              db.addVariable([[address, variableName]], (err, res) => {
+                if (err) log.error('Error with caching variables: ' + err)
               })
             })
-            .then((results) => {
-              return resolve({ variableNames: variableNames, contractName: contractName })
-            })
+          })
+          .then((results) => {
+            return resolve({ variableNames: variableNames, contractName: contractName })
+          })
         } else {
           let variableNames = []
           Promise.map(res.recordset, (elem) => {
