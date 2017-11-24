@@ -33,7 +33,7 @@ export class GraphService {
   methodPages: number;
   userSearching: boolean;
 
-  badRequest: boolean;
+  badRequest: boolean
 
 
 
