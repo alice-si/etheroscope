@@ -7,6 +7,16 @@ module.exports = function (app, db, io, log, validator) {
     return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
   }
 
+  app.get('/api/popular/', (req, res) => {
+    db.getPopularContracts('week', 1, 10)
+      .then((result) => {
+        return res.status(200).json(result)
+      })
+      .catch((err) => {
+        return res.status(400).json(err)
+      })
+  })
+
   app.get('/api/explore/:contractAddress', (req, res) => {
     let address = req.params.contractAddress
     if (!validAddress(address)) {
@@ -14,6 +24,8 @@ module.exports = function (app, db, io, log, validator) {
       let err = 'Error - invalid contract hash'
       return res.status(400).json(err)
     }
+
+    db.addContractLookup(address.substr(2))
 
     return parity.getContract(address)
       .then((contractInfo) => {

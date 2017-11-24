@@ -143,6 +143,43 @@ module.exports = function (log) {
     })
   }
 
+  db.addContractLookup = function (address) {
+    return new Promise(function (resolve, reject) {
+      var request = new mssql.Request(pool)
+      var sql = "insert into contractLookupHistory (contractHash, date) values ('" + address + "', GETDATE())"
+      request.query(sql)
+      .catch((err) => {
+        log.error('db.js: Error in addContractLookup')
+        log.error(err)
+      })
+    })
+  }
+
+  /* Gets the most popular contracts in the last timeUnit timeAmount
+   * where timeUnit is a string ('day', 'week', 'month' etc)
+   * and timeAmount is the number of time units passed
+   * limit is the number of contracts to return
+   */
+  db.getPopularContracts = function (timeUnit, timeAmount, limit) {
+    return new Promise(function (resolve, reject) {
+      var request = new mssql.Request(pool)
+      var sql = "select top " + limit + " contractHash, COUNT(*) as searches " +
+                "from contractLookupHistory where DATEDIFF(" +
+                timeUnit + ", date, GETDATE()) < " + timeAmount + " " +
+                "GROUP BY contractHash " +
+                "ORDER BY searches desc"
+      var joined = "select name, searches from (" + sql + ") as popular join contracts on contracts.contractHash = popular.contractHash"
+      request.query(joined)
+        .then((result) => {
+          return resolve(result.recordset)
+        })
+        .catch((err) => {
+          log.error('db.js: Error in getPopularContracts')
+          log.error(err)
+        })
+    })
+  }
+
   /* This function takes in a contract hash
    * and returns a promise
    */

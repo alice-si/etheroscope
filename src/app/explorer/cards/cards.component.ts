@@ -122,5 +122,4 @@ export class CardsComponent {
     this.graphService.generateDatapoints(method)
   }
 
-
 }
