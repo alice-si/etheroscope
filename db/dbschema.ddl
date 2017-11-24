@@ -5,6 +5,12 @@ create table contracts(
     primary key (contractHash)
 );
 
+create table contractLookupHistory(
+    contractHash VARCHAR(40)  not null,
+    date         datetime,
+    primary key (contractHash, date)
+);
+
 create table blocks(
     blockNumber BIGINT   not null,
     timeStamp   BIGINT   not null,

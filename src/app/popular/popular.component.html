@@ -1,0 +1,34 @@
+<div class="wrapper">
+    <div class="landing-w animated fadeIn">
+        <div class="landing">
+            <h1>
+               Popular Contracts
+            </h1>
+            <div id="tag"> View the most popular contracts this week </div>
+        </div>
+        <div class="subLanding">
+          <table *ngIf="popularContracts.length > 0" class="table">
+					    <thead>
+					        <tr>
+					          <th class="left">Contract</th>
+					          <th class="right">Searches</th>
+					        </tr>
+					    </thead>
+					    <tbody>
+								<tr *ngFor="let contract of popularContracts">
+								  <td class="left">{{ contract.name }}</td>
+								  <td class="right">{{ contract.searches }}</td>
+					      </tr>
+					    </tbody>
+					</table>
+        </div>
+        <div class="footer">
+            <p id="footer-text">
+                Etheroscope is developed in co-operation with <a href="http://alice.si">alice.si</a>, a social-impact startup.
+            </p>
+            <p id="footer-text">
+                Etheroscope uses <a href="https://etherscan.io">Etherscan.io</a> APIs
+            </p>
+        </div>
+    </div>
+</div>

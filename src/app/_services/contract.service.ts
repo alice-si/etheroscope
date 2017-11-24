@@ -14,6 +14,11 @@ export class ContractService {
 
   }
 
+  getPopularContracts() {
+    console.log("Getting popular contracts");
+    return this.http.get(this.apiUrl + 'api/popular/').map(this.extractData);
+  }
+
   exploreContract(contract: string) {
     console.log("Sending Request...");
     return this.http.get(this.apiUrl + 'api/explore/' + contract).map(this.extractData);

@@ -14,6 +14,7 @@ import { ROUTING } from "./app.routing";
 import { AppComponent } from './app.component';
 import { HomeComponent } from "./home/home.component";
 import { ExplorerComponent } from "./explorer/explorer.component";
+import { PopularComponent } from "./popular/popular.component";
 import { SearchBarComponent } from "./explorer/search/search.component";
 import { GraphComponent } from "./explorer/graph/graph.component";
 import { CardsComponent } from "./explorer/cards/cards.component";
@@ -22,8 +23,6 @@ import { CardsComponent } from "./explorer/cards/cards.component";
 import { ContractService } from "./_services/contract.service";
 import { GraphService } from "./_services/graph.service";
 
-
-
 const config: SocketIoConfig = { url: environment.socketURL, options: {} };
 
 @NgModule({
@@ -31,6 +30,7 @@ const config: SocketIoConfig = { url: environment.socketURL, options: {} };
     AppComponent,
     HomeComponent,
     ExplorerComponent,
+    PopularComponent,
     SearchBarComponent,
     GraphComponent,
     CardsComponent

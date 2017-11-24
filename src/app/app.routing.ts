@@ -3,6 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { HomeComponent } from './home/home.component';
 import { ExplorerComponent } from './explorer/explorer.component';
+import { PopularComponent } from './popular/popular.component';
 
 const ROUTES = [
   { path: '',
@@ -13,6 +14,9 @@ const ROUTES = [
   },
   { path: 'explorer',
     component: ExplorerComponent
+  },
+  { path: 'popular',
+    component: PopularComponent 
   },
   { path: '**', redirectTo: '' }
 ]
