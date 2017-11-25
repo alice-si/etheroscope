@@ -11,24 +11,16 @@
 					    <thead>
 					        <tr>
 					          <th class="left">Contract</th>
-					          <th class="right">Searches</th>
+					          <th class="left">Searches</th>
 					        </tr>
 					    </thead>
 					    <tbody>
 								<tr *ngFor="let contract of popularContracts">
 								  <td class="left">{{ contract.name }}</td>
-								  <td class="right">{{ contract.searches }}</td>
+								  <td class="left">{{ contract.searches }}</td>
 					      </tr>
 					    </tbody>
 					</table>
-        </div>
-        <div class="footer">
-            <p id="footer-text">
-                Etheroscope is developed in co-operation with <a href="http://alice.si">alice.si</a>, a social-impact startup.
-            </p>
-            <p id="footer-text">
-                Etheroscope uses <a href="https://etherscan.io">Etherscan.io</a> APIs
-            </p>
         </div>
     </div>
 </div>
