@@ -1,6 +1,27 @@
 // Copyright (c) 2016 VMware, Inc. All Rights Reserved.
 // This software is released under MIT license.
 // The full license information can be found in LICENSE in the root directory of this project.
+
+$break-small: 480px;
+$break-large: 620px;
+
+@mixin respond-to($media) {
+  @if $media == handhelds {
+    @media only screen and (max-width: $break-small) { @content; }
+  }
+  @else if $media == medium-screens {
+    @media only screen and (min-width: $break-small + 1) and (max-width: $break-large - 1) { @content; }
+  }
+  @else if $media == wide-screens {
+    @media only screen and (min-width: $break-large) { @content; }
+  }
+}
+
+.branding {
+  @include respond-to(handhelds) { display: none; }
+  @include respond-to(medium-screens) { display: none; }
+}
+
 .clr-icon {
   &.clr-clarity-logo {
     background-image: url(../images/clarity_logo.svg);

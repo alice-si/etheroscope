@@ -6,16 +6,18 @@
 }
 
 .wrapper {
-  width: 100vw;
+  width: 50%;
   height: 100%;
+  margin: 0 auto;
+  position: relative;
   .landing-w {
     height: auto;
-    position: relative;
+    position: absolute;
     top: 50%;
     transform: translateY(-50%);
   }
   .landing {
-    width: 50%;
+    width: 100%;
     margin: 0 auto;
     text-align: center;
     h1 {
@@ -23,17 +25,17 @@
       padding: 0;
       font-weight: 100;
       color: #1998a2;
-      font-size: 4vw;
-      height: 4vw; // padding-bottom: 2vh;
+      //font-size: 4vw;
+      //height: 4vw; // padding-bottom: 2vh;
     }
     #tag {
-      font-size: 1.5vw;
+      //height: 1.5vw;
+      //font-size: 1.5vw;
       font-weight: 600;
-      height: 1.5vw;
     }
   }
   .subLanding {
-    width: 50%;
+    width: 100%;
     margin: 0 auto;
     table {
       width: 100%;
@@ -50,7 +52,7 @@
     }
   }
   .footer {
-    width: 50%;
+    width: 100%;
     margin: 0 auto;
     border-top-width: 1px;
     border-top-style: solid;

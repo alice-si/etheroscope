@@ -1,3 +1,21 @@
+$break-small: 480px;
+$break-large: 1024px;
+
+@mixin respond-to($media) {
+  @if $media == handhelds {
+    @media only screen and (max-width: $break-small) { @content; }
+  }
+  @else if $media == medium-screens {
+    @media only screen and (min-width: $break-small + 1) and (max-width: $break-large - 1) { @content; }
+  }
+  @else if $media == wide-screens {
+    @media only screen and (min-width: $break-large) { @content; }
+  }
+  @else if $media == non-handhelds {
+    @media only screen and (min-width: $break-small + 1) { @content; }
+  }
+}
+
 .btn {
   background-color: #1998a2;
   font-weight: 100;
@@ -6,16 +24,24 @@
 }
 
 .wrapper {
-  width: 100vw;
+  width: 50%;
   height: 100%;
+  margin: 0 auto;
+  position: relative;
+  @include respond-to(handhelds) { width: 100%; margin: 0 auto; }
+  @include respond-to(medium-screens) { width: 75%; margin: 0 auto; }
   .landing-w {
-    height: auto;
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
+    @include respond-to(handhelds) { margin-top: 1em; }
+    @include respond-to(non-handhelds) {
+      width: 100%;
+      height: auto;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+    }
   }
   .landing {
-    width: 50%;
+    width: 100%;
     margin: 0 auto;
     text-align: center;
     h1 {
@@ -23,43 +49,16 @@
       padding: 0;
       font-weight: 100;
       color: #1998a2;
-      font-size: 4vw;
-      height: 4vw; // padding-bottom: 2vh;
     }
     #tag {
-      font-size: 1.5vw;
       font-weight: 600;
-      height: 1.5vw;
     }
   }
   .subLanding {
-    width: 50%;
+    width: 100%;
     margin: 0 auto;
     table {
       width: 100%;
-    }
-    table,
-    th,
-    td {
-      padding: 1vw;
-    }
-
-    #text {
-      margin: 0;
-      padding: 0;
-    }
-  }
-  .footer {
-    width: 50%;
-    margin: 0 auto;
-    border-top-width: 1px;
-    border-top-style: solid;
-    border-top-color: grey;
-
-    p {
-      text-align: center;
-      margin: 0;
-      padding: 0;
     }
   }
 }
