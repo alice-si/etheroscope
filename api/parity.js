@@ -74,10 +74,14 @@ module.exports = function (db, log, validator) {
             }
           })
           .then((results) => {
-            return Promise.each(variableNames, (variableName) => {
-              db.addVariable([[address, variableName]], (err, res) => {
-                if (err) log.error('Error with caching variables: ' + err)
-              })
+            db.addVariables(address, variableNames)
+            .then(() => {
+              return results
+            })
+            .catch((err) => {
+              log.error('parity.js: Error adding variable names to db')
+              log.error(err)
+              process.exit(1)
             })
           })
           .then((results) => {
@@ -145,7 +149,7 @@ module.exports = function (db, log, validator) {
     totalFrom, totalTo) {
     let prevTime = 0
     return new Promise((resolve, reject) => {
-      //log.debug('Generating data points')
+      // log.debug('Generating data points')
       Promise.map(eventsA, (event) => {
         // [(time, value, blockNum)]
         return Promise.all([parity.getBlockTime(event.blockNumber.valueOf()),
@@ -166,10 +170,10 @@ module.exports = function (db, log, validator) {
             if (events.length > 0) {
               log.debug('Added ' + events.length + ' data points for ' + contract.address + ' ' + method)
             }
-            //log.debug('parity.js: Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
-            //log.debug('parity.js: From', startBlock, 'to', endBlock)
+            // log.debug('parity.js: Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
+            // log.debug('parity.js: From', startBlock, 'to', endBlock)
           })
-        return events 
+        return events
       })
       .then((events) => {
         resolve(events.sort((a, b) => {
