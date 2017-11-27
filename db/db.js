@@ -163,12 +163,12 @@ module.exports = function (log) {
   db.getPopularContracts = function (timeUnit, timeAmount, limit) {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
-      var sql = "select top " + limit + " contractHash, COUNT(*) as searches " +
-                "from contractLookupHistory where DATEDIFF(" +
-                timeUnit + ", date, GETDATE()) < " + timeAmount + " " +
-                "GROUP BY contractHash " +
-                "ORDER BY searches desc"
-      var joined = "select name, searches from (" + sql + ") as popular join contracts on contracts.contractHash = popular.contractHash"
+      var sql = 'select top ' + limit + ' contractHash, COUNT(*) as searches ' +
+                'from contractLookupHistory where DATEDIFF(' +
+                timeUnit + ', date, GETDATE()) < ' + timeAmount + ' ' +
+                'GROUP BY contractHash ' +
+                'ORDER BY searches desc'
+      var joined = 'select contractHash, name, searches from (' + sql + ') as popular join contracts on contracts.contractHash = popular.contractHash'
       request.query(joined)
         .then((result) => {
           return resolve(result.recordset)
