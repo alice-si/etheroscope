@@ -381,8 +381,8 @@ module.exports = function (log) {
             ' on datapoints.blocknumber = blocks.blocknumber where' +
             ' variableName = \'' + variables[i].name +
             '\' and (timestamp between ' + variables[i].startTime + ' and ' +
-            variables[i].endTime + ') and (value between ' + variables[i].min +
-            ' and ' + variables[i].max + '))'
+            variables[i].endTime + ') and (value between \'' + variables[i].min +
+            '\' and \'' + variables[i].max + '\'))'
         }
       }
 
