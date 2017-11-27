@@ -19,8 +19,9 @@ export class ContractService {
     return this.http.get(this.apiUrl + 'api/explore/' + contract).map(this.extractData);
   }
 
-  searchContracts(pattern: string) {
-    return this.http.get(this.apiUrl + 'api/search/' + pattern).map(this.extractData);
+  searchContracts(pattern: string, searchVariables: any) {
+    console.log(searchVariables)
+    return this.http.post(this.apiUrl + 'api/search/' + pattern, {variables: searchVariables}).map(this.extractData);
   }
 
   generateDatapoints(contract: string, method: string) {
