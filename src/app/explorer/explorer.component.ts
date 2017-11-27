@@ -1,21 +1,30 @@
-import { Component, ViewChild } from "@angular/core";
+import { Component, ViewChild, OnInit } from "@angular/core";
+import { ActivatedRoute } from '@angular/router';
 import { ContractService } from "../_services/contract.service";
 import { GraphService } from "../_services/graph.service";
 import { GraphComponent } from './graph/graph.component';
+import { Router } from '@angular/router';
 
 @Component({
   styleUrls: ['./explorer.component.scss', './explorer.component.global.scss'],
   templateUrl: './explorer.component.html',
 })
 
-export class ExplorerComponent {
+export class ExplorerComponent implements OnInit {
   single: any[];
   graphService: any;
   displayMethods: boolean;
   placeholder: string;
   selectedCompany: any;
+  route: any;
+  router: any;
 
-  constructor(private contractService: ContractService, private gs: GraphService) {
+  constructor(private contractService: ContractService,
+              private gs: GraphService,
+              private r: ActivatedRoute,
+              private ro: Router) {
+    this.route = r;
+    this.router = ro;
     this.initialiseVariables();
     this.graphService = gs;
     this.contractService.latestBlockEvent().subscribe(
@@ -25,13 +34,27 @@ export class ExplorerComponent {
     );
   }
 
+  ngOnInit(): void {
+    this.getAddress();
+  }
+
+  getAddress(): void {
+    let contractAddress = this.route.snapshot.paramMap.get('contractAddress');
+    let method = this.route.snapshot.paramMap.get('method');
+    if (contractAddress !== null) {
+      this.exploreContract(contractAddress, method);
+    }
+    console.log("In getAddress: " + contractAddress + " " + method);
+  }
+
   private initialiseVariables() {
     this.placeholder = null;
     this.single = [];
     this.displayMethods = false;
   }
 
-  exploreContract(contract: string) {
+  exploreContract(contract: string, method: string) {
+    console.log('In exploreContract: ' + contract + ' ' +  method);
     this.graphService.curContractID = contract;
     this.contractService.exploreContract(contract).subscribe(
       (contractInfo) => {
@@ -45,6 +68,9 @@ export class ExplorerComponent {
           this.graphService.curContractName = 'unknown';
         } else {
           this.graphService.curContractName = contractInfo.contractName;
+        }
+        if (method !== null) {
+          this.graphService.generateDatapoints(method);
         }
       },
       (error) => {

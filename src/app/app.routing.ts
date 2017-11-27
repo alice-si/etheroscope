@@ -15,8 +15,14 @@ const ROUTES = [
   { path: 'explorer',
     component: ExplorerComponent
   },
+  { path: 'explorer/:contractAddress',
+    component: ExplorerComponent
+  },
+  { path: 'explorer/:contractAddress/:method',
+    component: ExplorerComponent
+  },
   { path: 'popular',
-    component: PopularComponent 
+    component: PopularComponent
   },
   { path: '**', redirectTo: '' }
 ]
