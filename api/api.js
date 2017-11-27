@@ -32,10 +32,11 @@ module.exports = function (app, db, io, log, validator) {
     return res.status(200).json([])
   })
 
-  app.get('/api/search/:string', (req, res) => {
+  app.post('/api/search/:string', (req, res) => {
     let searchStr = req.params.string
     let variables = null
     let transactions = null
+    console.log('data::: ' + JSON.stringify(req.body))
     if (typeof req.body.variables != 'undefined') {
       variables = req.body.variables
     }
