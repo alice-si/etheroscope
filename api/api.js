@@ -60,7 +60,7 @@ module.exports = function (app, db, io, log, validator) {
 
   function sendDataPointsFromParity (contractInfo, contractAddress, method, from, to,
     totalFrom, totalTo) {
-    //log.debug('Sending history from parity')
+    // log.debug('Sending history from parity')
     // First we obtain the contract.
     let contract = contractInfo.parsedContract
     return new Promise((resolve, reject) => {
