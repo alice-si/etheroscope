@@ -168,7 +168,7 @@ module.exports = function (log) {
                 timeUnit + ', date, GETDATE()) < ' + timeAmount + ' ' +
                 'GROUP BY contractHash ' +
                 'ORDER BY searches desc'
-      var joined = 'select contractHash, name, searches from (' + sql + ') as popular join contracts on contracts.contractHash = popular.contractHash'
+      var joined = 'select contracts.contractHash, name, searches from (' + sql + ') as popular join contracts on contracts.contractHash = popular.contractHash'
       request.query(joined)
         .then((result) => {
           return resolve(result.recordset)
