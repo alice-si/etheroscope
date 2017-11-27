@@ -18,6 +18,7 @@ export class SearchBarComponent {
   // badRequest: boolean;
   graphService: any;
   matches: any;
+  searchVariables: any;
   searchMatch: number;
   contractService: any;
   openWizard: boolean;
@@ -27,10 +28,11 @@ export class SearchBarComponent {
     // this.badRequest = false;
     this.graphService = gs;
     this.openWizard = false;
+    this.searchVariables = [];
   }
 
   searchContracts(pattern: string) {
-    this.contractService.searchContracts(pattern).subscribe(
+    this.contractService.searchContracts(pattern, this.searchVariables).subscribe(
       (matches) => {
         if (JSON.stringify(this.matches) !== JSON.stringify(matches)) {
           this.matches = matches;
@@ -89,14 +91,32 @@ export class SearchBarComponent {
 
   searchMatchFn(index: number) {
     if (index === this.searchMatch) {
-      return '#eaeaea'
+      return '#eaeaea';
     }
-    return '#fafafa'
+    return '#fafafa';
   }
 
-  model = {
-      name: "",
-      favorite: "",
-      number: ""
+  advancedConstraints = {
+    varCons: [],
+    number: ''
   };
+
+  addNewVariableConstraint() {
+    this.advancedConstraints.varCons.push({
+      name: '',
+      startTime: 0,
+      endTime: 4000000000,
+      min: 0,
+      max: 1000000000
+    });
+  }
+
+  removeVariableConstraint(index: number) {
+    this.advancedConstraints.varCons.splice(index, 1);
+  }
+
+  advancedSearchDone() {
+    this.searchVariables = this.advancedConstraints.varCons;
+  }
+
 }
