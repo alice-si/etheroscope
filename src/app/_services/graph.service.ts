@@ -33,8 +33,6 @@ export class GraphService {
   methodPages: number;
   userSearching: boolean;
 
-
-
   constructor(private service: ContractService) {
     this.contractService = service;
     this.curDisplayState = this.DisplayState.noContract;
@@ -86,6 +84,7 @@ export class GraphService {
   }
 
   generateDatapoints(method: string) {
+    console.log('In generate Data points for ' + method);
     if (method !== this.lastMethod || this.curContractID !== this.lastContract ||
       this.lastContract === null || this.lastMethod === null) {
       this.contractService.leaveMethod(this.lastContract, this.lastMethod);
@@ -97,7 +96,6 @@ export class GraphService {
       this.contractService.generateDatapoints(this.curContractID, method);
     }
   }
-
 
   filterGraphDatapoints() {
     this.graphDatapoints = this.methodDatapoints.filter( (point) => {

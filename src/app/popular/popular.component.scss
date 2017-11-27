@@ -59,6 +59,16 @@ $break-large: 1024px;
     margin: 0 auto;
     table {
       width: 100%;
+      tbody {
+        tr {
+          td {
+            font-size: 1.2em;
+          }
+          th {
+            font-size: 1.2em;
+          }
+        }
+      }
     }
   }
 }

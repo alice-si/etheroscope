@@ -32,8 +32,6 @@ export class GraphComponent {
   // line, area
   autoScale = true;
 
-
-
   constructor(private gs: GraphService) {
     this.graphService = gs;
     this.graphService.contractService.getHistoryEvent().subscribe(

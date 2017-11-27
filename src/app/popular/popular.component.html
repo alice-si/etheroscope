@@ -8,19 +8,20 @@
         </div>
         <div class="subLanding">
           <table *ngIf="popularContracts.length > 0" class="table">
-					    <thead>
-					        <tr>
-					          <th class="left">Contract</th>
-					          <th class="left">Searches</th>
-					        </tr>
-					    </thead>
-					    <tbody>
-								<tr *ngFor="let contract of popularContracts">
-								  <td class="left">{{ contract.name }}</td>
-								  <td class="left">{{ contract.searches }}</td>
-					      </tr>
-					    </tbody>
-					</table>
+              <thead>
+                  <tr>
+                    <th class="left">Contract</th>
+                    <th class="left">Searches</th>
+                  </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let contract of popularContracts">
+                  <td class="left"><a [routerLink]="'/explorer/0x' + contract.contractHash">{{ contract.name }}</a></td>
+                  <td class="left">{{ contract.searches }}</td>
+                </tr>
+              </tbody>
+          </table>
         </div>
     </div>
 </div>
+
