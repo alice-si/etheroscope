@@ -8,7 +8,7 @@ module.exports = function (app, db, io, log, validator) {
   }
 
   app.get('/api/popular/', (req, res) => {
-    db.getPopularContracts('week', 1, 10)
+    db.getPopularContracts('day', 7, 10)
       .then((result) => {
         return res.status(200).json(result)
       })
