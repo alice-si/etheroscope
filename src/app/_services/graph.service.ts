@@ -87,13 +87,17 @@ export class GraphService {
 
       this.timesValues = [];
       let weekDayCount = new Array(7).fill(0);
+      let lastValue = null;
       this.graphDatapoints.forEach((elem) => {
         let date = new Date(0);
         date.setUTCSeconds(+elem[0]);
         this.timesValues.push({"name": date, "value": +elem[1]});
         // Update the day count for whatever day this point falls in
-        let day = date.getUTCDay();
-        weekDayCount[day] = weekDayCount[day] + 1;
+        if (lastValue !== +elem[1]) {
+          let day = date.getUTCDay();
+          weekDayCount[day] = weekDayCount[day] + 1;
+          lastValue = +elem[1];
+        }
       })
       this.multi = [...[{ "name": "", "series": this.timesValues}]];
       this.weekData = new Array(7);
