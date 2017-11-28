@@ -1,4 +1,3 @@
-var cluster = require('cluster')
 module.exports = function (app, db, io, log, validator) {
   var parity = require('./parity')(db, log, validator)
   let Promise = require('bluebird')
@@ -20,36 +19,23 @@ module.exports = function (app, db, io, log, validator) {
 
   app.get('/api/explore/:contractAddress', (req, res) => {
     let address = req.params.contractAddress
-    if (cluster.isMaster) {
-      cluster.fork()
-      cluster.on('online', (worker) => {
-        console.log('worker for exploring contract', address, 'with id', worker.process.pid, ' is online')
-      })
-      cluster.on('error', (err) => {
-        console.log('Worker error in contract exploring with error:', err)
-      })
-      cluster.on('exit', (worker, code, signal) => {
-        console.log('Worker ' + worker.process.pid + ' died with code: ' + code + ', and signal: ' + signal)
-      })
-    } else {
-      if (!validAddress(address)) {
-        log.debug('User requested something stupid')
-        let err = 'Error - invalid contract hash'
-        return res.status(400).json(err)
-      }
-      db.addContractLookup(address.substr(2))
-      return parity.getContract(address)
-        .then((contractInfo) => {
-          return parity.getContractVariables(contractInfo)
-        })
-        .then((contractInfo) => {
-          return res.status(200).json(contractInfo)
-        })
-        .catch((err) => {
-          log.error(err)
-          return res.status(400).json(err.message)
-        })
+    if (!validAddress(address)) {
+      log.debug('User requested something stupid')
+      let err = 'Error - invalid contract hash'
+      return res.status(400).json(err)
     }
+    db.addContractLookup(address.substr(2))
+    return parity.getContract(address)
+      .then((contractInfo) => {
+        return parity.getContractVariables(contractInfo)
+      })
+      .then((contractInfo) => {
+        return res.status(200).json(contractInfo)
+      })
+      .catch((err) => {
+        log.error(err)
+        return res.status(400).json(err.message)
+      })
   })
 
   app.get('/api/search/', (req, res) => {
