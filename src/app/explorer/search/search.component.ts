@@ -45,7 +45,7 @@ export class SearchBarComponent {
         }
       },
       (error) => {
-        this.matches = null;
+        this.matches = [];
         console.log(error);
       },
       () => {
