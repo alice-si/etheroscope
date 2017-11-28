@@ -43,11 +43,18 @@ app.use(express.static(path.join(__dirname, '/', staticdir)))
 
 db.poolConnect().then(() => {
   // Home page endpoint
-  app.get('/', function (req, res) {
+  // app.get('/', function (req, res) {
+  //   res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
+  // })
+  app.get('/explorer', function (req, res) {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
-  app.get('/explorer', function (req, res) {
-    res.redirect('/')
+  app.get('/explorer/*', function (req, res) {
+    res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
+  })
+
+  app.get('/popular', function (req, res) {
+    res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
   var server = app.listen(port)
   var io = require('socket.io').listen(server)
