@@ -1,3 +1,4 @@
+var cluster = require('cluster')
 module.exports = function (app, db, io, log, validator) {
   var parity = require('./parity')(db, log, validator)
   let Promise = require('bluebird')
@@ -19,25 +20,36 @@ module.exports = function (app, db, io, log, validator) {
 
   app.get('/api/explore/:contractAddress', (req, res) => {
     let address = req.params.contractAddress
-    if (!validAddress(address)) {
-      log.debug('User requested something stupid')
-      let err = 'Error - invalid contract hash'
-      return res.status(400).json(err)
+    if (cluster.isMaster) {
+      cluster.fork()
+      cluster.on('online', (worker) => {
+        console.log('worker for exploring contract', address, 'with id', worker.process.pid, ' is online')
+      })
+      cluster.on('error', (err) => {
+        console.log('Worker error in contract exploring with error:', err)
+      })
+      cluster.on('exit', (worker, code, signal) => {
+        console.log('Worker ' + worker.process.pid + ' died with code: ' + code + ', and signal: ' + signal)
+      })
+    } else {
+      if (!validAddress(address)) {
+        log.debug('User requested something stupid')
+        let err = 'Error - invalid contract hash'
+        return res.status(400).json(err)
+      }
+      db.addContractLookup(address.substr(2))
+      return parity.getContract(address)
+        .then((contractInfo) => {
+          return parity.getContractVariables(contractInfo)
+        })
+        .then((contractInfo) => {
+          return res.status(200).json(contractInfo)
+        })
+        .catch((err) => {
+          log.error(err)
+          return res.status(400).json(err.message)
+        })
     }
-
-    db.addContractLookup(address.substr(2))
-
-    return parity.getContract(address)
-      .then((contractInfo) => {
-        return parity.getContractVariables(contractInfo)
-      })
-      .then((contractInfo) => {
-        return res.status(200).json(contractInfo)
-      })
-      .catch((err) => {
-        log.error(err)
-        return res.status(400).json(err.message)
-      })
   })
 
   app.get('/api/search/', (req, res) => {
@@ -65,38 +77,38 @@ module.exports = function (app, db, io, log, validator) {
     let contract = contractInfo.parsedContract
     return new Promise((resolve, reject) => {
       parity.getHistory(contractAddress, method, from, to, totalFrom, totalTo)
-      .then(function (events) {
-        return parity.generateDataPoints(events, contract, method, from, to,
-          totalFrom, totalTo)
-      })
-      .then(function (results) {
-        io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: false, from: from, to: to, results: results })
-        return resolve()
-      })
-      .catch(function (err) {
-        log.error('Error in parity sending' + err)
-        io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: true })
-        return reject(err)
-      })
+        .then(function (events) {
+          return parity.generateDataPoints(events, contract, method, from, to,
+            totalFrom, totalTo)
+        })
+        .then(function (results) {
+          io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: false, from: from, to: to, results: results })
+          return resolve()
+        })
+        .catch(function (err) {
+          log.error('Error in parity sending' + err)
+          io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: true })
+          return reject(err)
+        })
     })
   }
 
   function sendAllDataPointsFromDB (address, method, from, to, socket) {
     db.getDataPoints(address.substr(2), method)
-    .then((dataPoints) => {
-      return Promise.map(dataPoints[0], (elem) => {
-        return [elem.timeStamp, elem.value]
+      .then((dataPoints) => {
+        return Promise.map(dataPoints[0], (elem) => {
+          return [elem.timeStamp, elem.value]
+        })
       })
-    })
-    .then((dataPoints) => {
-      console.dir(dataPoints)
-      socket.emit('getHistoryResponse', { error: false, from: from, to: to, results: dataPoints })
-    })
-    .catch(function (err) {
-      log.error('Error sending datapoints from DD')
-      log.error(err)
-      socket.emit('getHistoryResponse', { error: true })
-    })
+      .then((dataPoints) => {
+        console.dir(dataPoints)
+        socket.emit('getHistoryResponse', { error: false, from: from, to: to, results: dataPoints })
+      })
+      .catch(function (err) {
+        log.error('Error sending datapoints from DD')
+        log.error(err)
+        socket.emit('getHistoryResponse', { error: true })
+      })
   }
 
   io.on('connection', function (socket) {
@@ -150,9 +162,9 @@ module.exports = function (app, db, io, log, validator) {
             methodCachesInProgress.add(address + method)
             log.debug('api.js: calling cacheMorePoints: from:', from, 'to:', to, 'latestBlock:', latestBlock)
             parity.getContract(address)
-            .then((contractInfo) => {
-              cacheMorePoints(contractInfo, address, method, parseInt(from), parseInt(to), parseInt(latestBlock))
-            })
+              .then((contractInfo) => {
+                cacheMorePoints(contractInfo, address, method, parseInt(from), parseInt(to), parseInt(latestBlock))
+              })
           })
       })
       .catch((err) => {
@@ -172,15 +184,15 @@ module.exports = function (app, db, io, log, validator) {
       }
       let newFrom = Math.max(from - chunkSize, 1)
       sendDataPointsFromParity(contractInfo, address, method, newFrom, from - 1, newFrom, to)
-      .then(() => {
-        cacheMorePoints(contractInfo, address, method, newFrom, to, latestBlock)
-      })
+        .then(() => {
+          cacheMorePoints(contractInfo, address, method, newFrom, to, latestBlock)
+        })
     } else {
       let newTo = Math.min(to + chunkSize, latestBlock)
       sendDataPointsFromParity(contractInfo, address, method, to + 1, newTo, from, newTo)
-      .then(() => {
-        cacheMorePoints(contractInfo, address, method, from, newTo, latestBlock)
-      })
+        .then(() => {
+          cacheMorePoints(contractInfo, address, method, from, newTo, latestBlock)
+        })
     }
   }
 }
