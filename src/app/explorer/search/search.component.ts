@@ -119,4 +119,10 @@ export class SearchBarComponent {
     this.searchVariables = this.advancedConstraints.varCons;
   }
 
+  checkCursorInSearchArea(event: any) {                                                             
+     if (event.target.id !== 'searchBar') {
+       this.graphService.userSearching = false;
+     }
+   }
+
 }
