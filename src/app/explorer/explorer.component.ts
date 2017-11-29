@@ -60,11 +60,4 @@ export class ExplorerComponent {
       }
     );
   }
-
-  checkCursorInSearchArea(event: any) {
-    if (event.target.id !== 'searchBar') {
-      this.graphService.userSearching = false;
-    }
-  }
-
 }

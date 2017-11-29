@@ -39,21 +39,40 @@
     <clr-wizard-button [type]="'next'">Next</clr-wizard-button>
     <clr-wizard-button [type]="'finish'" (click)="advancedSearchDone()">Done</clr-wizard-button>
 
-    <clr-wizard-page [clrWizardPageNextDisabled]="!formPageOne.valid">
+    <clr-wizard-page [clrWizardPageNextDisabled]="!formPageOne.valid || !advancedVariableConstraintsValid()">
         <ng-template clrPageTitle>Contracts with variables matching...</ng-template> <!-- mandatory -->
         <form #formPageOne="ngForm">
-            <section class="form-block" *ngFor="let varCon of advancedConstraints.varCons; let i = index;">
+            <section class="form-block" *ngFor="let variable of constraintsForm.variables; let i = index;">
                 <div class="form-group">
-                    <label>Variable's name</label>
+                    <label class="required">Variable's name: </label>
                     <label for="nameInput" aria-haspopup="true" role="tooltip"
-                        [class.invalid]="name.touched && !name.valid"
+                        [class.invalid]="varName.touched && !varName.valid"
                         class="tooltip tooltip-validation tooltip-md tooltip-bottom-right">
-                        <input type="text" id="nameInput" required [(ngModel)]="varCon.name" [name]="i + 'name'" #name="ngModel">
+                        <input type="text" id="nameInput" required [(ngModel)]="variable.name" [name]="i + 'name'" #varName="ngModel">
                         <span class="tooltip-content">This field cannot be empty!</span>
 </label>
+</div>
+<div class="form-group">
+    <label> With Value between: </label>
+    <label for="numberInput" aria-haspopup="true" role="tooltip" [class.invalid]="!variableValueInputsValid(i)" class="tooltip tooltip-validation tooltip-md tooltip-bottom-left">
+    <input type="number" id="numberInput" [(ngModel)]="variable.min" [name]="i + 'min'" #min="ngModel">
+    <label> and </label>
+    <input type="number" id="numberInput" [(ngModel)]="variable.max" [name]="i + 'max'" #max="ngModel">
+    <span class="tooltip-content">This must be a valid value range!</span>
+    </label>
+</div>
+<div class="form-group">
+    <label for="formFields_12">Between time: </label>
+    <label for="numberInput" aria-haspopup="true" role="tooltip" [class.invalid]="!variableDateInputsValid(i) || variableDateWithoutValue(i)" class="tooltip tooltip-validation tooltip-md tooltip-bottom-left">
+    <input type="datetime-local" id="formFields_12" size="35" [(ngModel)]="variable.startTime" [name]="i + 'start'">
+    <label> to </label>
+    <input type="datetime-local" id="formFields_12" size="35" [(ngModel)]="variable.endTime" [name]="i + 'end'">
+    <span class="tooltip-content" *ngIf="!variableDateInputsValid(i)">This must be a valid value range!</span>
+    <span class="tooltip-content" *ngIf="variableDateWithoutValue(i)">You cannot specify a time range without a value range!</span>
+    </label>
+</div>
 <clr-icon shape="times" style="cursor:pointer;" (click)="removeVariableConstraint(i)">
 </clr-icon>
-</div>
 </section>
 <button type="button" class="btn-sm btn-primary" (click)="addNewVariableConstraint()">
   Add new Variable
@@ -86,13 +105,13 @@
 </clr-wizard-page>
 
 <clr-wizard-page [clrWizardPageNextDisabled]="!formPageOne.valid || !formPageTwo.valid">
-    <ng-template clrPageTitle>Summary</ng-template>
+    <ng-template clrPageTitle>Ready to go!</ng-template>
     <!-- mandatory -->
     <ng-template clrPageNavTitle>
-        <span *ngIf="formPageOne.valid && formPageTwo.valid">
+        <span *ngIf="formPageOne.valid && formPageTwo.valid && advancedVariableConstraintsValid()">
                 Ready to go!
             </span>
-        <span *ngIf="!formPageOne.valid || !formPageTwo.valid">
+        <span *ngIf="!formPageOne.valid || !formPageTwo.valid || !advancedVariableConstraintsValid()">
                 Not ready yet
             </span>
     </ng-template>
@@ -102,10 +121,18 @@
         <p>Summary of the advanced search</p>
         <form class="compact">
             <label>Your constraints:</label>
-            <section class="form-block" *ngFor="let varCon of advancedConstraints.varCons">
+            <section class="form-block" *ngFor="let variable of constraintsForm.variables">
                 <div class="form-group">
                     <label>Variable:</label>
-                    <span>{{ varCon.name }}</span>
+                    <span>{{ variable.name }}</span>
+                </div>
+                <div class="form-group" *ngIf="variable.min !== null">
+                    <label>With values between:</label>
+                    <span>{{ variable.min }} and {{variable.max}}</span>
+                </div>
+                <div class="form-group" *ngIf="variable.startTime !== ''">
+                    <label>Between dates:</label>
+                    <span>{{ variable.startTime }} - {{ variable.endTime }}</span>
                 </div>
             </section>
         </form>
