@@ -379,10 +379,16 @@ module.exports = function (log) {
           sql += ' and contracthash in' +
             ' (select contracthash from datapoints inner join blocks' +
             ' on datapoints.blocknumber = blocks.blocknumber where' +
-            ' variableName = \'' + variables[i].name +
-            '\' and (timestamp between ' + variables[i].startTime + ' and ' +
-            variables[i].endTime + ') and (value between \'' + variables[i].min +
-            '\' and \'' + variables[i].max + '\'))'
+            ' variableName = \'' + variables[i].name + '\''
+          if (variables[i].endTime !== '' && variablesi[i].startTime !== '') {
+            sql += ' and (timestamp between ' + variables[i].startTime + ' and ' +
+            variables[i].endTime + ')'
+          }
+          if (variables[i].min !== null && variables[i].max !== null) {
+            sql += ' and (value between \'' + variables[i].min +
+            '\' and \'' + variables[i].max + '\')'
+          }
+          sql += ')'
         }
       }
 
