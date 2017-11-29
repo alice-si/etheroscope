@@ -120,7 +120,14 @@ export class SearchBarComponent {
   }
 
   advancedSearchDone() {
-    this.advancedConstraints = this.constraintsForm;
+    // Deep copy the variable constraints
+    this.advancedConstraints.variables = JSON.parse(JSON.stringify(this.constraintsForm.variables));
+    for (let i = 0; i < this.advancedConstraints.variables.length; i++) {
+      if (this.advancedConstraints.variables[i].startTime !== '') {
+        this.advancedConstraints.variables[i].startTime = Math.round(new Date(this.advancedConstraints.variables[i].startTime).getTime() / 1000);
+        this.advancedConstraints.variables[i].endTime = Math.round(new Date(this.advancedConstraints.variables[i].endTime).getTime() / 1000);
+      }
+    }
   }
 
   checkCursorInSearchArea(event: any) {                                                             
