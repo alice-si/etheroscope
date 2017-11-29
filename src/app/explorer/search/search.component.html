@@ -42,18 +42,33 @@
     <clr-wizard-page [clrWizardPageNextDisabled]="!formPageOne.valid">
         <ng-template clrPageTitle>Contracts with variables matching...</ng-template> <!-- mandatory -->
         <form #formPageOne="ngForm">
-            <section class="form-block" *ngFor="let varCon of advancedConstraints.varCons; let i = index;">
+            <section class="form-block" *ngFor="let variable of advancedConstraints.variables; let i = index;">
                 <div class="form-group">
-                    <label>Variable's name</label>
+                    <label class="required">Variable's name: </label>
                     <label for="nameInput" aria-haspopup="true" role="tooltip"
-                        [class.invalid]="name.touched && !name.valid"
+                        [class.invalid]="varName.touched && !varName.valid"
                         class="tooltip tooltip-validation tooltip-md tooltip-bottom-right">
-                        <input type="text" id="nameInput" required [(ngModel)]="varCon.name" [name]="i + 'name'" #name="ngModel">
+                        <input type="text" id="nameInput" required [(ngModel)]="variable.name" [name]="i + 'name'" #varName="ngModel">
                         <span class="tooltip-content">This field cannot be empty!</span>
 </label>
+</div>
+<div class="form-group">
+    <label> With Value between: </label>
+    <label for="numberInput" aria-haspopup="true" role="tooltip" [class.invalid]="!valueInputValid(i)" class="tooltip tooltip-validation tooltip-md tooltip-bottom-left">
+    <input type="number" id="numberInput" [(ngModel)]="variable.min" [name]="i + 'min'" #min="ngModel">
+    <label> and  </label>
+    <input type="number" id="numberInput" [(ngModel)]="variable.max" [name]="i + 'max'" #max="ngModel">
+    <span class="tooltip-content">This must be a valid value range!</span>
+    </label>
+</div>
+<div class="form-group">
+    <label for="formFields_12">Between time: </label>
+    <input type="datetime-local" id="formFields_12" size="35">
+    <label> to </label>
+    <input type="datetime-local" id="formFields_12" size="35">
+</div>
 <clr-icon shape="times" style="cursor:pointer;" (click)="removeVariableConstraint(i)">
 </clr-icon>
-</div>
 </section>
 <button type="button" class="btn-sm btn-primary" (click)="addNewVariableConstraint()">
   Add new Variable
