@@ -18,7 +18,8 @@ export class SearchBarComponent {
   // badRequest: boolean;
   graphService: any;
   matches: any;
-  searchVariables: any;
+  advancedConstraints: {variables: any, transactions:any};
+  constraintsForm: {variables: any, transactions: any};
   searchMatch: number;
   contractService: any;
   openWizard: boolean;
@@ -28,11 +29,19 @@ export class SearchBarComponent {
     // this.badRequest = false;
     this.graphService = gs;
     this.openWizard = false;
-    this.searchVariables = [];
+    this.advancedConstraints = {
+      variables: [],
+      transactions: []
+    };
+
+    this.constraintsForm = {
+      variables: [],
+      transactions: []
+    };
   }
 
   searchContracts(pattern: string) {
-    this.contractService.searchContracts(pattern, this.searchVariables).subscribe(
+    this.contractService.searchContracts(pattern, this.advancedConstraints).subscribe(
       (matches) => {
         if (JSON.stringify(this.matches) !== JSON.stringify(matches)) {
           this.matches = matches;
@@ -96,33 +105,35 @@ export class SearchBarComponent {
     return '#fafafa';
   }
 
-  advancedConstraints = {
-    varCons: [],
-    number: ''
-  };
-
   addNewVariableConstraint() {
-    this.advancedConstraints.varCons.push({
+    this.constraintsForm.variables.push({
       name: '',
-      startTime: 0,
-      endTime: 4000000000,
-      min: 0,
-      max: 1000000000
+      startTime: '',
+      endTime: '',
+      min: '',
+      max: ''
     });
   }
 
   removeVariableConstraint(index: number) {
-    this.advancedConstraints.varCons.splice(index, 1);
+    this.constraintsForm.variables.splice(index, 1);
   }
 
   advancedSearchDone() {
-    this.searchVariables = this.advancedConstraints.varCons;
+    this.advancedConstraints = this.constraintsForm;
   }
 
   checkCursorInSearchArea(event: any) {                                                             
      if (event.target.id !== 'searchBar') {
        this.graphService.userSearching = false;
      }
-   }
+  }
+
+  valueInputValid(index: number) {
+    let variable = this.constraintsForm.variables[index];
+    let min = variable.min;
+    let max = variable.max;
+    return (min === '' && max === '') || (min < max);
+  }
 
 }
