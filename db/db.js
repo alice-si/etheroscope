@@ -380,7 +380,7 @@ module.exports = function (log) {
             ' (select contracthash from datapoints inner join blocks' +
             ' on datapoints.blocknumber = blocks.blocknumber where' +
             ' variableName = \'' + variables[i].name + '\''
-          if (variables[i].endTime !== '' && variablesi[i].startTime !== '') {
+          if (variables[i].endTime !== '' && variables[i].startTime !== '') {
             sql += ' and (timestamp between ' + variables[i].startTime + ' and ' +
             variables[i].endTime + ')'
           }
