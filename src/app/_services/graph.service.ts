@@ -99,7 +99,7 @@ export class GraphService {
           lastValue = +elem[1];
         }
       })
-      this.multi = [...[{ "name": "", "series": this.timesValues}]];
+      this.multi = [...[{ "name": this.lastMethod.toUpperCase(), "series": this.timesValues}]];
       this.weekData = new Array(7);
       weekDayCount.forEach((elem, i) => {
         console.log('Elem is:');
