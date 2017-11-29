@@ -10,7 +10,7 @@
               </td>
               <td class="advanced-search">
                   <button type="button" class="btn-sm btn-primary" (click)="openWizard=true">
-                    <clr-icon shape="cog" size="20"> </clr-icon>
+                    <clr-icon shape="cog" size="20" [class]="(hasAdvancedConstraints() ? 'is-solid' : '') + (hasFormConstraints() ? (advancedVariableConstraintsValid() ? ' has-badge--success' : ' has-alert') : '')"> </clr-icon>
                   </button>
               </td>
               <td class="search-button">
@@ -37,7 +37,7 @@
     <clr-wizard-button [type]="'cancel'">Close</clr-wizard-button>
     <clr-wizard-button [type]="'previous'">Previous</clr-wizard-button>
     <clr-wizard-button [type]="'next'">Next</clr-wizard-button>
-    <clr-wizard-button [type]="'finish'" (click)="advancedSearchDone()">Done</clr-wizard-button>
+    <clr-wizard-button [type]="'finish'" (click)="advancedSearchDone()">Apply</clr-wizard-button>
 
     <clr-wizard-page [clrWizardPageNextDisabled]="!formPageOne.valid || !advancedVariableConstraintsValid()">
         <ng-template clrPageTitle>Contracts with variables matching...</ng-template> <!-- mandatory -->

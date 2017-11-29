@@ -168,4 +168,12 @@ export class SearchBarComponent {
       && variable.startTime !== '' && variable.endTime !== '';
   }
 
+  hasFormConstraints() {
+    return this.constraintsForm.variables.length > 0 || this.constraintsForm.transactions.length > 0;
+  }
+
+  hasAdvancedConstraints() {
+    return this.advancedConstraints.variables.length > 0 || this.advancedConstraints.transactions.length > 0;
+  }
+
 }
