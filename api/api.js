@@ -70,26 +70,29 @@ module.exports = function (app, db, io, log, validator) {
     }
   })
 
+
+  // Send all points from from up to but not including to
   function sendDataPointsFromParity (contractInfo, contractAddress, method, from, to,
     totalFrom, totalTo) {
-    // log.debug('Sending history from parity')
-    // First we obtain the contract.
-    let contract = contractInfo.parsedContract
     return new Promise((resolve, reject) => {
-      parity.getHistory(contractAddress, method, from, to, totalFrom, totalTo)
-        .then(function (events) {
-          return parity.generateDataPoints(events, contract, method, from, to,
-            totalFrom, totalTo)
-        })
-        .then(function (results) {
-          io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: false, from: from, to: to, results: results })
-          return resolve()
-        })
-        .catch(function (err) {
-          log.error('Error in parity sending' + err)
-          io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: true })
-          return reject(err)
-        })
+      // First we obtain the contract.
+      let contract = contractInfo.parsedContract
+      // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
+      parity.getHistory(contractAddress, method, from, to - 1)
+      .then(function (events) {
+        return parity.generateDataPoints(events, contract, method,
+          totalFrom, totalTo)
+      })
+      .then(function (results) {
+        console.log('Sending response')
+        io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: false, from: from, to: to, results: results })
+        return resolve()
+      })
+      .catch(function (err) {
+        log.error('Error in parity sending' + err)
+        io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: true })
+        return reject(err)
+      })
     })
   }
 
@@ -172,27 +175,31 @@ module.exports = function (app, db, io, log, validator) {
       })
   }
 
-  // from, to and latestBlock are inclusive
+  // We currently have everything from from up to (but no including) to.
+  // Find more things, firstly at to - end, and later anything before from
   // pre: from, to, latestBlock are numbers, not strings
   function cacheMorePoints (contractInfo, address, method, from, to, latestBlock) {
+    console.log('In cache more points: ' + from + ' ' + to)
     const chunkSize = 1000
-    if (to === latestBlock) {
+    // To is exclusive - add 1 to latest block to check if to has gotten it 
+    if (to === latestBlock + 1) {
       if (from === 1) {
         log.info('Cached all points for ' + address + ' ' + method)
         methodCachesInProgress.delete(address + method)
         return
       }
       let newFrom = Math.max(from - chunkSize, 1)
-      sendDataPointsFromParity(contractInfo, address, method, newFrom, from - 1, newFrom, to)
-        .then(() => {
-          cacheMorePoints(contractInfo, address, method, newFrom, to, latestBlock)
-        })
+      sendDataPointsFromParity(contractInfo, address, method, newFrom, from, newFrom, to)
+      .then(() => {
+        cacheMorePoints(contractInfo, address, method, newFrom, to, latestBlock)
+      })
     } else {
-      let newTo = Math.min(to + chunkSize, latestBlock)
-      sendDataPointsFromParity(contractInfo, address, method, to + 1, newTo, from, newTo)
-        .then(() => {
-          cacheMorePoints(contractInfo, address, method, from, newTo, latestBlock)
-        })
+      // newTo is exclusive, so can be at most latestBlock + 1
+      let newTo = Math.min(to + chunkSize, latestBlock + 1)
+      sendDataPointsFromParity(contractInfo, address, method, to, newTo, from, newTo)
+      .then(() => {
+        cacheMorePoints(contractInfo, address, method, from, newTo, latestBlock)
+      })
     }
   }
 }
