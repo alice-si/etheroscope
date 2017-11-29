@@ -105,7 +105,7 @@
 </clr-wizard-page>
 
 <clr-wizard-page [clrWizardPageNextDisabled]="!formPageOne.valid || !formPageTwo.valid">
-    <ng-template clrPageTitle>Summary</ng-template>
+    <ng-template clrPageTitle>Ready to go!</ng-template>
     <!-- mandatory -->
     <ng-template clrPageNavTitle>
         <span *ngIf="formPageOne.valid && formPageTwo.valid && advancedVariableConstraintsValid()">
@@ -121,10 +121,18 @@
         <p>Summary of the advanced search</p>
         <form class="compact">
             <label>Your constraints:</label>
-            <section class="form-block" *ngFor="let varCon of advancedConstraints.varCons">
+            <section class="form-block" *ngFor="let variable of constraintsForm.variables">
                 <div class="form-group">
                     <label>Variable:</label>
-                    <span>{{ varCon.name }}</span>
+                    <span>{{ variable.name }}</span>
+                </div>
+                <div class="form-group" *ngIf="variable.min !== null">
+                    <label>With values between:</label>
+                    <span>{{ variable.min }} and {{variable.max}}</span>
+                </div>
+                <div class="form-group" *ngIf="variable.startTime !== ''">
+                    <label>Between dates:</label>
+                    <span>{{ variable.startTime }} - {{ variable.endTime }}</span>
                 </div>
             </section>
         </form>
