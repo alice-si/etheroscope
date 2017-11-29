@@ -385,8 +385,8 @@ module.exports = function (log) {
             variables[i].endTime + ')'
           }
           if (variables[i].min !== null && variables[i].max !== null) {
-            sql += ' and (value between \'' + variables[i].min +
-            '\' and \'' + variables[i].max + '\')'
+            sql += ' and (value between ' + variables[i].min +
+            ' and ' + variables[i].max + ')'
           }
           sql += ')'
         }
