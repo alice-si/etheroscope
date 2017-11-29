@@ -108,8 +108,8 @@ export class SearchBarComponent {
   addNewVariableConstraint() {
     this.constraintsForm.variables.push({
       name: null,
-      startTime: null,
-      endTime: null,
+      startTime: '',
+      endTime: '',
       min: null,
       max: null
     });
@@ -132,18 +132,33 @@ export class SearchBarComponent {
   advancedVariableConstraintsValid() {
     let variables = this.constraintsForm.variables;
     for (let i = 0; i < variables.length; i++) {
-      if (!this.valueInputValid(i)) {
+      if (!this.variableValueInputsValid(i) || !this.variableDateInputsValid(i)
+        || this.variableDateWithoutValue(i)) {
         return false;
       }
     }
     return true;
   }
 
-  valueInputValid(index: number) {
+  variableValueInputsValid(index: number) {
     let variable = this.constraintsForm.variables[index];
     let min = variable.min;
     let max = variable.max;
     return (min === null && max === null) || (min !== null && max !== null && min < max);
+  }
+
+  variableDateInputsValid(index: number) {
+    let variable = this.constraintsForm.variables[index];
+    let startTime = variable.startTime;
+    let endTime = variable.endTime;
+    return (startTime === '' && endTime === '')
+      || (startTime !== '' && endTime !== '' && startTime < endTime);
+  }
+
+  variableDateWithoutValue(index: number) {
+    let variable = this.constraintsForm.variables[index];
+    return variable.min === null && variable.max === null
+      && variable.startTime !== '' && variable.endTime !== '';
   }
 
 }
