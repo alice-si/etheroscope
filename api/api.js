@@ -42,6 +42,7 @@ module.exports = function (app, db, io, log, validator) {
     if (typeof req.body.transactions != 'undefined') {
       transactions = req.body.transactions
     }
+    console.log(JSON.stringify(req.body))
     db.searchContract(searchStr, variables, transactions).then((results) => {
       if (results === null) {
         results = []
