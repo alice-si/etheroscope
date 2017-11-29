@@ -6,6 +6,7 @@ var morgan = require('morgan')
 var path = require('path')
 var log = require('loglevel')
 var validator = require('validator')
+let axios =  require('axios');
 
 // Change this to alter how much information is printed out
 log.setLevel('trace')
@@ -56,12 +57,14 @@ db.poolConnect().then(() => {
   app.get('/popular', function (req, res) {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
+
   var server = app.listen(port)
   var io = require('socket.io').listen(server)
   require('./api/api.js')(app, db, io, log, validator) // configure our routes
+  require('./services/index')(db, io, log, validator)
 
   // Start application
-  // app.listen(port)                                    // startup our app at http://localhost:8080
   log.info('server.js: Starting server at: ' + port)          // shoutout to the user
   exports = module.exports = app                        // expose app
+
 }) // kickstart db connection
