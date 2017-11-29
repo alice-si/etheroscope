@@ -39,10 +39,10 @@
     <clr-wizard-button [type]="'next'">Next</clr-wizard-button>
     <clr-wizard-button [type]="'finish'" (click)="advancedSearchDone()">Done</clr-wizard-button>
 
-    <clr-wizard-page [clrWizardPageNextDisabled]="!formPageOne.valid">
+    <clr-wizard-page [clrWizardPageNextDisabled]="!formPageOne.valid || !advancedVariableConstraintsValid()">
         <ng-template clrPageTitle>Contracts with variables matching...</ng-template> <!-- mandatory -->
         <form #formPageOne="ngForm">
-            <section class="form-block" *ngFor="let variable of advancedConstraints.variables; let i = index;">
+            <section class="form-block" *ngFor="let variable of constraintsForm.variables; let i = index;">
                 <div class="form-group">
                     <label class="required">Variable's name: </label>
                     <label for="nameInput" aria-haspopup="true" role="tooltip"
@@ -56,7 +56,7 @@
     <label> With Value between: </label>
     <label for="numberInput" aria-haspopup="true" role="tooltip" [class.invalid]="!valueInputValid(i)" class="tooltip tooltip-validation tooltip-md tooltip-bottom-left">
     <input type="number" id="numberInput" [(ngModel)]="variable.min" [name]="i + 'min'" #min="ngModel">
-    <label> and  </label>
+    <label> and </label>
     <input type="number" id="numberInput" [(ngModel)]="variable.max" [name]="i + 'max'" #max="ngModel">
     <span class="tooltip-content">This must be a valid value range!</span>
     </label>
