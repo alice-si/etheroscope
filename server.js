@@ -9,6 +9,7 @@ var validator = require('validator')
 
 // Change this to alter how much information is printed out
 log.setLevel('trace')
+log.enableAll()
 
 var db = require('./db/db.js')(log)
 
@@ -47,6 +48,9 @@ db.poolConnect().then(() => {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
   app.get('/explorer', function (req, res) {
+    res.redirect('/')
+  })
+  app.get('/popular', function (req, res) {
     res.redirect('/')
   })
   var server = app.listen(port)
