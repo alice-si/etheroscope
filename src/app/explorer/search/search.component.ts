@@ -18,7 +18,8 @@ export class SearchBarComponent {
   // badRequest: boolean;
   graphService: any;
   matches: any;
-  searchVariables: any;
+  advancedConstraints: {variables: any, transactions:any};
+  constraintsForm: {variables: any, transactions: any};
   searchMatch: number;
   contractService: any;
   openWizard: boolean;
@@ -28,11 +29,19 @@ export class SearchBarComponent {
     // this.badRequest = false;
     this.graphService = gs;
     this.openWizard = false;
-    this.searchVariables = [];
+    this.advancedConstraints = {
+      variables: [],
+      transactions: []
+    };
+
+    this.constraintsForm = {
+      variables: [],
+      transactions: []
+    };
   }
 
   searchContracts(pattern: string) {
-    this.contractService.searchContracts(pattern, this.searchVariables).subscribe(
+    this.contractService.searchContracts(pattern, this.advancedConstraints).subscribe(
       (matches) => {
         if (JSON.stringify(this.matches) !== JSON.stringify(matches)) {
           this.matches = matches;
@@ -45,7 +54,7 @@ export class SearchBarComponent {
         }
       },
       (error) => {
-        this.matches = null;
+        this.matches = [];
         console.log(error);
       },
       () => {
@@ -96,27 +105,60 @@ export class SearchBarComponent {
     return '#fafafa';
   }
 
-  advancedConstraints = {
-    varCons: [],
-    number: ''
-  };
-
   addNewVariableConstraint() {
-    this.advancedConstraints.varCons.push({
-      name: '',
-      startTime: 0,
-      endTime: 4000000000,
-      min: 0,
-      max: 1000000000
+    this.constraintsForm.variables.push({
+      name: null,
+      startTime: '',
+      endTime: '',
+      min: null,
+      max: null
     });
   }
 
   removeVariableConstraint(index: number) {
-    this.advancedConstraints.varCons.splice(index, 1);
+    this.constraintsForm.variables.splice(index, 1);
   }
 
   advancedSearchDone() {
-    this.searchVariables = this.advancedConstraints.varCons;
+    this.advancedConstraints = this.constraintsForm;
+  }
+
+  checkCursorInSearchArea(event: any) {                                                             
+     if (event.target.id !== 'searchBar') {
+       this.graphService.userSearching = false;
+     }
+  }
+
+  advancedVariableConstraintsValid() {
+    let variables = this.constraintsForm.variables;
+    for (let i = 0; i < variables.length; i++) {
+      if (!this.variableValueInputsValid(i) || !this.variableDateInputsValid(i)
+        || this.variableDateWithoutValue(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  variableValueInputsValid(index: number) {
+    let variable = this.constraintsForm.variables[index];
+    let min = variable.min;
+    let max = variable.max;
+    return (min === null && max === null) || (min !== null && max !== null && min < max);
+  }
+
+  variableDateInputsValid(index: number) {
+    let variable = this.constraintsForm.variables[index];
+    let startTime = variable.startTime;
+    let endTime = variable.endTime;
+    return (startTime === '' && endTime === '')
+      || (startTime !== '' && endTime !== '' && startTime < endTime);
+  }
+
+  variableDateWithoutValue(index: number) {
+    let variable = this.constraintsForm.variables[index];
+    return variable.min === null && variable.max === null
+      && variable.startTime !== '' && variable.endTime !== '';
   }
 
 }
