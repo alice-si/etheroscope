@@ -122,12 +122,12 @@ export class CardsComponent {
     this.graphService.filterGraphDatapoints();
     // if the graph goes back further than the start date, add a point at the start date
     // that is the last value currently seen
-    let methodTimes = this.graphService.methodDatapoints.map((elem) => {return elem[0]});
-    let minDate = Math.min.apply(null, methodTimes);
-    console.log(minDate + ' mindate');
-    if (startDate > minDate) {
-      console.log("We are here", this.graphService.graphDatapoints)
-      this.graphService.graphDatapoints = [[startDate, this.graphService.graphDatapoints[0][1]]].concat(this.graphService.graphDatapoints);
+    if (this.graphService.graphDatapoints.length > 0) {
+      let methodTimes = this.graphService.methodDatapoints.map((elem) => {return elem[0]});
+      let minDate = Math.min.apply(null, methodTimes);
+      if (startDate > minDate) {
+        this.graphService.graphDatapoints = [[startDate, this.graphService.graphDatapoints[0][1]]].concat(this.graphService.graphDatapoints);
+      }
     }
     this.graphService.updateGraph();
   }
