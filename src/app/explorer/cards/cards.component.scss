@@ -22,6 +22,9 @@
   width: inherit;
   .btn-group {
     margin: 0 auto;
+    button {
+      background-color: #1998a2;
+    }
   }
   .btn-submit {
     margin: 0 auto;
@@ -56,6 +59,9 @@
   .card-text {
     margin-top: 0;
     margin-bottom: 0;
+  } // overflow: hidden;
+  .clr-tooltip {
+    z-index: 99;
   }
   overflow: hidden;
 }
