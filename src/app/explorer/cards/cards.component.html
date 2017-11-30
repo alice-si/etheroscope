@@ -120,23 +120,3 @@
         </div>
     </div>
 </div>
-<div class="card currViewing animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingGraph || graphService.curDisplayState === graphService.DisplayState.awaitingInitialPoints">
-    <div class="card-header">
-        Updates by weekday 
-    </div>
-    <div class="chart-wrapper">
-      <ngx-charts-bar-vertical
-        [view]="view"
-        [scheme]="colorScheme"
-        [results]="graphService.weekData"
-        [gradient]="gradient"
-        [xAxis]="showXAxis"
-        [yAxis]="showYAxis"
-        [legend]="showLegend"
-        [showXAxisLabel]="showXAxisLabel"
-        [showYAxisLabel]="showYAxisLabel"
-        [xAxisLabel]="xAxisLabel"
-        [yAxisLabel]="yAxisLabel">
-      </ngx-charts-bar-vertical>
-    </div>
-</div>

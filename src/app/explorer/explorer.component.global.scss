@@ -35,9 +35,14 @@
 }
 
 .btn-group {
-  button {
+  background-color: #1998a2;
+  outline: none;
+  .btn {
     background-color: #1998a2;
     font-weight: 100;
+  }
+  .btn:focus {
+    outline: none;
   }
 }
 
