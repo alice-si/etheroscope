@@ -3,8 +3,8 @@ import { GraphService } from '../_services/graph.service';
 import { ContractService} from '../_services/contract.service';
 
 @Component({
-    styleUrls: ['./popular.component.scss'],
-    templateUrl: './popular.component.html',
+  styleUrls: ['./popular.component.scss'],
+  templateUrl: './popular.component.html',
 })
 
 export class PopularComponent {
@@ -17,14 +17,14 @@ export class PopularComponent {
     this.contractService.getPopularContracts().subscribe(
       (contracts) => {
         this.popularContracts = contracts;
-      },  
+      },
       (error) => {
         if (error.status === 400) {
           console.log('Error in retrieving popular contracts');
-        }   
-      },  
+        }
+      },
       () => {
-      }  
+      }
     );
   }
 }

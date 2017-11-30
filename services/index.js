@@ -1,17 +1,18 @@
-let axios =  require('axios');
+let cluster = require('cluster')
 let port = 8081
 let bodyParser = require('body-parser')
+let methodCachesInProgress = new Set()
 module.exports = function (db, io, log, validator) {
   // Initialise the server
   let parity = require('../api/parity')(db, log, validator)
   let app = require('express')()
-  app.use(bodyParser.json());
+  app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
 
   app.post('/cache', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Type', 'application/json')
     console.log('got post req')
-    res.end();
+    res.end()
     parity.getContract(req.body.address).then((contractInfo) => {
       cacheMorePoints(contractInfo, req.body.address, req.body.method, req.body.from, req.body.to, req.body.latestBlock)
     })
@@ -19,18 +20,19 @@ module.exports = function (db, io, log, validator) {
   app.listen(port)
   log.info('services/index.js: Micro-service started at', port)
 
-
   // from, to and latestBlock are inclusive
   // pre: from, to, latestBlock are numbers, not strings
   function cacheMorePoints (contractInfo, address, method, from, to, latestBlock) {
     // console.log('it is', contractInfo)
+    if (methodCachesInProgress.has(address + method)) {
+      return
+    }
+    methodCachesInProgress.add(address + method)
+    log.debug('api.js: calling cacheMorePoints: from:', from, 'to:', to, 'latestBlock:', latestBlock)
     const chunkSize = 1000
     if (to === latestBlock) {
       if (from === 1) {
         log.info('Cached all points for ' + address + ' ' + method)
-        axios.get('http://localhost:8080/api/inProgressMethods/delete/' + address + '/' + method).then(() => {
-          console.log('Delete Cache Methods in progress')
-        })
         return
       }
       let newFrom = Math.max(from - chunkSize, 1)
@@ -70,4 +72,3 @@ module.exports = function (db, io, log, validator) {
     })
   }
 }
-

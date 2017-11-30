@@ -7,8 +7,10 @@ enum ds {
     newContract,
     awaitingInitialResponse,
     awaitingInitialPoints,
-    displayingGraph
+    displayingGraph,
+    displayingHistogram
 };
+
 
 @Injectable()
 export class GraphService {
@@ -27,14 +29,14 @@ export class GraphService {
   timesValues: any[];
   multi: any[];
   weekData: any[];
-  methods: string[];
+  methods: any[];
   relevantMethods: any;
   lastMethod: string;
   lastContract: string;
   methodPages: number;
   userSearching: boolean;
-
   weekDayNames: any;
+  badRequest: boolean
 
   constructor(private service: ContractService) {
     this.contractService = service;
@@ -99,7 +101,7 @@ export class GraphService {
           lastValue = +elem[1];
         }
       })
-      this.multi = [...[{ "name": "", "series": this.timesValues}]];
+      this.multi = [...[{ "name": this.lastMethod.toUpperCase(), "series": this.timesValues}]];
       this.weekData = new Array(7);
       weekDayCount.forEach((elem, i) => {
         this.weekData[i] = { "name": this.weekDayNames[i], "value": elem };

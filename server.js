@@ -6,7 +6,6 @@ var morgan = require('morgan')
 var path = require('path')
 var log = require('loglevel')
 var validator = require('validator')
-let axios =  require('axios');
 
 // Change this to alter how much information is printed out
 log.setLevel('trace')
@@ -66,5 +65,4 @@ db.poolConnect().then(() => {
   // Start application
   log.info('server.js: Starting server at: ' + port)          // shoutout to the user
   exports = module.exports = app                        // expose app
-
 }) // kickstart db connection
