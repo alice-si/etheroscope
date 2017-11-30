@@ -1,6 +1,27 @@
-<div class="graph-area animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingGraph && graphService.graphDatapoints.length !== -1">
-    <ngx-charts-line-chart [scheme]="colorScheme" [results]="graphService.multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [autoScale]="autoScale" [timeline]=true>
-    </ngx-charts-line-chart>
+<div class="graph-area animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingGraph && graphService.graphDatapoints.length !== 0">
+    <table>
+        <tr id="graphOptions">
+            <td valign="middle">
+                <div class="board">
+                    <div class="board-item" (click)="currGraph = graphState.line">Line Graph</div>
+                    <div class="board-item" (click)="currGraph = graphState.week">Updates by Day</div>
+                </div>
+            </td>
+        </tr>
+        <tr id="graphGraph">
+            <td *ngIf="currGraph === graphState.line">
+                <div style="height: 100%; width: 100%;">
+                    <ngx-charts-line-chart [scheme]="colorScheme" [results]="graphService.multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [autoScale]="autoScale" [timeline]=true>
+                    </ngx-charts-line-chart>
+                </div>
+            </td>
+            <td *ngIf="currGraph === graphState.week">
+                <div style="height: 100%; width: 100%;">
+                    <ngx-charts-bar-vertical [view]="view" [scheme]="colorScheme" [results]="graphService.weekData" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"> </ngx-charts-bar-vertical>
+                </div>
+            </td>
+        </tr>
+    </table>
 </div>
 <div class="no-graph-but-var animated fadeInLeft" *ngIf="graphService.curDisplayState === graphService.DisplayState.newContract">
     <p> Then choose a variable you want to look at
@@ -18,8 +39,4 @@
         {{graphService.graphDatapoints.length}}
         <div class="progress loop"><progress></progress></div>
     </div>
-</div>
-
-<div class="graph-area animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingHistogram && graphService.graphDatapoints.length !== -1">
-    
 </div>
