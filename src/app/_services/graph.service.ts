@@ -7,7 +7,8 @@ enum ds {
     newContract,
     awaitingInitialResponse,
     awaitingInitialPoints,
-    displayingGraph
+    displayingGraph,
+    displayingHistogram
 };
 
 @Injectable()
