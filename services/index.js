@@ -7,30 +7,22 @@ var Promise = require('bluebird')
 
 let log = require('loglevel')
 let validator = require('validator')
-console.log('here1')
 let db = require('./../db/db.js')(log)
-console.log('here1.5')
 
 let socketPort = 8081
 
 let express = require('express')
 let app = express()
-console.log('here2')
 let server = require('http').createServer(app)
 let io = require('socket.io')(server)
-console.log('here3')
 
 db.poolConnect().then(() => {
   server.listen(socketPort)
-  console.log('CONNECTED TO POOL')
-console.log('here4')
 // Initialise the server
 let parity = require('../api/parity')(db, log, validator)
-console.log('here4.5')
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(morgan('dev'))
-console.log('here5')
 
 function validAddress (address) {
   return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
@@ -39,7 +31,6 @@ function validAddress (address) {
 log.info('services/index.js: Micro-service started at', socketPort)
 
 io.on('connection', function (socket) {
-  console.log('CONNTECTION')
   socket.on('getHistory', ([address, method]) => {
     let room = address + method
     socket.join(room)
@@ -70,7 +61,6 @@ function sendAllDataPointsFromDB (address, method, from, to, socket) {
       })
     })
     .then((dataPoints) => {
-      console.dir(dataPoints)
       socket.emit('getHistoryResponse', { error: false, from: from, to: to, results: dataPoints })
     })
     .catch(function (err) {
@@ -84,7 +74,6 @@ function sendAllDataPointsFromDB (address, method, from, to, socket) {
 // Find more things, firstly at to - end, and later anything before from
 // pre: from, to, latestBlock are numbers, not strings
 function cacheMorePoints (contractInfo, address, method, from, to, latestBlock) {
-  console.log('In cache more points: ' + from + ' ' + to)
   const chunkSize = 1000
   // To is exclusive - add 1 to latest block to check if to has gotten it
   if (to === latestBlock + 1) {
@@ -124,7 +113,6 @@ function sendDataPointsFromParity (contractInfo, contractAddress, method, from, 
         totalFrom, totalTo)
     })
     .then(function (results) {
-      console.log('Sending response')
       io.sockets.in(contractAddress + method).emit('getHistoryResponse',
           { error: false, from: from, to: to, results: results })
       return resolve()
