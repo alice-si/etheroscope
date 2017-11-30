@@ -43,17 +43,22 @@ module.exports = function (app, db, log, validator) {
     return res.status(200).json([])
   })
 
-  app.get('/api/search/:string', (req, res) => {
+  app.post('/api/search/:string', (req, res) => {
     let searchStr = req.params.string
-    if (searchStr[0] === '0' && (searchStr[1] === 'x' || searchStr[1] === 'X')) {
-      db.searchContractHash(searchStr.substr(2)).then((results) => {
-        return res.status(200).json(results)
-      })
-    } else {
-      log.debug(searchStr)
-      db.searchContractName(searchStr).then((results) => {
-        return res.status(200).json(results)
-      })
+    let variables = null
+    let transactions = null
+    if (typeof req.body.variables != 'undefined') {
+      variables = req.body.variables
     }
+    if (typeof req.body.transactions != 'undefined') {
+      transactions = req.body.transactions
+    }
+    console.log(JSON.stringify(req.body))
+    db.searchContract(searchStr, variables, transactions).then((results) => {
+      if (results === null) {
+        results = []
+      }
+      return res.status(200).json(results)
+    })
   })
 }

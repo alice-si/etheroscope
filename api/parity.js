@@ -99,9 +99,9 @@ module.exports = function (db, log, validator) {
         } else {
           let variableNames = []
           Promise.map(res.recordset, (elem) => {
-            variableNames.push(elem.variableName)
+            variableNames.push(elem)
           }, {concurrency: 5}).then(() => {
-            return resolve({ variableNames: variableNames, contractName: contractName })
+            return resolve({ variables: variableNames, contractName: contractName })
           })
         }
       })
