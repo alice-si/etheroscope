@@ -10,6 +10,9 @@ p {
   height: 89%;
   width: 100%;
   float: left;
+  a {
+    font-weight: 500;
+  }
   a:hover {
     cursor: pointer;
   }
@@ -27,7 +30,6 @@ p {
     width: 80%;
     height: 100%;
   }
-
   .cards-td {
     width: 20%;
     height: 100%;
@@ -35,7 +37,6 @@ p {
     border-collapse: collapse;
     border-spacing: 0px;
   }
-
 }
 
 .no-graph-but-var {
