@@ -38,22 +38,12 @@
                 <button class="btn btn-sm var-btns animated fadeIn" *ngFor="let m of graphService.relevantMethods" (click)="generateDatapoints(m.variableName, m)">
                           <div *ngIf="m.variableName.length <= 15"> {{m.variableName}}
                               <span *ngIf="m.unit !== null">
-                                  <clr-tooltip>
-                                      <clr-icon clrTooltipTrigger shape="info-circle" size="18"></clr-icon>
-                                      <clr-tooltip-content clrPosition="top-left" clrSize="xs" *clrIfOpen>
-                                          <span>Unit: {{m.unit}}</span>
-                                      </clr-tooltip-content>
-                                  </clr-tooltip>
+                                <clr-icon shape="info-circle" size="18" class="tooltip" [title]="'Units: '+ m.unit + '\nDescription: ' + m.description"></clr-icon>
                               </span>
                           </div>
                           <div *ngIf="m.variableName.length >= 16" title="{{m.variableName}}"> {{m.variableName.slice(0,13)}}..
                               <span *ngIf="m.unit !== null">
-                                  <clr-tooltip>
-                                      <clr-icon clrTooltipTrigger shape="info-circle" size="18"></clr-icon>
-                                      <clr-tooltip-content clrPosition="top-left" clrSize="xs" *clrIfOpen>
-                                          <span>Unit: {{m.unit}}</span>
-                                      </clr-tooltip-content>
-                                  </clr-tooltip>
+                                <clr-icon shape="info-circle" size="18" class="tooltip" [title]="'Units: '+ m.unit + '\nDescription: ' + m.description"></clr-icon>
                               </span>
                           </div>
                         </button>
@@ -74,20 +64,16 @@
 
 <div class="card currViewing animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingGraph || graphService.curDisplayState === graphService.DisplayState.awaitingInitialPoints">
     <div class="card-header">
-        Currently Viewing Variable
+        Currently Viewing
     </div>
     <div class="card-block">
         <button class="btn-primary btn btn-sm" style="cursor: default;">
                       {{this.graphService.lastMethod}}
                   </button>
         <br>
-        <div *ngIf="this.graphService.lastMethodInfo.unit !== null">
+        <div *ngIf="this.graphService.lastMethodInfo.unit !== undefined">
             Units: {{this.graphService.lastMethodInfo.unit}}
-            <br>
-            Description: {{this.graphService.lastMethodInfo.description}}
-        </div>
-        <div *ngIf="this.graphService.lastMethodInfo.unit === null">
-            No additional information present regarding {{this.graphService.lastMethod}}
+            <br> {{this.graphService.lastMethodInfo.description}}
         </div>
     </div>
 
