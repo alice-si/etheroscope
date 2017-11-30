@@ -91,7 +91,7 @@ module.exports = function (db, log, validator) {
           let variableNames = []
           Promise.map(res.recordset, (elem) => {
             variableNames.push(elem.variableName)
-          }).then(() => {
+          }, {concurrency: 5}).then(() => {
             return resolve({ variableNames: variableNames, contractName: contractName })
           })
         }
@@ -154,7 +154,7 @@ module.exports = function (db, log, validator) {
         // [(time, value, blockNum)]
         return Promise.all([parity.getBlockTime(event.blockNumber.valueOf()),
           parity.queryAtBlock(contract[method], event.blockNumber.valueOf()), event.blockNumber.valueOf()])
-      })
+      }, {concurrency: 5})
       .then((events) => {
         return Promise.filter(events, ([time, val, blockNum]) => {
           let updates = time !== prevTime

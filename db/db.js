@@ -329,10 +329,12 @@ module.exports = function (log) {
           return resolve()
         })
         .catch((err) => {
-          log.error('db.js: Error in addBlocKTime')
-          log.error(err)
+          log.error('db.js: Error in addBlocKTime, you are most likely adding duplicates')
           return reject(err)
         })
+    })
+    .catch((err) => {
+      log.error('db.js: Error in addBlocKTime, you are most likely adding duplicates')
     })
   }
 
