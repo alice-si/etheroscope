@@ -21,6 +21,23 @@ export class CardsComponent {
   contractService: any;
   graphService: any;
   variableScroll: number;
+
+  // Graph options
+  showXAxis = true;
+  showYAxis = true;
+  gradient = false;
+  showLegend = false;
+  showXAxisLabel = false;
+  xAxisLabel = 'Date';
+  showYAxisLabel = false;
+  yAxisLabel = 'Value';
+  timeline = true;
+  animations = false;
+
+  colorScheme = {
+    domain: ['#1998a2', '#A10A28', '#C7B42C', '#AAAAAA']
+  };
+
   constructor(private service: ContractService, private gs: GraphService) {
     this.graphService = gs;
     this.contractService = service;

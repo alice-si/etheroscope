@@ -44,21 +44,24 @@ app.use(express.static(path.join(__dirname, '/', staticdir)))
 
 db.poolConnect().then(() => {
   // Home page endpoint
-  app.get('/', function (req, res) {
+  // app.get('/', function (req, res) {
+  //   res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
+  // })
+  app.get('/explorer', function (req, res) {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
-  app.get('/explorer', function (req, res) {
-    res.redirect('/')
+  app.get('/explorer/*', function (req, res) {
+    res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
   app.get('/popular', function (req, res) {
-    res.redirect('/')
+    res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
+
+  require('./api/api.js')(app, db, log, validator) // configure our routes
+
   var server = app.listen(port)
-  var io = require('socket.io').listen(server)
-  require('./api/api.js')(app, db, io, log, validator) // configure our routes
 
   // Start application
-  // app.listen(port)                                    // startup our app at http://localhost:8080
-  log.info('server.js: Starting server at: ' + port)          // shoutout to the user
+  log.info('server.js: Starting server at: ' + port)    // shoutout to the user
   exports = module.exports = app                        // expose app
 }) // kickstart db connection
