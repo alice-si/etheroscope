@@ -52,7 +52,8 @@
     "lint": "tslint \"src/**/*.ts\" && standard --env jasmine \"*.js\" \"devServer/**/*.js\" \"spec/**/*.js\"",
     "test": "./node_modules/.bin/jasmine",
     "pree2e": "webdriver-manager update",
-    "e2e": "protractor protractor.config.js"
+    "e2e": "protractor protractor.config.js",
+    "deploy": "node server.js & node services/index.js"
   },
   "dependencies": {
     "@angular/animations": "^4.4.6",
