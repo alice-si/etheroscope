@@ -1,28 +1,12 @@
 let axios = require('axios')
-let headers = {
-  'User-Agent': 'Super Agent/0.0.1',
-  'Content-Type': 'application/x-www-form-urlencoded'
-}
 
 module.exports = function (app, db, io, log, validator) {
   let parity = require('./parity')(db, log, validator)
   let Promise = require('bluebird')
-  let methodCachesInProgress = new Set()
 
   function validAddress (address) {
     return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
   }
-
-  app.get('/api/inProgressMethods/delete/:address/:method', (req, res) => {
-    if (req.socket.remoteAddress !== '::ffff:127.0.0.1') {
-      return res.status(401).json('You do not have access to this.')
-    } else {
-      let address = req.params.address
-      let method = req.params.method
-      methodCachesInProgress.delete(address + method)
-      return res.status(200).json('Deleting..')
-    }
-  })
 
   app.get('/api/popular/', (req, res) => {
     db.getPopularContracts('week', 1, 10)
@@ -136,30 +120,25 @@ module.exports = function (app, db, io, log, validator) {
             // Send every point we have in the db so far
             sendAllDataPointsFromDB(address, method, parseInt(from), parseInt(to), socket)
             // If there is already a caching process, we don't need to set one up
-            if (methodCachesInProgress.has(address + method)) {
-              return
-            }
-            methodCachesInProgress.add(address + method)
-            log.debug('api.js: calling cacheMorePoints: from:', from, 'to:', to, 'latestBlock:', latestBlock)
             from = parseInt(from)
             to = parseInt(to)
             latestBlock = parseInt(latestBlock)
-            //cacheMorePoints(contractInfo, address, method, parseInt(from), parseInt(to), parseInt(latestBlock))
+            // cacheMorePoints(contractInfo, address, method, parseInt(from), parseInt(to), parseInt(latestBlock))
             axios.post('http://localhost:8081/cache', {
               address: address,
               method: method,
               from: parseInt(from),
               to: parseInt(to),
               latestBlock: parseInt(latestBlock)
-            }) .then((response) => {
-                log.debug("Starting microservice to cache points")
-              }).catch((err) => {
-                log.error("Microservice failed to start caching points for", contractInfo, address, method)
-              })
+            }).then((response) => {
+              log.debug('Starting microservice to cache points')
+            }).catch((err) => {
+              log.error('Microservice failed to start caching points for', contractInfo, address, method)
+            })
           })
-        .catch((err) => {
-          log.error('Parity latest block err at api.js:', err)
-        })
+          .catch((err) => {
+            log.error('Parity latest block err at api.js:', err)
+          })
       })
       .catch((err) => {
         log.error('Error caching more points:', err)
