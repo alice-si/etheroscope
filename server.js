@@ -9,6 +9,7 @@ var validator = require('validator')
 
 // Change this to alter how much information is printed out
 log.setLevel('trace')
+log.enableAll()
 
 var db = require('./db/db.js')(log)
 
@@ -52,17 +53,15 @@ db.poolConnect().then(() => {
   app.get('/explorer/*', function (req, res) {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
-
   app.get('/popular', function (req, res) {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
 
+  require('./api/api.js')(app, db, log, validator) // configure our routes
+
   var server = app.listen(port)
-  var io = require('socket.io').listen(server)
-  require('./api/api.js')(app, db, io, log, validator) // configure our routes
-  require('./services/index')(db, io, log, validator)
 
   // Start application
-  log.info('server.js: Starting server at: ' + port)          // shoutout to the user
+  log.info('server.js: Starting server at: ' + port)    // shoutout to the user
   exports = module.exports = app                        // expose app
 }) // kickstart db connection
