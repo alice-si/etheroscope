@@ -11,6 +11,7 @@ enum ds {
     displayingHistogram
 };
 
+
 @Injectable()
 export class GraphService {
   contractService: any;
@@ -28,7 +29,7 @@ export class GraphService {
   timesValues: any[];
   multi: any[];
   weekData: any[];
-  methods: string[];
+  methods: any[];
   relevantMethods: any;
   lastMethod: string;
   lastContract: string;
