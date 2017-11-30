@@ -5,6 +5,7 @@
                 <div class="board">
                     <div class="board-item" (click)="currGraph = graphState.line">Line Graph</div>
                     <div class="board-item" (click)="currGraph = graphState.week">Updates by Day</div>
+                    <div class="board-item" (click)="currGraph = graphState.histogram">Histogram</div>
                 </div>
             </td>
         </tr>
@@ -18,6 +19,11 @@
             <td *ngIf="currGraph === graphState.week">
                 <div style="height: 100%; width: 100%;">
                     <ngx-charts-bar-vertical [view]="view" [scheme]="colorScheme" [results]="graphService.weekData" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"> </ngx-charts-bar-vertical>
+                </div>
+            </td>
+            <td *ngIf="currGraph === graphState.histogram">
+                <div style="height: 100%; width: 100%;">
+                    <ngx-charts-bar-vertical [view]="view" [scheme]="colorScheme" [results]="graphService.histogramData" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"> </ngx-charts-bar-vertical>
                 </div>
             </td>
         </tr>
