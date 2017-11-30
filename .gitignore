@@ -6,4 +6,5 @@
 *.DS_Store
 /devServer/service/login.js
 package-lock.json
-.node-xmlhttprequest*
+.node-xmlhttpreques*
+

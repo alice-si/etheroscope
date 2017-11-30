@@ -1,7 +1,8 @@
+let axios = require('axios')
+
 module.exports = function (app, db, io, log, validator) {
-  var parity = require('./parity')(db, log, validator)
+  let parity = require('./parity')(db, log, validator)
   let Promise = require('bluebird')
-  var methodCachesInProgress = new Set()
 
   function validAddress (address) {
     return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
@@ -49,35 +50,12 @@ module.exports = function (app, db, io, log, validator) {
         return res.status(200).json(results)
       })
     } else {
-      console.log(searchStr)
+      log.debug(searchStr)
       db.searchContractName(searchStr).then((results) => {
         return res.status(200).json(results)
       })
     }
   })
-
-  function sendDataPointsFromParity (contractInfo, contractAddress, method, from, to,
-    totalFrom, totalTo) {
-    // log.debug('Sending history from parity')
-    // First we obtain the contract.
-    let contract = contractInfo.parsedContract
-    return new Promise((resolve, reject) => {
-      parity.getHistory(contractAddress, method, from, to, totalFrom, totalTo)
-        .then(function (events) {
-          return parity.generateDataPoints(events, contract, method, from, to,
-            totalFrom, totalTo)
-        })
-        .then(function (results) {
-          io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: false, from: from, to: to, results: results })
-          return resolve()
-        })
-        .catch(function (err) {
-          log.error('Error in parity sending' + err)
-          io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: true })
-          return reject(err)
-        })
-    })
-  }
 
   function sendAllDataPointsFromDB (address, method, from, to, socket) {
     db.getDataPoints(address.substr(2), method)
@@ -142,43 +120,28 @@ module.exports = function (app, db, io, log, validator) {
             // Send every point we have in the db so far
             sendAllDataPointsFromDB(address, method, parseInt(from), parseInt(to), socket)
             // If there is already a caching process, we don't need to set one up
-            if (methodCachesInProgress.has(address + method)) {
-              return
-            }
-            methodCachesInProgress.add(address + method)
-            log.debug('api.js: calling cacheMorePoints: from:', from, 'to:', to, 'latestBlock:', latestBlock)
-            parity.getContract(address)
-              .then((contractInfo) => {
-                cacheMorePoints(contractInfo, address, method, parseInt(from), parseInt(to), parseInt(latestBlock))
-              })
+            from = parseInt(from)
+            to = parseInt(to)
+            latestBlock = parseInt(latestBlock)
+            // cacheMorePoints(contractInfo, address, method, parseInt(from), parseInt(to), parseInt(latestBlock))
+            axios.post('http://localhost:8081/cache', {
+              address: address,
+              method: method,
+              from: parseInt(from),
+              to: parseInt(to),
+              latestBlock: parseInt(latestBlock)
+            }).then((response) => {
+              log.debug('Starting microservice to cache points')
+            }).catch((err) => {
+              log.error('Microservice failed to start caching points for', contractInfo, address, method)
+            })
+          })
+          .catch((err) => {
+            log.error('Parity latest block err at api.js:', err)
           })
       })
       .catch((err) => {
         log.error('Error caching more points:', err)
       })
-  }
-
-  // from, to and latestBlock are inclusive
-  // pre: from, to, latestBlock are numbers, not strings
-  function cacheMorePoints (contractInfo, address, method, from, to, latestBlock) {
-    const chunkSize = 1000
-    if (to === latestBlock) {
-      if (from === 1) {
-        log.info('Cached all points for ' + address + ' ' + method)
-        methodCachesInProgress.delete(address + method)
-        return
-      }
-      let newFrom = Math.max(from - chunkSize, 1)
-      sendDataPointsFromParity(contractInfo, address, method, newFrom, from - 1, newFrom, to)
-        .then(() => {
-          cacheMorePoints(contractInfo, address, method, newFrom, to, latestBlock)
-        })
-    } else {
-      let newTo = Math.min(to + chunkSize, latestBlock)
-      sendDataPointsFromParity(contractInfo, address, method, to + 1, newTo, from, newTo)
-        .then(() => {
-          cacheMorePoints(contractInfo, address, method, from, newTo, latestBlock)
-        })
-    }
   }
 }
