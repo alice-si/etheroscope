@@ -8,11 +8,11 @@
               <td class="bad-request">
                     <clr-icon  *ngIf="graphService.badRequest" class="alert-icon is-error" shape="exclamation-triangle" size="24"></clr-icon>
               </td>
-              <!-- <td class="advanced-search"> -->
-              <!--     <button type="button" class="btn-sm btn-primary" (click)="openWizard=true"> -->
-              <!--       <clr-icon shape="cog" size="20" [class]="(hasAdvancedConstraints() ? 'is-solid' : '') + (hasFormConstraints() ? (advancedVariableConstraintsValid() ? ' has-badge--success' : ' has-alert') : '')"> </clr-icon> -->
-              <!--     </button> -->
-              <!-- </td> -->
+              <td class="advanced-search">
+                  <button type="button" class="btn-sm btn-primary" (click)="openWizard=true">
+                    <clr-icon shape="cog" size="20" [class]="(hasAdvancedConstraints() ? 'is-solid' : '') + (hasFormConstraints() ? (advancedVariableConstraintsValid() ? ' has-badge--success' : ' has-alert') : '')"> </clr-icon>
+                  </button>
+              </td>
               <td class="search-button">
                   <button type="button" class="btn-sm btn-primary" (click)="exploreContract(searchBar.value)">
                     <clr-icon shape="search" size="18"> </clr-icon>
@@ -31,26 +31,27 @@
           </tr>
       </table>
   </div>
-<clr-wizard #wizard [(clrWizardOpen)]="openWizard">
-    <clr-wizard-title>Advanced Search</clr-wizard-title>
+<div *ngIf="openWizard">
+  <clr-wizard #wizard [(clrWizardOpen)]="openWizard">
+      <clr-wizard-title>Advanced Search</clr-wizard-title>
 
-    <clr-wizard-page [clrWizardPageNextDisabled]="!formPageOne.valid || !advancedVariableConstraintsValid()">
-        <ng-template clrPageTitle>Contracts with variables matching...</ng-template>
-        <!-- mandatory -->
-        <form #formPageOne="ngForm">
-            <section class="form-block" *ngFor="let variable of constraintsForm.variables; let i = index;" style="border-bottom: 1px solid;">
-                <div class="form-group">
-                    <label class="required">Variable's name: </label>
-                    <label for="nameInput" aria-haspopup="true" role="tooltip" [class.invalid]="varName.touched && !varName.valid" class="tooltip tooltip-validation tooltip-md tooltip-bottom-right">
-                        <input type="text" id="nameInput" required [(ngModel)]="variable.name" [name]="i + 'name'" #varName="ngModel">
-                        <span class="tooltip-content">This field cannot be empty!</span>
+      <clr-wizard-page [clrWizardPageNextDisabled]="!formPageOne.valid || !advancedVariableConstraintsValid()">
+          <ng-template clrPageTitle>Contracts with variables matching...</ng-template>
+          <!-- mandatory -->
+          <form #formPageOne="ngForm">
+              <section class="form-block" *ngFor="let variable of constraintsForm.variables; let i = index;" style="border-bottom: 1px solid;">
+                  <div class="form-group">
+                      <label class="required">Variable's name: </label>
+                      <label for="nameInput" aria-haspopup="true" role="tooltip" [class.invalid]="varName.touched && !varName.valid" class="tooltip tooltip-validation tooltip-md tooltip-bottom-right">
+                          <input type="text" id="nameInput" required [(ngModel)]="variable.name" [name]="i + 'name'" #varName="ngModel">
+                          <span class="tooltip-content">This field cannot be empty!</span>
 </label>
 </div>
 <div class="form-group">
     <label> With Value between: </label>
     <label for="numberInput" aria-haspopup="true" role="tooltip" [class.invalid]="!variableValueInputsValid(i)" class="tooltip tooltip-validation tooltip-md tooltip-bottom-left">
-    <input type="number" id="numberInput" [(ngModel)]="variable.min" [name]="i + 'min'" #min="ngModel">
-    <label> and </label>
+      <input type="number" id="numberInput" [(ngModel)]="variable.min" [name]="i + 'min'" #min="ngModel">
+      <label> and </label>
     <input type="number" id="numberInput" [(ngModel)]="variable.max" [name]="i + 'max'" #max="ngModel">
     <span class="tooltip-content">This must be a valid value range!</span>
     </label>
@@ -58,8 +59,8 @@
 <div class="form-group">
     <label for="formFields_12">Between time: </label>
     <label for="numberInput" aria-haspopup="true" role="tooltip" [class.invalid]="!dateInputsValid(i, constraintsForm.variables) || variableDateWithoutValue(i)" class="tooltip tooltip-validation tooltip-md tooltip-bottom-left">
-    <input type="datetime-local" id="formFields_12" size="35" [(ngModel)]="variable.startTime" [name]="i + 'start'">
-    <label> to </label>
+      <input type="datetime-local" id="formFields_12" size="35" [(ngModel)]="variable.startTime" [name]="i + 'start'">
+      <label> to </label>
     <input type="datetime-local" id="formFields_12" size="35" [(ngModel)]="variable.endTime" [name]="i + 'end'">
     <span class="tooltip-content" *ngIf="!dateInputsValid(i, constraintsForm.variables)">This must be a valid value range!</span>
     <span class="tooltip-content" *ngIf="variableDateWithoutValue(i)">You cannot specify a time range without a value range!</span>
@@ -69,8 +70,8 @@
 </clr-icon>
 </section>
 <button type="button" class="btn-sm btn-primary" (click)="addNewVariableConstraint()">
-  Add new Variable
-</button>
+    Add new Variable
+  </button>
 </form>
 <ng-template clrPageButtons>
     <clr-wizard-button [type]="'custom-cancel'" (click)="constraintsForm.variables = []">Clear</clr-wizard-button>
@@ -85,8 +86,8 @@
             <div class="form-group">
                 <label for="formFields_12" class="required">Activity between: </label>
                 <label for="numberInput" aria-haspopup="true" role="tooltip" [class.invalid]="!dateInputsValid(i, constraintsForm.transactions)" class="tooltip tooltip-validation tooltip-md tooltip-bottom-left">
-    <input type="datetime-local" id="formFields_12" size="35" required [(ngModel)]="transaction.startTime" [name]="i + 'start'">
-    <label> and </label>
+      <input type="datetime-local" id="formFields_12" size="35" required [(ngModel)]="transaction.startTime" [name]="i + 'start'">
+      <label> and </label>
                 <input type="datetime-local" id="formFields_12" size="35" required [(ngModel)]="transaction.endTime" [name]="i + 'end'">
                 <span class="tooltip-content">This must be a valid value range!</span>
                 </label>
@@ -95,8 +96,8 @@
             </clr-icon>
         </section>
         <button type="button" class="btn-sm btn-primary" (click)="addNewTransactionConstraint()">
-          Add new activity constraint
-        </button>
+            Add new activity constraint
+          </button>
     </form>
     <ng-template clrPageButtons>
         <clr-wizard-button [type]="'custom-cancel'" (click)="constraintsForm.transactions = []">Clear</clr-wizard-button>
@@ -110,11 +111,11 @@
     <!-- mandatory -->
     <ng-template clrPageNavTitle>
         <span *ngIf="formPageOne.valid && formPageTwo.valid && advancedVariableConstraintsValid()">
-                Ready to go!
-            </span>
+                  Ready to go!
+              </span>
         <span *ngIf="!formPageOne.valid || !formPageTwo.valid || !advancedVariableConstraintsValid()">
-                Not ready yet
-            </span>
+                  Not ready yet
+              </span>
     </ng-template>
     <!-- optional -->
 
@@ -155,4 +156,5 @@
 
 </clr-wizard-page>
 </clr-wizard>
+</div>
 </span>
