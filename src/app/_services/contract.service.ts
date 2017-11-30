@@ -9,7 +9,7 @@ import { Location, LocationStrategy, PathLocationStrategy } from '@angular/commo
 
 @Injectable()
 export class ContractService {
-  private apiUrl: string = environment.socketURL;
+  private apiUrl: string = environment.apiURL;
   private locate: Location;
 
   constructor(private http: Http,
