@@ -11,14 +11,17 @@ const pool = new mssql.ConnectionPool({
   password: login.password,
   server: login.hostname,
   database: login.database,
+  connectionTimeout: 30000,
+  requestTimeout: 30000,
   options: {
     encrypt: true
   },
   pool: {
-    max: 100,
+    max: 10,
     min: 0,
     idleTimeoutMillis: 30000
   }
+
 })
 
 /* DEFINE TABLES FOR BULK INSERT
@@ -244,6 +247,14 @@ module.exports = function (log) {
           log.error(err)
           transaction.rollback()
             .then(() => {
+              log.error('db.js: Rolled back transaction')
+              process.exit(1)
+              return reject(err)
+            })
+            .catch((err) => {
+              log.error('db.js: Failed to rollback failed transaction!!')
+              log.error(err)
+              process.exit(1)
               return reject(err)
             })
         })
@@ -314,6 +325,7 @@ module.exports = function (log) {
         .catch((err) => {
           log.error('db.js: Error in getBlockTime')
           log.error(err)
+          process.exit(1)
           return reject(err)
         })
     })
