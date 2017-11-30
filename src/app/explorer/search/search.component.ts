@@ -119,13 +119,32 @@ export class SearchBarComponent {
     this.constraintsForm.variables.splice(index, 1);
   }
 
+  addNewTransactionConstraint() {
+    this.constraintsForm.transactions.push({
+      startTime: '',
+      endTime: ''
+    })
+  }
+
+  removeTransactionConstraint(index: number) {
+    this.constraintsForm.transactions.splice(index, 1);
+  }
+
   advancedSearchDone() {
-    // Deep copy the variable constraints
+    // Deep copy the variable constraints and transaction contraints
     this.advancedConstraints.variables = JSON.parse(JSON.stringify(this.constraintsForm.variables));
+    this.advancedConstraints.transactions = JSON.parse(JSON.stringify(this.constraintsForm.transactions));
+    // Convert times to unix timestamps
     for (let i = 0; i < this.advancedConstraints.variables.length; i++) {
       if (this.advancedConstraints.variables[i].startTime !== '') {
         this.advancedConstraints.variables[i].startTime = Math.round(new Date(this.advancedConstraints.variables[i].startTime).getTime() / 1000);
         this.advancedConstraints.variables[i].endTime = Math.round(new Date(this.advancedConstraints.variables[i].endTime).getTime() / 1000);
+      }
+    }
+    for (let i = 0; i < this.advancedConstraints.transactions.length; i++) {
+      if (this.advancedConstraints.transactions[i].startTime !== '') {
+        this.advancedConstraints.transactions[i].startTime = Math.round(new Date(this.advancedConstraints.transactions[i].startTime).getTime() / 1000);
+        this.advancedConstraints.transactions[i].endTime = Math.round(new Date(this.advancedConstraints.transactions[i].endTime).getTime() / 1000);
       }
     }
   }
@@ -139,8 +158,18 @@ export class SearchBarComponent {
   advancedVariableConstraintsValid() {
     let variables = this.constraintsForm.variables;
     for (let i = 0; i < variables.length; i++) {
-      if (!this.variableValueInputsValid(i) || !this.variableDateInputsValid(i)
+      if (!this.variableValueInputsValid(i) || !this.dateInputsValid(i, variables)
         || this.variableDateWithoutValue(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  advancedTransactionsConstraintsValid() {
+    let transactions = this.constraintsForm.transactions;
+    for (let i = 0; i < transactions.length; i++) {
+      if (!this.dateInputsValid(i, transactions)) {
         return false;
       }
     }
@@ -154,10 +183,10 @@ export class SearchBarComponent {
     return (min === null && max === null) || (min !== null && max !== null && min < max);
   }
 
-  variableDateInputsValid(index: number) {
-    let variable = this.constraintsForm.variables[index];
-    let startTime = variable.startTime;
-    let endTime = variable.endTime;
+  dateInputsValid(index: number, formSection: any) {
+    let times = formSection[index];
+    let startTime = times.startTime;
+    let endTime = times.endTime;
     return (startTime === '' && endTime === '')
       || (startTime !== '' && endTime !== '' && startTime < endTime);
   }
