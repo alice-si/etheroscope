@@ -35,8 +35,8 @@ export class GraphService {
   lastContract: string;
   methodPages: number;
   userSearching: boolean;
-
   weekDayNames: any;
+  badRequest: boolean
 
   constructor(private service: ContractService) {
     this.contractService = service;

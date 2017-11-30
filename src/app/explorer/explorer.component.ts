@@ -86,11 +86,4 @@ export class ExplorerComponent implements OnInit {
       }
     );
   }
-
-  checkCursorInSearchArea(event: any) {
-    if (event.target.id !== 'searchBar') {
-      this.graphService.userSearching = false;
-    }
-  }
-
 }
