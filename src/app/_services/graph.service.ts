@@ -80,7 +80,7 @@ export class GraphService {
     });
     histogramBuckets.forEach((elem, i) => {
       this.histogramData[i] = {
-        "name": ((i * bucketSize) + 1) + ' - ' + (((i + 1) * bucketSize) - 1),
+        "name": (i * bucketSize) + ' - ' + (((i + 1) * bucketSize) - 1),
         "value": elem
       }
     });
