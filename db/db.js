@@ -301,7 +301,7 @@ module.exports = function (log) {
   db.getVariables = function (contractHash) {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
-      var sql = "select variableName from variables where contractHash='" + contractHash + "'"
+      var sql = "select v.variableName, u.unit, u.\"description\" from variables as v left outer join variableUnits as u on v.unitID = u.id where v.contractHash='" + contractHash + "'"
       request.query(sql)
         .then((results) => {
           return resolve(results)
@@ -404,29 +404,52 @@ module.exports = function (log) {
     })
   }
 
-  db.searchContractHash = function (pattern) {
+  db.searchContract = function (pattern, variables, transactions) {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
-      let interspersedPattern = pattern + '%'
-      var sql = 'select top 5 *, difference(contracthash, \'' + pattern + '\') as contractDiff' +
-      ' from contracts where contracthash LIKE \'' + interspersedPattern +
-      '\' order by contractDiff DESC;'
-      request.query(sql).then((results) => {
-        return resolve(results.recordset)
-      })
-      .catch((err) => {
-        log.error(err)
-      })
-    })
-  }
 
-  db.searchContractName = function (pattern) {
-    return new Promise(function (resolve, reject) {
-      var request = new mssql.Request(pool)
       let interspersedPattern = intersperse(pattern, '%')
-      var sql = 'select top 5 *, difference(name, \'' + pattern + '\') as nameDiff' +
-      ' from contracts where name LIKE \'' + interspersedPattern +
-      '\' order by nameDiff DESC;'
+      let searchField = 'name'
+      // if the pattern is a hash, rather than a name
+      if (pattern[0] === '0' && (pattern[1] === 'x' || pattern[1] === 'X')) {
+        pattern = pattern.substr(2)
+        interspersedPattern = pattern + '%'
+        searchField = 'contractHash'
+      }
+      
+      var sql = 'select top 5 *, difference(' + searchField + ', \'' + pattern +
+        '\') as nameDiff' + ' from contracts where ' + searchField + ' LIKE \'' +
+        interspersedPattern + '\''
+
+      if (variables !== null && variables.length > 0) {
+        for (let i = 0; i < variables.length; i++) {
+          sql += ' and contracthash in' +
+            ' (select contracthash from datapoints inner join blocks' +
+            ' on datapoints.blocknumber = blocks.blocknumber where' +
+            ' variableName = \'' + variables[i].name + '\''
+          if (variables[i].endTime !== '' && variables[i].startTime !== '') {
+            sql += ' and (timestamp between ' + variables[i].startTime + ' and ' +
+            variables[i].endTime + ')'
+          }
+          if (variables[i].min !== null && variables[i].max !== null) {
+            sql += ' and (value between ' + variables[i].min +
+            ' and ' + variables[i].max + ')'
+          }
+          sql += ')'
+        }
+      }
+
+      if (transactions !== null && transactions.length > 0) {
+        for (let i = 0; i < transactions.length; i++) {
+          sql += ' and contracthash in' +
+            ' (select contracthash from datapoints inner join blocks' +
+            ' on datapoints.blocknumber = blocks.blocknumber where' +
+            ' timestamp between ' + transactions[i].startTime + ' and ' +
+            transactions[i].endTime + ')'
+        }
+      }
+
+      sql += ' order by nameDiff DESC;'
       request.query(sql).then((results) => {
         return resolve(results.recordset)
       })
