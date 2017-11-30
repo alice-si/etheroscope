@@ -53,6 +53,7 @@ export class CardsComponent {
       this.variableScroll = (((this.variableScroll - 1) % sections) + sections) % sections
     }
     let newIndex = (this.variableScroll * 4)
+    console.log('here' + this.graphService.methods);
     this.graphService.relevantMethods = this.graphService.methods.slice(newIndex, (newIndex  + 4))
   }
 
