@@ -1,12 +1,21 @@
 const axios = require('axios')
 const Web3 = require('web3')
 var Promise = require('bluebird')
+var events = require('events')
+var Lock = require('lock').Lock
+var lock = Lock()
 
 const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
 module.exports = function (db, log, validator) {
   const parity = {}
+
+  if (!web3.isConnected()) {
+    console.log('Please start parity')
+    process.exit(1)
+  }
+  console.log('Successfully connected to parity')
 
   parity.getLatestBlock = function () {
     return new Promise((resolve, reject) => {
@@ -121,18 +130,47 @@ module.exports = function (db, log, validator) {
     return new Promise((resolve) => {
       db.getBlockTime(blockNumber)
         .then((result) => {
+          // Check the database for the blockTimeMapping
           if (result.recordset.length !== 0) {
             return resolve(result.recordset[0].timeStamp)
           }
-          return this.calculateBlockTime(blockNumber).then((time) => {
-            db.addBlockTime([[blockNumber, time, 1]])
-            return resolve(time)
+          // If it isn't in the database, we need to calculate it
+          // acquire a lock so that we don't calculate this value twice
+          // Using a global lock to protect the creation of locks...
+
+          var d = new Date();
+          var n = d.getTime();
+          
+          lock(blockNumber, (release) => {
+            var nd = new Date();
+            var nn = d.getTime();
+            if (nn - n > 10 * 1000) {
+              console.log('I had to wait ' + (nn - n) + ' seconds to get the lock')
+            } 
+            // Check again if it is in the db, since it may have been
+            // added whilst we were waiting for the lock
+            db.getBlockTime(blockNumber)
+              .then((result) => {
+                if (result.recordset.length !== 0) {
+                  console.log(blockNumber + 'length is not 0');
+                  release()
+                  return resolve(result.recordset[0].timeStamp)
+                }
+                // If it still isn't in there, we calcuate it and add it
+                parity.calculateBlockTime(blockNumber).then((time) => {
+                  db.addBlockTime([[blockNumber, time, 1]])
+                    .then(() => {
+                      release()
+                      return resolve(time);
+                    })
+                })
+              })
           })
         })
     })
   }
 
-  parity.getHistory = function (address, method, startBlock, endBlock, totalFrom, totalTo) {
+  parity.getHistory = function (address, method, startBlock, endBlock) {
     let filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
     return new Promise((resolve, reject) => {
       filter.get((error, result) => {
@@ -145,7 +183,7 @@ module.exports = function (db, log, validator) {
     })
   }
 
-  parity.generateDataPoints = function (eventsA, contract, method, from, to,
+  parity.generateDataPoints = function (eventsA, contract, method,
     totalFrom, totalTo) {
     let prevTime = 0
     return new Promise((resolve, reject) => {

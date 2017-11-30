@@ -32,6 +32,7 @@ export class GraphService {
   methods: any[];
   relevantMethods: any;
   lastMethod: string;
+  lastMethodInfo: any;
   lastContract: string;
   methodPages: number;
   userSearching: boolean;
@@ -55,6 +56,7 @@ export class GraphService {
     this.methods = [];
     this.lastContract = null;
     this.lastMethod = null;
+    this.lastMethodInfo = null;
     this.userSearching = true;
     this.weekDayNames = new Array(7);
     this.weekDayNames[0] = "Sunday";
@@ -127,8 +129,9 @@ export class GraphService {
     }
   }
 
-  generateDatapoints(method: string) {
+  generateDatapoints(method: string, methodInfo: any) {
     console.log('In generate Data points for ' + method);
+    console.log('MethodInfo' + methodInfo);
     if (method !== this.lastMethod || this.curContractID !== this.lastContract ||
       this.lastContract === null || this.lastMethod === null) {
       this.contractService.leaveMethod(this.lastContract, this.lastMethod);
@@ -136,6 +139,7 @@ export class GraphService {
       this.curDisplayState = this.DisplayState.awaitingInitialResponse;
       this.lastContract = this.curContractID;
       this.lastMethod = method;
+      this.lastMethodInfo = methodInfo;
       this.methodDatapoints = []; // flush the current method datapoints
       this.contractService.generateDatapoints(this.curContractID, method);
     }

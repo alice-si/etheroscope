@@ -35,9 +35,27 @@
                 <div style="text-align: center;">
                     Click to view a variable:
                 </div>
-                <button class="btn btn-sm var-btns animated fadeIn" *ngFor="let m of graphService.relevantMethods" (click)="generateDatapoints(m.variableName)">
-                          <div *ngIf="m.variableName.length <= 15"> {{m.variableName}} </div>
-                          <div *ngIf="m.variableName.length >= 16" title="{{m.variableName}}"> {{m.variableName.slice(0,13)}}..  </div>
+                <button class="btn btn-sm var-btns animated fadeIn" *ngFor="let m of graphService.relevantMethods" (click)="generateDatapoints(m.variableName, m)">
+                          <div *ngIf="m.variableName.length <= 15"> {{m.variableName}}
+                              <span *ngIf="m.unit !== null">
+                                  <clr-tooltip>
+                                      <clr-icon clrTooltipTrigger shape="info-circle" size="18"></clr-icon>
+                                      <clr-tooltip-content clrPosition="top-left" clrSize="xs" *clrIfOpen>
+                                          <span>Unit: {{m.unit}}</span>
+                                      </clr-tooltip-content>
+                                  </clr-tooltip>
+                              </span>
+                          </div>
+                          <div *ngIf="m.variableName.length >= 16" title="{{m.variableName}}"> {{m.variableName.slice(0,13)}}..
+                              <span *ngIf="m.unit !== null">
+                                  <clr-tooltip>
+                                      <clr-icon clrTooltipTrigger shape="info-circle" size="18"></clr-icon>
+                                      <clr-tooltip-content clrPosition="top-left" clrSize="xs" *clrIfOpen>
+                                          <span>Unit: {{m.unit}}</span>
+                                      </clr-tooltip-content>
+                                  </clr-tooltip>
+                              </span>
+                          </div>
                         </button>
                 <br>
                 <div *ngIf="graphService.methodPages > 1" style="text-align: center">
@@ -62,6 +80,15 @@
         <button class="btn-primary btn btn-sm" style="cursor: default;">
                       {{this.graphService.lastMethod}}
                   </button>
+        <br>
+        <div *ngIf="this.graphService.lastMethodInfo.unit !== null">
+            Units: {{this.graphService.lastMethodInfo.unit}}
+            <br>
+            Description: {{this.graphService.lastMethodInfo.description}}
+        </div>
+        <div *ngIf="this.graphService.lastMethodInfo.unit === null">
+            No additional information present regarding {{this.graphService.lastMethod}}
+        </div>
     </div>
 
     <div *ngIf="graphService.progressBar !== 100" class="card-block progress-card">
@@ -90,12 +117,12 @@
     </div>
     <div class="card-block">
         <div class="btn-group btn-primary">
-            <button (click)="filterOnLast(1, 'hour')">1h</button>
-            <button (click)="filterOnLast(12, 'hour')">12h</button>
-            <button (click)="filterOnLast(1, 'day')">1d</button>
-            <button (click)="filterOnLast(1, 'week')">1w</button>
-            <button (click)="filterOnLast(1, 'month')">1m</button>
-            <button (click)="filterOnLast(1, 'year')">1y</button>
+            <button class="button" (click)="filterOnLast(1, 'hour')">1h</button>
+            <button class="button" (click)="filterOnLast(12, 'hour')">12h</button>
+            <button class="button" (click)="filterOnLast(1, 'day')">1d</button>
+            <button class="button" (click)="filterOnLast(1, 'week')">1w</button>
+            <button class="button" (click)="filterOnLast(1, 'month')">1m</button>
+            <button class="button" (click)="filterOnLast(1, 'year')">1y</button>
         </div>
     </div>
 

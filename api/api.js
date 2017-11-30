@@ -1,6 +1,6 @@
 let axios = require('axios')
 
-module.exports = function (app, db, io, log, validator) {
+module.exports = function (app, db, log, validator) {
   let parity = require('./parity')(db, log, validator)
   let Promise = require('bluebird')
 
@@ -9,7 +9,7 @@ module.exports = function (app, db, io, log, validator) {
   }
 
   app.get('/api/popular/', (req, res) => {
-    db.getPopularContracts('week', 1, 10)
+    db.getPopularContracts('day', 7, 10)
       .then((result) => {
         return res.status(200).json(result)
       })
@@ -61,92 +61,4 @@ module.exports = function (app, db, io, log, validator) {
       return res.status(200).json(results)
     })
   })
-
-  function sendAllDataPointsFromDB (address, method, from, to, socket) {
-    db.getDataPoints(address.substr(2), method)
-      .then((dataPoints) => {
-        return Promise.map(dataPoints[0], (elem) => {
-          return [elem.timeStamp, elem.value]
-        })
-      })
-      .then((dataPoints) => {
-        console.dir(dataPoints)
-        socket.emit('getHistoryResponse', { error: false, from: from, to: to, results: dataPoints })
-      })
-      .catch(function (err) {
-        log.error('Error sending datapoints from DD')
-        log.error(err)
-        socket.emit('getHistoryResponse', { error: true })
-      })
-  }
-
-  io.on('connection', function (socket) {
-    socket.on('getHistory', ([address, method]) => {
-      let room = address + method
-      socket.join(room)
-      log.debug('Joined room:', room)
-      sendHistory(address, method, socket)
-    })
-    socket.on('unsubscribe', ([address, method]) => {
-      if (address !== null && method !== null) {
-        log.debug('Unsubbing')
-        socket.leave(address + method, (err) => {
-          log.debug('unsubbed!!')
-          socket.emit('unsubscribed', { error: err })
-        })
-      } else {
-        socket.emit('unsubscribed', { error: null })
-      }
-    })
-  })
-
-  io.on('disconnect', function (socket) {
-  })
-
-  function sendHistory (address, method, socket) {
-    /* Ignore invalid requests on the socket - the frontend should
-     * ensure these are not send, so any invalid addresses
-     * will not have been sent from our front end */
-    if (!validAddress(address)) {
-      return
-    }
-
-    db.getCachedFromTo(address.substring(2), method)
-      .then((result) => {
-        parity.getLatestBlock()
-          .then((latestBlock) => {
-            io.sockets.in(address + method).emit('latestBlock', { latestBlock: latestBlock })
-            let from = result.cachedFrom
-            let to = result.cachedUpTo
-            if (from === null || to === null) {
-              from = latestBlock
-              to = latestBlock
-            }
-            // Send every point we have in the db so far
-            sendAllDataPointsFromDB(address, method, parseInt(from), parseInt(to), socket)
-            // If there is already a caching process, we don't need to set one up
-            from = parseInt(from)
-            to = parseInt(to)
-            latestBlock = parseInt(latestBlock)
-            // cacheMorePoints(contractInfo, address, method, parseInt(from), parseInt(to), parseInt(latestBlock))
-            axios.post('http://localhost:8081/cache', {
-              address: address,
-              method: method,
-              from: parseInt(from),
-              to: parseInt(to),
-              latestBlock: parseInt(latestBlock)
-            }).then((response) => {
-              log.debug('Starting microservice to cache points')
-            }).catch((err) => {
-              log.error('Microservice failed to start caching points for', contractInfo, address, method)
-            })
-          })
-          .catch((err) => {
-            log.error('Parity latest block err at api.js:', err)
-          })
-      })
-      .catch((err) => {
-        log.error('Error caching more points:', err)
-      })
-  }
 }
