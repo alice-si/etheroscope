@@ -73,17 +73,19 @@ export class GraphService {
   updateGraph() {
     let methodValues = this.graphDatapoints.map((elem) => {return elem[1]});
     let maxValue = Math.max.apply(null, methodValues);
-    let bucketSize = maxValue / this.histoNoBuckets;
+    let bucketSize = Math.ceil((maxValue + 1) / this.histoNoBuckets);
     let histogramBuckets = Array(this.histoNoBuckets).fill(0);
     this.graphDatapoints.forEach((elem) => {
       histogramBuckets[Math.floor(elem[1] / bucketSize)] += 1;
     });
     histogramBuckets.forEach((elem, i) => {
       this.histogramData[i] = {
-        "name": (i * bucketSize) + ' - ' + ((i + 1) * bucketSize),
+        "name": ((i * bucketSize) + 1) + ' - ' + (((i + 1) * bucketSize) - 1),
         "value": elem
       }
     });
+    console.log(histogramBuckets);
+    console.log(this.histogramData);
 
     const maxPoints = 300;
     if (this.graphDatapoints.length > maxPoints) {
