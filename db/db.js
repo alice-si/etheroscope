@@ -216,21 +216,20 @@ module.exports = function (log) {
    */
   db.addDataPoints = function (contractAddress, method, values, from, to) {
     return new Promise(function (resolve, reject) {
-
       let dataPointsTable = getNewDataPointsTable()
       values.forEach((elem) => {
         dataPointsTable.rows.add(contractAddress, method, elem[2], elem[1])
       })
 
       var transaction = new mssql.Transaction(pool)
-      var request = new mssql.Request(transaction);
+      var request = new mssql.Request(transaction)
 
       transaction.begin()
         .then(() => {
           return request.bulk(dataPointsTable)
         })
         .then(() => {
-          var sql = 
+          var sql =
             "update variables set cachedFrom='" + from + "' where contractHash='" + contractAddress +
              "' and variableName='" + method + "';" +
             "update variables set cachedUpTo='" + to + "' where contractHash='" + contractAddress +
@@ -245,7 +244,7 @@ module.exports = function (log) {
         })
         .catch((err) => {
           log.error('db.js: Error in addDataPoints')
-          log.error(err)        
+          log.error(err)
           transaction.rollback()
             .then(() => {
               log.error('db.js: Rolled back transaction')
@@ -263,20 +262,17 @@ module.exports = function (log) {
   }
 
   /* This function takes a variable */
-  db.addVariable = function (values) {
+  db.addVariables = function (address, variables) {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
-      var valueString = buildValueString(values)
-      var sql = 'insert into Variables (contractHash, variableName) values ' + valueString
-      request.query(sql)
-        .then(() => {
-          return resolve()
-        })
-        .catch((err) => {
-          log.error('db.js: Error in addVariable')
-          log.error(err)
-          return reject(err)
-        })
+      let variablesTable = getNewVariablesTable()
+      variables.forEach((variable) => {
+        variablesTable.rows.add(address, variable)
+      })
+      request.bulk(variablesTable)
+      .then(() => {
+        return resolve()
+      })
     })
   }
 
@@ -345,10 +341,12 @@ module.exports = function (log) {
           return resolve()
         })
         .catch((err) => {
-          log.error('db.js: Error in addBlocKTime')
-          log.error(err)
+          log.error('db.js: Error in addBlocKTime, you are most likely adding duplicates')
           return reject(err)
         })
+    })
+    .catch((err) => {
+      log.error('db.js: Error in addBlocKTime, you are most likely adding duplicates')
     })
   }
 
