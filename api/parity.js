@@ -84,17 +84,22 @@ module.exports = function (db, log, validator) {
           })
           .then((results) => {
             db.addVariables(address, variableNames)
-            .then(() => {
-              return results
-            })
-            .catch((err) => {
-              log.error('parity.js: Error adding variable names to db')
-              log.error(err)
-              process.exit(1)
-            })
+              .then(() => {
+                return results
+              })
+              .catch((err) => {
+                log.error('parity.js: Error adding variable names to db')
+                log.error(err)
+                process.exit(1)
+              })
           })
           .then((results) => {
-            return resolve({ variableNames: variableNames, contractName: contractName })
+            let variableNames = []
+            Promise.map(res.recordset, (elem) => {
+              variableNames.push(elem)
+            }, {concurrency: 5}).then(() => {
+              return resolve({ variables: variableNames, contractName: contractName })
+            })
           })
         } else {
           let variableNames = []
@@ -152,7 +157,6 @@ module.exports = function (db, log, validator) {
             db.getBlockTime(blockNumber)
               .then((result) => {
                 if (result.recordset.length !== 0) {
-                  console.log(blockNumber + 'length is not 0');
                   release()
                   return resolve(result.recordset[0].timeStamp)
                 }
