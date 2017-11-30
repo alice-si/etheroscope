@@ -60,10 +60,11 @@ export class ExplorerComponent implements OnInit {
       (contractInfo) => {
         this.graphService.curDisplayState = this.graphService.DisplayState.newContract;
         console.log('Contract INFO');
-        console.log(contractInfo);
-        this.graphService.methods = contractInfo.variableNames;
+        console.log(contractInfo.variables);
+        this.graphService.methods = contractInfo.variables;
         this.graphService.methodPages = Math.ceil(this.graphService.methods.length / 4)
         this.graphService.relevantMethods = this.graphService.methods.slice(0, 4);
+        console.log(this.graphService.relevantMethods);
         if (contractInfo.contractName === null) {
           this.graphService.curContractName = 'unknown';
         } else {
