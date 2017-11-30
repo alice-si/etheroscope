@@ -18,20 +18,24 @@
   }
   .landing {
     width: 100%;
+    height: 100%;
     margin: 0 auto;
     text-align: center;
     h1 {
+      height: 50%;
       margin: 0;
       padding: 0;
-      font-weight: 100;
+      font-weight: 200;
       color: #1998a2;
-      //font-size: 4vw;
-      //height: 4vw; // padding-bottom: 2vh;
+      font-size: 5em; // padding-bottom: 2vh;
     }
-    #tag {
-      //height: 1.5vw;
-      //font-size: 1.5vw;
-      font-weight: 600;
+    h2 {
+      color: #565656;
+      margin: 0;
+      padding: 0;
+      height: 50%;
+      font-size: 0.9rem;
+      font-weight: 300;
     }
   }
   .subLanding {
