@@ -37,7 +37,9 @@ export class GraphService {
   methodPages: number;
   userSearching: boolean;
   weekDayNames: any;
-  badRequest: boolean
+  badRequest: boolean;
+  readonly histoNoBuckets: number;
+  histogramData: any[];
 
   constructor(private service: ContractService) {
     this.contractService = service;
@@ -64,9 +66,27 @@ export class GraphService {
     this.weekDayNames[4] = "Thursday";
     this.weekDayNames[5] = "Friday";
     this.weekDayNames[6] = "Saturday";
+    this.histoNoBuckets = 10;
+    this.histogramData = [];
   }
 
   updateGraph() {
+    let methodValues = this.graphDatapoints.map((elem) => {return elem[1]});
+    let maxValue = Math.max.apply(null, methodValues);
+    let bucketSize = Math.ceil((maxValue + 1) / this.histoNoBuckets);
+    let histogramBuckets = Array(this.histoNoBuckets).fill(0);
+    this.graphDatapoints.forEach((elem) => {
+      histogramBuckets[Math.floor(elem[1] / bucketSize)] += 1;
+    });
+    histogramBuckets.forEach((elem, i) => {
+      this.histogramData[i] = {
+        "name": (i * bucketSize) + ' - ' + (((i + 1) * bucketSize) - 1),
+        "value": elem
+      }
+    });
+    console.log(histogramBuckets);
+    console.log(this.histogramData);
+
     const maxPoints = 300;
     if (this.graphDatapoints.length > maxPoints) {
       let temp = []
@@ -108,8 +128,6 @@ export class GraphService {
       weekDayCount.forEach((elem, i) => {
         this.weekData[i] = { "name": this.weekDayNames[i], "value": elem };
       })
-      console.log('The weekData is:');
-      console.log(this.weekData);
     }
   }
 

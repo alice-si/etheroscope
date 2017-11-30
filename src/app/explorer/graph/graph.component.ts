@@ -5,7 +5,7 @@ import { GraphService } from "../../_services/graph.service";
 import { ExplorerComponent } from "../explorer.component";
 
 enum graphStateEnum {
-  line, week
+  line, week, histogram
 }
 
 @Component({
