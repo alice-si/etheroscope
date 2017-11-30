@@ -138,7 +138,6 @@ export class CardsComponent {
   }
 
   generateDatapoints(method: string, methodInfo: any) {
-      console.log(methodInfo);
       this.graphService.generateDatapoints(method, methodInfo);
   }
 

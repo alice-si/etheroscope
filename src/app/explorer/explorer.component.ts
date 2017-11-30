@@ -54,23 +54,24 @@ export class ExplorerComponent implements OnInit {
   }
 
   exploreContract(contract: string, method: string) {
-    console.log('In exploreContract: ' + contract + ' ' +  method);
+    console.log('Exploring Contract: ' + contract + ' ' +  method);
     this.graphService.curContractID = contract;
     this.contractService.exploreContract(contract).subscribe(
       (contractInfo) => {
         this.graphService.curDisplayState = this.graphService.DisplayState.newContract;
-        console.log('Contract INFO');
-        console.log(contractInfo.variables);
+
         this.graphService.methods = contractInfo.variables;
+
         this.graphService.methodPages = Math.ceil(this.graphService.methods.length / 4)
         this.graphService.relevantMethods = this.graphService.methods.slice(0, 4);
+
         if (contractInfo.contractName === null) {
           this.graphService.curContractName = 'unknown';
         } else {
           this.graphService.curContractName = contractInfo.contractName;
         }
         if (method !== null) {
-          this.graphService.generateDatapoints(method);
+          this.graphService.generateDatapoints(method, this.graphService.methods);
         }
       },
       (error) => {
