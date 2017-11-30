@@ -31,7 +31,7 @@ export class GraphComponent {
   animations = false;
 
   colorScheme = {
-    domain: ['#1998a2', '#A10A28', '#C7B42C', '#AAAAAA']
+    domain: ['#1998a2', '#1998a2', '#1998a2', '#1998a2']
   };
 
   currGraph: graphStateEnum;

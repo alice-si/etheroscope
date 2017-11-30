@@ -10,11 +10,15 @@
         </tr>
         <tr id="graphGraph">
             <td *ngIf="currGraph === graphState.line">
-                <ngx-charts-line-chart [scheme]="colorScheme" [results]="graphService.multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [autoScale]="autoScale" [timeline]=true>
-                </ngx-charts-line-chart>
+                <div style="height: 100%; width: 100%;">
+                    <ngx-charts-line-chart [scheme]="colorScheme" [results]="graphService.multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [autoScale]="autoScale" [timeline]=true>
+                    </ngx-charts-line-chart>
+                </div>
             </td>
             <td *ngIf="currGraph === graphState.week">
-                <ngx-charts-bar-vertical [view]="view" [scheme]="colorScheme" [results]="graphService.weekData" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"> </ngx-charts-bar-vertical>
+                <div style="height: 100%; width: 100%;">
+                    <ngx-charts-bar-vertical [view]="view" [scheme]="colorScheme" [results]="graphService.weekData" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"> </ngx-charts-bar-vertical>
+                </div>
             </td>
         </tr>
     </table>

@@ -13,13 +13,13 @@
     height: 100%;
     border-collapse: collapse;
     border-spacing: 0;
+  }
+  #graphOptions {
     td,
     tr {
       padding: 0;
       margin: 0;
     }
-  }
-  #graphOptions {
     height: 3%;
     width: 100%;
     vertical-align: middle;
@@ -45,9 +45,14 @@
     }
   }
   #graphGraph {
+    td {
+      height: 90%;
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+    }
     height: 97%;
     width: 100%;
-    margin-top: 10px;
   }
 }
 
