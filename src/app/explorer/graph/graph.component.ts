@@ -4,13 +4,18 @@ import { ContractService } from "../../_services/contract.service";
 import { GraphService } from "../../_services/graph.service";
 import { ExplorerComponent } from "../explorer.component";
 
+enum graphStateEnum {
+  line, week
+}
+
 @Component({
   selector: 'graph-comp',
   templateUrl: './graph.component.html',
-  styleUrls: ['./graph.component.scss']
+  styleUrls: ['./graph.component.scss', '../explorer.component.global.scss']
 })
 
 export class GraphComponent {
+  graphState = graphStateEnum;
   graphService: any;
 
   // Graph options
@@ -29,11 +34,14 @@ export class GraphComponent {
     domain: ['#1998a2', '#A10A28', '#C7B42C', '#AAAAAA']
   };
 
+  currGraph: graphStateEnum;
+
   // line, area
   autoScale = true;
 
   constructor(private gs: GraphService) {
     this.graphService = gs;
+    this.currGraph = this.graphState.line;
     this.graphService.contractService.getHistoryEvent().subscribe(
       (datapoints: any) => {
         let DisplayState = this.graphService.DisplayState
