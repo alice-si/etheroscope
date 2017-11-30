@@ -1,4 +1,5 @@
 export const environment = {
   production: false,
-  socketURL: 'http://etheroscope.uksouth.cloudapp.azure.com:6060/'
-};
+  apiURL: 'http://etheroscope.uksouth.cloudapp.azure.com:6060/',
+  socketURL: 'http://etheroscope.uksouth.cloudapp.azure.com:6061/'
+}

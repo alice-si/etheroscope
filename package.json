@@ -52,7 +52,8 @@
     "lint": "tslint \"src/**/*.ts\" && standard --env jasmine \"*.js\" \"devServer/**/*.js\" \"spec/**/*.js\"",
     "test": "./node_modules/.bin/jasmine",
     "pree2e": "webdriver-manager update",
-    "e2e": "protractor protractor.config.js"
+    "e2e": "protractor protractor.config.js",
+    "deploy": "node server.js & node services/index.js"
   },
   "dependencies": {
     "@angular/animations": "^4.4.6",
@@ -75,6 +76,7 @@
     "event-stream": "^3.3.4",
     "gulp-load-plugins": "^1.5.0",
     "ip": "^1.1.5",
+    "lock": "^1.1.0",
     "loglevel": "^1.6.0",
     "mssql": "^4.1.0",
     "mutationobserver-shim": "^0.3.2",

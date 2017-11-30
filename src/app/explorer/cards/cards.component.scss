@@ -60,6 +60,10 @@
     margin-top: 0;
     margin-bottom: 0;
   } // overflow: hidden;
+  .clr-tooltip {
+    z-index: 99;
+  }
+  overflow: hidden;
 }
 
 #variables {
