@@ -202,21 +202,6 @@ module.exports = function (db, log, validator) {
           return updates
         })
       })
-      // Filter out the events where we don't actually update for this
-      // particular method (as far as we can tell - the value
-      // could be the same before this chunk too, but we won't
-      // know that until we go there and find it
-      .then((events) => {
-        let result = []
-        let lastValue = null
-        events.forEach((event) => {
-          if (event[1] !== lastValue) {
-            result.push(event)
-            lastValue = event[1]
-          }
-        })
-        return result
-      })
       .then((events) => {
         db.addDataPoints(contract.address.substr(2), method, events, totalFrom, totalTo)
           .then(() => {
