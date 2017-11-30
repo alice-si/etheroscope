@@ -83,7 +83,7 @@ module.exports = function (db, log, validator) {
             }
           })
           .then((results) => {
-            db.addVariables(address, variableNames)
+            return db.addVariables(address, variableNames)
               .then(() => {
                 return results
               })
@@ -94,11 +94,13 @@ module.exports = function (db, log, validator) {
               })
           })
           .then((results) => {
-            let variableNames = []
-            Promise.map(res.recordset, (elem) => {
-              variableNames.push(elem)
-            }, {concurrency: 5}).then(() => {
-              return resolve({ variables: variableNames, contractName: contractName })
+            db.getVariables(address).then((res) => {
+              let variableNames = []
+              Promise.map(res.recordset, (elem) => {
+                variableNames.push(elem)
+              }, {concurrency: 5}).then(() => {
+                return resolve({ variables: variableNames, contractName: contractName })
+              })
             })
           })
         } else {
@@ -149,7 +151,7 @@ module.exports = function (db, log, validator) {
           lock(blockNumber, (release) => {
             var nd = new Date();
             var nn = d.getTime();
-            if (nn - n > 10 * 1000) {
+            if (nn - n > 2 * 1000) {
               console.log('I had to wait ' + (nn - n) + ' seconds to get the lock')
             } 
             // Check again if it is in the db, since it may have been
