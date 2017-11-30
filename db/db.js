@@ -290,7 +290,7 @@ module.exports = function (log) {
   db.getVariables = function (contractHash) {
     return new Promise(function (resolve, reject) {
       var request = new mssql.Request(pool)
-      var sql = "select variableName from variables where contractHash='" + contractHash + "'"
+      var sql = "select v.variableName, u.unit, u.\"description\" from variables as v left outer join variableUnits as u on v.unitID = u.id where v.contractHash='" + contractHash + "'"
       request.query(sql)
         .then((results) => {
           return resolve(results)
