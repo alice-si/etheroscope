@@ -128,7 +128,8 @@ export class GraphService {
     }
   }
 
-  generateDatapoints(method: string, methodInfo: any) {
+  generateDatapoints(method: string, methodInfo: any, index: number) {
+    console.log("Do we even hget here?", method, methodInfo, index)
     console.log('Generate Data points for ' + method);
     if (method !== this.lastMethod || this.curContractID !== this.lastContract ||
       this.lastContract === null || this.lastMethod === null) {
@@ -137,7 +138,9 @@ export class GraphService {
       this.curDisplayState = this.DisplayState.awaitingInitialResponse;
       this.lastContract = this.curContractID;
       this.lastMethod = method;
-      this.lastMethodInfo = methodInfo;
+      if (methodInfo !== null) {
+        this.lastMethodInfo = methodInfo[0];
+      }
       this.methodDatapoints = []; // flush the current method datapoints
       this.contractService.generateDatapoints(this.curContractID, method);
     }
