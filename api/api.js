@@ -47,10 +47,10 @@ module.exports = function (app, db, log, validator) {
     let searchStr = req.params.string
     let variables = null
     let transactions = null
-    if (typeof req.body.variables != 'undefined') {
+    if (typeof req.body.variables !== 'undefined') {
       variables = req.body.variables
     }
-    if (typeof req.body.transactions != 'undefined') {
+    if (typeof req.body.transactions !== 'undefined') {
       transactions = req.body.transactions
     }
     console.log(JSON.stringify(req.body))
