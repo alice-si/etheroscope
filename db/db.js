@@ -11,15 +11,15 @@ const pool = new mssql.ConnectionPool({
   password: login.password,
   server: login.hostname,
   database: login.database,
-  connectionTimeout: 30000,
-  requestTimeout: 30000,
+  connectionTimeout: 10000,
+  requestTimeout: 10000,
   options: {
     encrypt: true
   },
   pool: {
     max: 10,
     min: 0,
-    idleTimeoutMillis: 30000
+    idleTimeoutMillis: 10000
   }
 
 })
