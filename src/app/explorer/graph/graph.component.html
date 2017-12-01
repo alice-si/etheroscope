@@ -11,25 +11,25 @@
         </tr>
         <tr id="graphGraph">
             <td *ngIf="currGraph === graphState.line">
-                <div style="height: 100%; width: 100%;">
+                <div style="height: 100%; width: 100%;" class="animated fadeIn">
                     <ngx-charts-line-chart [scheme]="colorScheme" [results]="graphService.multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel" [autoScale]="autoScale" [timeline]=true>
                     </ngx-charts-line-chart>
                 </div>
             </td>
-            <td *ngIf="currGraph === graphState.week">
+            <td *ngIf="currGraph === graphState.week" class="animated fadeIn">
                 <div style="height: 100%; width: 100%;">
-                    <ngx-charts-bar-vertical [view]="view" [scheme]="colorScheme" [results]="graphService.weekData" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"> </ngx-charts-bar-vertical>
+                    <ngx-charts-bar-vertical [animations]="false" [view]="view" [scheme]="colorScheme" [results]="graphService.weekData" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"> </ngx-charts-bar-vertical>
                 </div>
             </td>
-            <td *ngIf="currGraph === graphState.histogram">
+            <td *ngIf="currGraph === graphState.histogram" class="animated fadeIn">
                 <div style="height: 100%; width: 100%;">
-                    <ngx-charts-bar-vertical [view]="view" [scheme]="colorScheme" [results]="graphService.histogramData" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"> </ngx-charts-bar-vertical>
+                    <ngx-charts-bar-vertical [animations]="false" [view]="view" [scheme]="colorScheme" [results]="graphService.histogramData" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"> </ngx-charts-bar-vertical>
                 </div>
             </td>
         </tr>
     </table>
 </div>
-<div class="no-graph-but-var animated fadeInLeft" *ngIf="graphService.curDisplayState === graphService.DisplayState.newContract">
+<div class="no-graph-but-var animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.newContract">
     <p> Then choose a variable you want to look at
         <clr-icon shape="arrow" size="36" dir="right"></clr-icon><br><br> </p>
     <p>A smart contract may come with certain publicly exposed variables.<br>For example, a charity might make public the amount of money it has donated.<br>Choose a variable you want to see the history of.</p>
