@@ -71,7 +71,7 @@
                       {{this.graphService.lastMethod}}
         </button>
         <br>
-        <div *ngIf="this.graphService.lastMethodInfo.unit !== undefined">
+        <div *ngIf="this.graphService.lastMethodInfo.unit !== null">
             Units: {{this.graphService.lastMethodInfo.unit}}
             <br> {{this.graphService.lastMethodInfo.description}}
         </div>
