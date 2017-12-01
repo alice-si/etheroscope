@@ -1,6 +1,6 @@
 let bodyParser = require('body-parser')
-let Lock = require('lock').Lock
-let methodCachesLock = Lock()
+var ReadWriteLock = require('rwlock');
+var lock = new ReadWriteLock();
 let methodCachesInProgress = new Set()
 var morgan = require('morgan')
 var Promise = require('bluebird')
@@ -70,51 +70,52 @@ function sendAllDataPointsFromDB (address, method, from, to, socket) {
     })
 }
 
-// We currently have everything from from up to (but no including) to.
+// We currently have everything from from up to (but no including) upTo.
 // Find more things, firstly at to - end, and later anything before from
-// pre: from, to, latestBlock are numbers, not strings
-function cacheMorePoints (contractInfo, address, method, from, to, latestBlock) {
+// pre: from, upTo, latestBlock are numbers, not strings
+function cacheMorePoints (contractInfo, address, method, from, upTo, latestBlock) {
   const chunkSize = 1000
-  // To is exclusive - add 1 to latest block to check if to has gotten it
-  if (to === latestBlock + 1) {
+  // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
+  if (upTo === latestBlock + 1) {
     if (from === 1) {
       log.info('Cached all points for ' + address + ' ' + method)
-      methodCachesLock('setLock', (release) => {
+      lock.writeLock('setLock', (release) => {
         methodCachesInProgress.delete(address + method)
         release()
+        return
       })
-      return
+    } else {
+      let newFrom = Math.max(from - chunkSize, 1)
+      sendDataPointsFromParity(contractInfo, address, method, newFrom, from, newFrom, upTo)
+      .then(() => {
+        cacheMorePoints(contractInfo, address, method, newFrom, upTo, latestBlock)
+      })
     }
-    let newFrom = Math.max(from - chunkSize, 1)
-    sendDataPointsFromParity(contractInfo, address, method, newFrom, from, newFrom, to)
-    .then(() => {
-      cacheMorePoints(contractInfo, address, method, newFrom, to, latestBlock)
-    })
   } else {
     // newTo is exclusive, so can be at most latestBlock + 1
-    let newTo = Math.min(to + chunkSize, latestBlock + 1)
-    sendDataPointsFromParity(contractInfo, address, method, to, newTo, from, newTo)
+    let newUpTo = Math.min(upTo + chunkSize, latestBlock + 1)
+    sendDataPointsFromParity(contractInfo, address, method, upTo, newUpTo, from, newUpTo)
     .then(() => {
-      cacheMorePoints(contractInfo, address, method, from, newTo, latestBlock)
+      cacheMorePoints(contractInfo, address, method, from, newUpTo, latestBlock)
     })
   }
 }
 
 // Send all points from from up to but not including to
-function sendDataPointsFromParity (contractInfo, contractAddress, method, from, to,
+function sendDataPointsFromParity (contractInfo, contractAddress, method, from, upTo,
   totalFrom, totalTo) {
   return new Promise((resolve, reject) => {
     // First we obtain the contract.
     let contract = contractInfo.parsedContract
     // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
-    parity.getHistory(contractAddress, method, from, to - 1)
+    parity.getHistory(contractAddress, method, from, upTo - 1)
     .then(function (events) {
       return parity.generateDataPoints(events, contract, method,
         totalFrom, totalTo)
     })
     .then(function (results) {
       io.sockets.in(contractAddress + method).emit('getHistoryResponse',
-          { error: false, from: from, to: to, results: results })
+          { error: false, from: from, to: upTo, results: results })
       return resolve()
     })
     .catch(function (err) {
@@ -147,15 +148,13 @@ function sendHistory (address, method, socket) {
           // Send every point we have in the db so far
           sendAllDataPointsFromDB(address, method, parseInt(from), parseInt(to), socket)
           // If there is already a caching process, we don't need to set one up
-
-          methodCachesLock('setLock', (release) => {
+          lock.writeLock('setLock', function (release) {
             if (methodCachesInProgress.has(address + method)) {
               release()
               return
             }
             methodCachesInProgress.add(address + method)
             release()
-
             from = parseInt(from)
             to = parseInt(to)
             latestBlock = parseInt(latestBlock)

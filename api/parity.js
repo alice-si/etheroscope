@@ -2,8 +2,9 @@ const axios = require('axios')
 const Web3 = require('web3')
 var Promise = require('bluebird')
 var events = require('events')
-var Lock = require('lock').Lock
-var lock = Lock()
+var ReadWriteLock = require('rwlock');
+var lock = new ReadWriteLock();
+
 
 const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
@@ -144,22 +145,13 @@ module.exports = function (db, log, validator) {
           // If it isn't in the database, we need to calculate it
           // acquire a lock so that we don't calculate this value twice
           // Using a global lock to protect the creation of locks...
-
-          var d = new Date();
-          var n = d.getTime();
-          
-          lock(blockNumber, (release) => {
-            var nd = new Date();
-            var nn = d.getTime();
-            if (nn - n > 2 * 1000) {
-              console.log('I had to wait ' + (nn - n) + ' seconds to get the lock')
-            } 
+          lock.writeLock(blockNumber, (release) => {
             // Check again if it is in the db, since it may have been
             // added whilst we were waiting for the lock
             db.getBlockTime(blockNumber)
               .then((result) => {
                 if (result.recordset.length !== 0) {
-                  release()
+                  release() 
                   return resolve(result.recordset[0].timeStamp)
                 }
                 // If it still isn't in there, we calcuate it and add it
@@ -191,7 +183,6 @@ module.exports = function (db, log, validator) {
 
   parity.generateDataPoints = function (eventsA, contract, method,
     totalFrom, totalTo) {
-    let prevTime = 0
     return new Promise((resolve, reject) => {
       // log.debug('Generating data points')
       Promise.map(eventsA, (event) => {
@@ -199,30 +190,31 @@ module.exports = function (db, log, validator) {
         return Promise.all([parity.getBlockTime(event.blockNumber.valueOf()),
           parity.queryAtBlock(contract[method], event.blockNumber.valueOf()), event.blockNumber.valueOf()])
       }, {concurrency: 5})
+      // Sort the events by time
       .then((events) => {
-        return Promise.filter(events, ([time, val, blockNum]) => {
-          let updates = time !== prevTime
-          if (updates) {
-            prevTime = time
-          }
-          return updates
-        })
+        return (events.sort((a, b) => {
+          return a[0] - b[0]
+        }))
       })
       .then((events) => {
-        db.addDataPoints(contract.address.substr(2), method, events, totalFrom, totalTo)
+        let prevBlock = 0
+        let results = []
+        events.forEach((elem, index) => {
+          if (elem[2] !== prevBlock) {
+            prevBlock = elem[2]
+            results.push(elem)
+          }
+        })
+        return results
+      })
+      .then((events) => {
+        return db.addDataPoints(contract.address.substr(2), method, events, totalFrom, totalTo)
           .then(() => {
             if (events.length > 0) {
               log.debug('Added ' + events.length + ' data points for ' + contract.address + ' ' + method)
             }
-            // log.debug('parity.js: Fetched all transactions of sent or sent to ' + address + 'of size ' + result.length)
-            // log.debug('parity.js: From', startBlock, 'to', endBlock)
+            return resolve(events)
           })
-        return events
-      })
-      .then((events) => {
-        resolve(events.sort((a, b) => {
-          return a[0] - b[0]
-        }))
       })
       .catch((err) => {
         log.error('Data set generation error: ' + err)
