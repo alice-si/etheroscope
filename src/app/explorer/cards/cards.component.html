@@ -75,7 +75,7 @@
         </div>
     </div>
 
-    <div *ngIf="graphService.progressBar === null && graphService.progressBar !== undefined && graphService.progressBar !== 100" class="card-block progress-card">
+    <div *ngIf="graphService.progressBar !== undefined && graphService.progressBar !== 100" class="card-block progress-card">
         <div class="progress-block">
             <label>{{graphService.progressBar}}%</label>
             <div class="progress-static">

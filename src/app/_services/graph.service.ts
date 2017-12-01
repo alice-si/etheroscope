@@ -139,8 +139,7 @@ export class GraphService {
       this.lastContract = this.curContractID;
       this.lastMethod = method;
       if (methodInfo !== null) {
-        console.log(methodInfo)
-        this.lastMethodInfo = methodInfo;
+        this.lastMethodInfo = methodInfo[0];
       }
       this.methodDatapoints = []; // flush the current method datapoints
       this.contractService.generateDatapoints(this.curContractID, method);
