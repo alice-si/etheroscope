@@ -104,6 +104,7 @@ export class CardsComponent {
     this.graphService.datapointFilters.splice(index, 1);
     this.graphService.filterGraphDatapoints();
     this.graphService.updateGraph();
+    this.contractService.updateTooltips()
   }
 
   addFilterOnDatesBetween(startDate: number, endDate: number) {
@@ -137,7 +138,6 @@ export class CardsComponent {
   }
 
   generateDatapoints(method: string, methodInfo: any) {
-      console.log(methodInfo);
       this.graphService.generateDatapoints(method, methodInfo);
   }
 
