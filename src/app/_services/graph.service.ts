@@ -84,9 +84,6 @@ export class GraphService {
         "value": elem
       }
     });
-    console.log(histogramBuckets);
-    console.log(this.histogramData);
-
     const maxPoints = 300;
     if (this.graphDatapoints.length > maxPoints) {
       let temp = []
@@ -132,8 +129,7 @@ export class GraphService {
   }
 
   generateDatapoints(method: string, methodInfo: any) {
-    console.log('In generate Data points for ' + method);
-    console.log('MethodInfo' + methodInfo);
+    console.log('Generate Data points for ' + method);
     if (method !== this.lastMethod || this.curContractID !== this.lastContract ||
       this.lastContract === null || this.lastMethod === null) {
       this.contractService.leaveMethod(this.lastContract, this.lastMethod);
