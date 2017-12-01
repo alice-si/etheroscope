@@ -137,8 +137,9 @@ export class CardsComponent {
     Clipboard.copy(clip);
   }
 
-  generateDatapoints(method: string, methodInfo: any) {
-      this.graphService.generateDatapoints(method, methodInfo);
+  generateDatapoints(method: string, methodInfo: any, index: any) {
+      console.log("here?")
+      this.graphService.generateDatapoints(method, methodInfo, index);
   }
 
 }
