@@ -59,7 +59,7 @@ db.poolConnect().then(() => {
 
   require('./api/api.js')(app, db, log, validator) // configure our routes
 
-  var server = app.listen(port)
+  app.listen(port)
 
   // Start application
   log.info('server.js: Starting server at: ' + port)    // shoutout to the user

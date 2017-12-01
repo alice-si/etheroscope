@@ -127,7 +127,8 @@ export class CardsComponent {
       let methodTimes = this.graphService.methodDatapoints.map((elem) => {return elem[0]});
       let minDate = Math.min.apply(null, methodTimes);
       if (startDate > minDate) {
-        this.graphService.graphDatapoints = [[startDate, this.graphService.graphDatapoints[0][1]]].concat(this.graphService.graphDatapoints);
+        this.graphService.graphDatapoints
+          = [[startDate, this.graphService.graphDatapoints[0][1]]].concat(this.graphService.graphDatapoints);
       }
     }
     this.graphService.updateGraph();
