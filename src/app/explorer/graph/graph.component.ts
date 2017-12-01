@@ -28,7 +28,6 @@ export class GraphComponent {
   showYAxisLabel = true;
   yAxisLabel = 'Value';
   timeline = true;
-  animations = false;
 
   colorScheme = {
     domain: ['#1998a2', '#1998a2', '#1998a2', '#1998a2']
@@ -71,6 +70,8 @@ export class GraphComponent {
       () => {
         console.log("completed data point generation");
         this.graphService.updateGraph();
+        console.log(gs.lastMethodInfo.unit);
+        this.xAxisLabel = gs.lastMethodInfo.unit != null ? gs.lastMethodInfo.unit : 'Value';
       }
     );
   }
