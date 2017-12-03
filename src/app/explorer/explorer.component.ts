@@ -44,7 +44,6 @@ export class ExplorerComponent implements OnInit {
     if (contractAddress !== null) {
       this.exploreContract(contractAddress, method);
     }
-    console.log("In getAddress: " + contractAddress + " " + method);
   }
 
   private initialiseVariables() {
@@ -71,7 +70,10 @@ export class ExplorerComponent implements OnInit {
           this.graphService.curContractName = contractInfo.contractName;
         }
         if (method !== null) {
-          this.graphService.generateDatapoints(method, this.graphService.methods);
+          let index = this.graphService.methods.find((elem) => {
+            return elem.variableName.toUpperCase() === method.toUpperCase()
+          })
+          this.graphService.generateDatapoints(method, this.graphService.methods[index]);
         }
       },
       (error) => {
