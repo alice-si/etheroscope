@@ -53,7 +53,6 @@ export class CardsComponent {
       this.variableScroll = (((this.variableScroll - 1) % sections) + sections) % sections
     }
     let newIndex = (this.variableScroll * 4)
-    console.log('here' + this.graphService.methods);
     this.graphService.relevantMethods = this.graphService.methods.slice(newIndex, (newIndex  + 4))
   }
 
@@ -127,7 +126,8 @@ export class CardsComponent {
       let methodTimes = this.graphService.methodDatapoints.map((elem) => {return elem[0]});
       let minDate = Math.min.apply(null, methodTimes);
       if (startDate > minDate) {
-        this.graphService.graphDatapoints = [[startDate, this.graphService.graphDatapoints[0][1]]].concat(this.graphService.graphDatapoints);
+        this.graphService.graphDatapoints
+          = [[startDate, this.graphService.graphDatapoints[0][1]]].concat(this.graphService.graphDatapoints);
       }
     }
     this.graphService.updateGraph();
@@ -138,8 +138,7 @@ export class CardsComponent {
   }
 
   generateDatapoints(method: string, methodInfo: any, index: any) {
-      console.log("here?")
-      this.graphService.generateDatapoints(method, methodInfo, index);
+    this.graphService.generateDatapoints(method, methodInfo);
   }
 
 }

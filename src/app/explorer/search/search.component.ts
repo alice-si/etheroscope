@@ -18,7 +18,7 @@ export class SearchBarComponent {
   // badRequest: boolean;
   graphService: any;
   matches: any;
-  advancedConstraints: {variables: any, transactions:any};
+  advancedConstraints: {variables: any, transactions: any};
   constraintsForm: {variables: any, transactions: any};
   searchMatch: number;
   contractService: any;
@@ -137,19 +137,23 @@ export class SearchBarComponent {
     // Convert times to unix timestamps
     for (let i = 0; i < this.advancedConstraints.variables.length; i++) {
       if (this.advancedConstraints.variables[i].startTime !== '') {
-        this.advancedConstraints.variables[i].startTime = Math.round(new Date(this.advancedConstraints.variables[i].startTime).getTime() / 1000);
-        this.advancedConstraints.variables[i].endTime = Math.round(new Date(this.advancedConstraints.variables[i].endTime).getTime() / 1000);
+        this.advancedConstraints.variables[i].startTime
+          = Math.round(new Date(this.advancedConstraints.variables[i].startTime).getTime() / 1000);
+        this.advancedConstraints.variables[i].endTime
+          = Math.round(new Date(this.advancedConstraints.variables[i].endTime).getTime() / 1000);
       }
     }
     for (let i = 0; i < this.advancedConstraints.transactions.length; i++) {
       if (this.advancedConstraints.transactions[i].startTime !== '') {
-        this.advancedConstraints.transactions[i].startTime = Math.round(new Date(this.advancedConstraints.transactions[i].startTime).getTime() / 1000);
-        this.advancedConstraints.transactions[i].endTime = Math.round(new Date(this.advancedConstraints.transactions[i].endTime).getTime() / 1000);
+        this.advancedConstraints.transactions[i].startTime
+          = Math.round(new Date(this.advancedConstraints.transactions[i].startTime).getTime() / 1000);
+        this.advancedConstraints.transactions[i].endTime
+          = Math.round(new Date(this.advancedConstraints.transactions[i].endTime).getTime() / 1000);
       }
     }
   }
 
-  checkCursorInSearchArea(event: any) {                                                             
+  checkCursorInSearchArea(event: any) {
      if (event.target.id !== 'searchBar') {
        this.graphService.userSearching = false;
      }

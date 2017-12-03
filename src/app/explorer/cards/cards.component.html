@@ -35,7 +35,7 @@
                 <div style="text-align: center;">
                     Click to view a variable:
                 </div>
-                <button class="btn btn-sm var-btns animated fadeIn" *ngFor="let m of graphService.relevantMethods; let i = index" (click)="generateDatapoints(m.variableName, m, i)">
+                <button class="btn btn-sm var-btns animated fadeIn" *ngFor="let m of graphService.relevantMethods; let i = index" (click)="generateDatapoints(m.variableName, m)">
                           <div *ngIf="m.variableName.length <= 15"> {{m.variableName}}
                               <span *ngIf="m.unit !== null">
                                 <clr-icon shape="info-circle" size="18" class="tooltip" [title]="'Units: '+ m.unit + '\nDescription: ' + m.description"></clr-icon>
@@ -69,13 +69,13 @@
     <div class="card-block">
         <button class="btn-primary btn btn-sm" style="cursor: default;">{{graphService.lastMethod}}</button>
         <br>
-        <div *ngIf="this.graphService.lastMethodInfo !== null">
+        <div *ngIf="graphService.lastMethodInfo !== null && graphService.lastMethodInfo.unit !== null">
             Units: {{graphService.lastMethodInfo.unit}}
             <br> {{graphService.lastMethodInfo.description}}
         </div>
     </div>
 
-    <div *ngIf="graphService.progressBar !== undefined && graphService.progressBar !== 100" class="card-block progress-card">
+    <div *ngIf="graphService.progressBar !== null && graphService.progressBar !== undefined && graphService.progressBar !== 100" class="card-block progress-card">
         <div class="progress-block">
             <label>{{graphService.progressBar}}%</label>
             <div class="progress-static">
