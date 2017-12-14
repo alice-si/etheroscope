@@ -1,10 +1,8 @@
 const axios = require('axios')
 const Web3 = require('web3')
 var Promise = require('bluebird')
-var events = require('events')
-var ReadWriteLock = require('rwlock');
-var lock = new ReadWriteLock();
-
+var ReadWriteLock = require('rwlock')
+var lock = new ReadWriteLock()
 
 const parityUrl = 'http://localhost:8545'
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
@@ -151,7 +149,7 @@ module.exports = function (db, log, validator) {
             db.getBlockTime(blockNumber)
               .then((result) => {
                 if (result.recordset.length !== 0) {
-                  release() 
+                  release()
                   return resolve(result.recordset[0].timeStamp)
                 }
                 // If it still isn't in there, we calcuate it and add it
@@ -159,7 +157,7 @@ module.exports = function (db, log, validator) {
                   db.addBlockTime([[blockNumber, time, 1]])
                     .then(() => {
                       release()
-                      return resolve(time);
+                      return resolve(time)
                     })
                 })
               })
