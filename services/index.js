@@ -49,28 +49,33 @@ db.poolConnect().then(() => {
       }
     })
 
-    let alice = {contract: '0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C',
-                 testMethod: 'total'}
-    let idice = {contract: '0xe6517b766e6ee07f91b517435ed855926bcb1aae',
-                 testMethod: 'maxPendingPayouts'}
-    let goochain = {contract: '0x017214d55f5daac38f5f7547629f29ead7fa1c3c',
-                 testMethod: 'buyPrice'}
-    let digix = {contract: '0xf0160428a8552ac9bb7e050d90eeade4ddd52843',
-                 testMethod: 'ethToCents'}
-    let testing = alice
-    let totalTime = 0
-    const noIterations = 100
-    for (i = 0; i < noIterations; i++) {
-      //console.time('getHistory')
-      let start = process.hrtime()
-      sendHistory(testing.contract, testing.testMethod, socket)
-      //timeTaken = console.timeEnd('getHistory')
-      let timeTaken = process.hrtime(start)
-      totalTime += timeTaken[1] / 1000
-    }
-    let avgTime = totalTime / noIterations
-    console.log(testing.contract + ' took ' + avgTime + ' ms over ' + noIterations +
-      ' iterations to get the history of')
+    setTimeout(() => {
+      let alice = {contract: '0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C',
+                   testMethod: 'total'}
+      let idice = {contract: '0xe6517b766e6ee07f91b517435ed855926bcb1aae',
+                   testMethod: 'maxPendingPayouts'}
+      let goochain = {contract: '0x017214d55f5daac38f5f7547629f29ead7fa1c3c',
+                   testMethod: 'buyPrice'}
+      let digix = {contract: '0xf0160428a8552ac9bb7e050d90eeade4ddd52843',
+                   testMethod: 'ethToCents'}
+      let tests = [alice, goochain, alice, digix, idice]
+      let totalTime = 0
+      const noIterations = 100
+      tests.forEach( (testing) => {
+        for (i = 0; i < noIterations; i++) {
+          //console.time('getHistory')
+          let start = process.hrtime()
+          sendHistory(testing.contract, testing.testMethod, socket)
+          //timeTaken = console.timeEnd('getHistory')
+          let timeTaken = process.hrtime(start)
+          totalTime += timeTaken[1] / 1000
+        }
+        let avgTime = totalTime / noIterations
+        console.log(testing.contract + ' took ' + avgTime + ' ms over ' + noIterations +
+          ' iterations to get the history of')
+        totalTime = 0
+      })
+    }, 1000)
   })
 
   io.on('disconnect', function (socket) {
@@ -84,7 +89,7 @@ db.poolConnect().then(() => {
         })
       })
       .then((dataPoints) => {
-        socket.emit('getHistoryResponse', { error: false, from: from, to: to, results: dataPoints })
+        //socket.emit('getHistoryResponse', { error: false, from: from, to: to, results: dataPoints })
       })
       .catch(function (err) {
         log.error('Error sending datapoints from DD')
