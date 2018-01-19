@@ -1,28 +1,25 @@
-let bodyParser = require('body-parser')
 var ReadWriteLock = require('rwlock')
 var lock = new ReadWriteLock()
 let methodCachesInProgress = new Set()
-var morgan = require('morgan')
 var Promise = require('bluebird')
 
 let log = require('loglevel')
 let validator = require('validator')
 let db = require('./../db/db.js')(log)
 
-let socketPort = 8081
-
+// Socket IO server setup
 let express = require('express')
 let app = express()
 let server = require('http').createServer(app)
 let io = require('socket.io')(server)
+let socketPort = 8081
+
+let firstBlock = 0
 
 db.poolConnect().then(() => {
   server.listen(socketPort)
-// Initialise the server
+  // Initialise the server
   let parity = require('../api/parity')(db, log, validator)
-  app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded({ extended: true }))
-  app.use(morgan('dev'))
 
   function validAddress (address) {
     return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
@@ -50,13 +47,11 @@ db.poolConnect().then(() => {
     })
   })
 
-  io.on('disconnect', function (socket) {
-  })
-
   function sendAllDataPointsFromDB (address, method, from, to, socket) {
-    db.getDataPoints(address.substr(2), method)
+    db.getDataPoints(address, method)
+      // Hack to get the points in the right format for frontend
       .then((dataPoints) => {
-        return Promise.map(dataPoints[0], (elem) => {
+        return Promise.map(dataPoints, (elem) => {
           return [elem.timeStamp, elem.value]
         })
       })
@@ -64,27 +59,28 @@ db.poolConnect().then(() => {
         socket.emit('getHistoryResponse', { error: false, from: from, to: to, results: dataPoints })
       })
       .catch(function (err) {
-        log.error('Error sending datapoints from DD')
+        log.error('Error sending datapoints from DB')
         log.error(err)
         socket.emit('getHistoryResponse', { error: true })
       })
   }
 
-  // We currently have everything from from up to (but no including) upTo.
-  // Find more things, firstly at to - end, and later anything before from
+  // We currently have all points from 'from' up to (but no including) 'upTo'
+  // Find more points, firstly at to - end, and later anything before from
   // pre: from, upTo, latestBlock are numbers, not strings
   function cacheMorePoints (contractInfo, address, method, from, upTo, latestBlock) {
     const chunkSize = 1000
     // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
+    console.log('cacheMorePoints:', from, upTo)
     if (upTo === latestBlock + 1) {
-      if (from === 1) {
+      if (from === firstBlock) {
         log.info('Cached all points for ' + address + ' ' + method)
         lock.writeLock('setLock', (release) => {
           methodCachesInProgress.delete(address + method)
           release()
         })
       } else {
-        let newFrom = Math.max(from - chunkSize, 1)
+        let newFrom = Math.max(from - chunkSize, firstBlock)
         sendDataPointsFromParity(contractInfo, address, method, newFrom, from, newFrom, upTo)
         .then(() => {
           cacheMorePoints(contractInfo, address, method, newFrom, upTo, latestBlock)
@@ -113,8 +109,12 @@ db.poolConnect().then(() => {
           totalFrom, totalTo)
       })
       .then(function (results) {
+        // Hack for frontend
+        let derpPoints = results.map((point) => {
+          return [point.time, point.value, point.block]
+        })
         io.sockets.in(contractAddress + method).emit('getHistoryResponse',
-            { error: false, from: from, to: upTo, results: results })
+            { error: false, from: from, to: upTo, results: derpPoints })
         return resolve()
       })
       .catch(function (err) {
@@ -133,7 +133,7 @@ db.poolConnect().then(() => {
       return
     }
 
-    db.getCachedFromTo(address.substring(2), method)
+    db.getCachedFromTo(address, method)
       .then((result) => {
         parity.getLatestBlock()
           .then((latestBlock) => {

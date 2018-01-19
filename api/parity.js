@@ -11,10 +11,11 @@ module.exports = function (db, log, validator) {
   const parity = {}
 
   if (!web3.isConnected()) {
-    console.log('Please start parity')
+    log.error('Please start parity')
     process.exit(1)
+  } else {
+    log.error('Successfully connected to parity')
   }
-  console.log('Successfully connected to parity')
 
   parity.getLatestBlock = function () {
     return new Promise((resolve, reject) => {
@@ -29,17 +30,18 @@ module.exports = function (db, log, validator) {
 
   parity.getContract = function (address) {
     return new Promise((resolve, reject) => {
-      db.getContract(address.substr(2))
+      db.getContract(address)
       .then((result) => {
         // If we don't have the contract, get it from etherscan
         if (result.contract === null) {
           const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
-          const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
+          const axiosAPI = '&apikey=TTGWAUJI1M43J65NWVTPXMFZS2HFD36BFW'
+          console.log('Getting: ' + axiosGET + address + axiosAPI)
           return axios.get(axiosGET + address + axiosAPI)
             .then((res) => {
               let parsedContract = parity.parseContract(res.data.result, address)
-              // Add the contract to the database, assuming it is already in there (with a name)
-              db.updateContractWithABI(address.substr(2), res.data.result)
+              // Add the contract's ABI to the database
+              db.updateContractWithABI(address, res.data.result)
                 .catch((err) => {
                   log.error('parity.js: Error adding contract abi to the db')
                   log.error(err)
@@ -52,7 +54,9 @@ module.exports = function (db, log, validator) {
             })
         }
         let parsedContract = parity.parseContract(result.contract, address)
-        return resolve({ contractName: result.contractName, parsedContract: parsedContract })
+        return resolve(
+          { contractName: result.contractName,
+            parsedContract: parsedContract })
       })
     })
   }
@@ -68,9 +72,9 @@ module.exports = function (db, log, validator) {
     let parsedContract = contractInfo.parsedContract
     let contractName = contractInfo.contractName
     return new Promise((resolve, reject) => {
-      let address = parsedContract.address.substr(2)
-      db.getVariables(address).then((res) => {
-        if (res.recordset.length === 0) {
+      let address = parsedContract.address
+      db.getVariables(address).then((variables) => {
+        if (variables.length === 0) {
           log.debug('parity.js: Caching variables for contract')
           var abi = parsedContract.abi
           let variableNames = []
@@ -93,20 +97,22 @@ module.exports = function (db, log, validator) {
               })
           })
           .then((results) => {
-            db.getVariables(address).then((res) => {
+            db.getVariables(address).then((variables) => {
               let variableNames = []
-              Promise.map(res.recordset, (elem) => {
+              Promise.map(variables, (elem) => {
                 variableNames.push(elem)
               }, {concurrency: 5}).then(() => {
+                console.log('varNames: ' + variableNames)
                 return resolve({ variables: variableNames, contractName: contractName })
               })
             })
           })
         } else {
           let variableNames = []
-          Promise.map(res.recordset, (elem) => {
+          Promise.map(variables, (elem) => {
             variableNames.push(elem)
           }, {concurrency: 5}).then(() => {
+            console.log('varNames: ' + variableNames)
             return resolve({ variables: variableNames, contractName: contractName })
           })
         }
@@ -116,10 +122,15 @@ module.exports = function (db, log, validator) {
 
   // Query value of variable at certain block
   parity.queryAtBlock = function (query, block) {
+    console.log('In query at block')
     let hex = '0x' + block.toString(16)
     web3.eth.defaultBlock = hex
     return new Promise((resolve, reject) => {
       return query((err, result) => {
+        if (err) {
+          console.log('Error is:')
+          console.log(err)
+        }
         return (err ? reject(err) : resolve(parseInt(result.valueOf())))
       })
     })
@@ -134,11 +145,13 @@ module.exports = function (db, log, validator) {
 
   parity.getBlockTime = function (blockNumber) {
     return new Promise((resolve) => {
+      console.log('in get block time')
       db.getBlockTime(blockNumber)
         .then((result) => {
           // Check the database for the blockTimeMapping
-          if (result.recordset.length !== 0) {
-            return resolve(result.recordset[0].timeStamp)
+          if (result.length !== 0) {
+            console.log('done in get block time 1')
+            return resolve(result[0].timeStamp)
           }
           // If it isn't in the database, we need to calculate it
           // acquire a lock so that we don't calculate this value twice
@@ -148,15 +161,17 @@ module.exports = function (db, log, validator) {
             // added whilst we were waiting for the lock
             db.getBlockTime(blockNumber)
               .then((result) => {
-                if (result.recordset.length !== 0) {
+                if (result.length !== 0) {
                   release()
-                  return resolve(result.recordset[0].timeStamp)
+                  console.log('done in get block time 2')
+                  return resolve(result[0].timeStamp)
                 }
                 // If it still isn't in there, we calcuate it and add it
                 parity.calculateBlockTime(blockNumber).then((time) => {
                   db.addBlockTime([[blockNumber, time, 1]])
                     .then(() => {
                       release()
+                      console.log('done in get block time 3')
                       return resolve(time)
                     })
                 })
@@ -169,12 +184,13 @@ module.exports = function (db, log, validator) {
   parity.getHistory = function (address, method, startBlock, endBlock) {
     let filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
     return new Promise((resolve, reject) => {
-      filter.get((error, result) => {
-        if (!error) {
-          return resolve(result)
-        } else {
-          return reject(error)
+      filter.get((err, result) => {
+        if (err) {
+          return reject(err)
         }
+        console.log('REEEEEE')
+        console.log(result)
+        return resolve(result)
       })
     })
   }
@@ -183,30 +199,42 @@ module.exports = function (db, log, validator) {
     totalFrom, totalTo) {
     return new Promise((resolve, reject) => {
       // log.debug('Generating data points')
+      console.log('EVENTS ARE:')
+      console.log(eventsA)
       Promise.map(eventsA, (event) => {
         // [(time, value, blockNum)]
-        return Promise.all([parity.getBlockTime(event.blockNumber.valueOf()),
-          parity.queryAtBlock(contract[method], event.blockNumber.valueOf()), event.blockNumber.valueOf()])
+        return Promise.all(
+          [ parity.getBlockTime(event.blockNumber.valueOf()),
+            parity.queryAtBlock(contract[method], event.blockNumber.valueOf()),
+            event.blockNumber.valueOf()])
       }, {concurrency: 5})
+      .then((events) => {
+        return events.map((event) => {
+          return { time: event[0], value: event[1], block: event[2] }
+        })
+      })
       // Sort the events by time
       .then((events) => {
+        console.log('SORTING')
         return (events.sort((a, b) => {
-          return a[0] - b[0]
+          return a.time - b.time
         }))
       })
+      // Prevent duplicate blocks in the database
       .then((events) => {
         let prevBlock = 0
         let results = []
         events.forEach((elem, index) => {
-          if (elem[2] !== prevBlock) {
-            prevBlock = elem[2]
+          if (elem.block !== prevBlock) {
+            prevBlock = elem.block
             results.push(elem)
           }
         })
         return results
       })
       .then((events) => {
-        return db.addDataPoints(contract.address.substr(2), method, events, totalFrom, totalTo)
+        console.log('adding points: ' + events)
+        return db.addDataPoints(contract.address, method, events, totalFrom, totalTo)
           .then(() => {
             if (events.length > 0) {
               log.debug('Added ' + events.length + ' data points for ' + contract.address + ' ' + method)

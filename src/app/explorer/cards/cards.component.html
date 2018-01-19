@@ -36,17 +36,17 @@
                     Click to view a variable:
                 </div>
                 <button class="btn btn-sm var-btns animated fadeIn" *ngFor="let m of graphService.relevantMethods; let i = index" (click)="generateDatapoints(m.variableName, m)">
-                          <div *ngIf="m.variableName.length <= 15"> {{m.variableName}}
-                              <span *ngIf="m.unit !== null">
-                                <clr-icon shape="info-circle" size="18" class="tooltip" [title]="'Units: '+ m.unit + '\nDescription: ' + m.description"></clr-icon>
-                              </span>
-                          </div>
-                          <div *ngIf="m.variableName.length >= 16" title="{{m.variableName}}"> {{m.variableName.slice(0,13)}}..
-                              <span *ngIf="m.unit !== null">
-                                <clr-icon shape="info-circle" size="18" class="tooltip" [title]="'Units: '+ m.unit + '\nDescription: ' + m.description"></clr-icon>
-                              </span>
-                          </div>
-                        </button>
+                    <div *ngIf="m.variableName.length <= 15"> {{m.variableName}}
+                        <span *ngIf="m.unit !== null">
+                          <clr-icon shape="info-circle" size="18" class="tooltip" [title]="'Units: '+ m.unit + '\nDescription: ' + m.description"></clr-icon>
+                        </span>
+                    </div>
+                    <div *ngIf="m.variableName.length >= 16" title="{{m.variableName}}"> {{m.variableName.slice(0,13)}}..
+                        <span *ngIf="m.unit !== null">
+                          <clr-icon shape="info-circle" size="18" class="tooltip" [title]="'Units: '+ m.unit + '\nDescription: ' + m.description"></clr-icon>
+                        </span>
+                    </div>
+                </button>
                 <br>
                 <div *ngIf="graphService.methodPages > 1" style="text-align: center">
                     <button class="btn btn-link" (click)="methodsScroll(true)">

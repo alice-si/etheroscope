@@ -16,7 +16,7 @@
               </thead>
               <tbody>
                 <tr *ngFor="let contract of popularContracts">
-                  <td class="left"><a [routerLink]="'/explorer/0x' + contract.contractHash">{{ contract.name }}</a></td>
+                  <td class="left"><a [routerLink]="'/explorer/' + contract.address">{{ contract.name }}</a></td>
                   <td class="left">{{ contract.searches }}</td>
                 </tr>
               </tbody>

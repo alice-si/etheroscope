@@ -23,10 +23,10 @@
   </div>
   <div id="matches" *ngIf="matches !== undefined && matches.length !== 0 && graphService.userSearching" (mouseenter)="graphService.userSearching = true" class="animated fadeIn">
       <table>
-          <tr *ngFor="let match of matches; let i = index" (click)="exploreContract('0x' + match.contractHash)">
+          <tr *ngFor="let match of matches; let i = index" (click)="exploreContract(match.address)">
               <td align="center" [style.background-color]="searchMatchFn(i)">
                   <p class="nameMatch">{{match.name}} </p>
-                  <p class="hashMatch">Hash: 0x{{match.contractHash}}</p>
+                  <p class="hashMatch">Hash: {{match.address}}</p>
               </td>
           </tr>
       </table>

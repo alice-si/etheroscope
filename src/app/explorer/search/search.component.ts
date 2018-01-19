@@ -66,7 +66,7 @@ export class SearchBarComponent {
     if (this.matches.length === 0) {
       pattern = searchbar;
     } else {
-      pattern = '0x' + this.matches[this.searchMatch].contractHash;
+      pattern = this.matches[this.searchMatch].address;
     }
     this.exploreContract(pattern);
   }

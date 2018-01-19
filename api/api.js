@@ -1,8 +1,7 @@
-let axios = require('axios')
+require('bluebird')
 
 module.exports = function (app, db, log, validator) {
   let parity = require('./parity')(db, log, validator)
-  let Promise = require('bluebird')
 
   function validAddress (address) {
     return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
@@ -21,16 +20,16 @@ module.exports = function (app, db, log, validator) {
   app.get('/api/explore/:contractAddress', (req, res) => {
     let address = req.params.contractAddress
     if (!validAddress(address)) {
-      log.debug('User requested something stupid')
-      let err = 'Error - invalid contract hash'
+      log.debug('api.js: Call to /api/explore/ with invalid contract address')
+      let err = 'Error - invalid contract address'
       return res.status(400).json(err)
     }
-    db.addContractLookup(address.substr(2))
     return parity.getContract(address)
       .then((contractInfo) => {
         return parity.getContractVariables(contractInfo)
       })
       .then((contractInfo) => {
+        db.addContractLookup(address)
         return res.status(200).json(contractInfo)
       })
       .catch((err) => {

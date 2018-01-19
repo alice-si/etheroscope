@@ -26,9 +26,7 @@ let getCurrentBlock = function () {
   return result.number;
 }
 
-console.log('REE1')
 let currentLatestBlock = getCurrentBlock()
-console.log('REE2')
 
 let generateBlockTimeMappings = async function (index) {
   console.log('Logging block number  ' + index)
@@ -45,9 +43,7 @@ let generateBlockTimeMappings = async function (index) {
         .then((result) => {
           if (result.recordset.length !== 0) {
             generateBlockTimeMappings(index += 1)
-            console.log('We already had this one')
           } else {
-            console.log('New one')
             db.addBlockTime([[index, time, 0]])
               .then(() => {
                 generateBlockTimeMappings(index += 1)

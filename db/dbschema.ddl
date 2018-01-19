@@ -1,38 +1,47 @@
 create table contracts(
-    contractHash VARCHAR(40)  not null,
-    name         VARCHAR(128),
-    abi          NVARCHAR(MAX),
-    primary key (contractHash)
+    address      CHAR(42)  not null,
+    name         CHAR(128),
+    abi          TEXT,
+    primary key (address)
 );
 
 create table contractLookupHistory(
-    contractHash VARCHAR(40)  not null,
+    address      CHAR(42)  not null,
     date         datetime,
-    primary key (contractHash, date)
+    primary key (address, date)
 );
 
 create table blocks(
-    blockNumber BIGINT   not null,
-    timeStamp   BIGINT   not null,
-    userLog     BIT      not null,
+    blockNumber  BIGINT   not null,
+    timeStamp    BIGINT   not null,
+    userLog      BIT      not null,
     primary key (blockNumber)
 );
 
 create table variables(
-    contractHash VARCHAR(40) not null,
-    variableName VARCHAR(50) not null,
+    address      CHAR(42) not null,
+    variableName CHAR(50) not null,
     cachedFrom   BIGINT,
     cachedUpTo   BIGINT,
-    primary key (contractHash, variableName)
+    unitID       BIGINT,
+    primary key (address, variableName)
+);
+
+create table variableUnits(
+    id           BIGINT not null,
+    variable     CHAR(50) not null,
+    unit         CHAR(50) not null,
+    description  TEXT,
+    primary key (id)
 );
 
 create table dataPoints(
-    contractHash VARCHAR(40) not null,
-    variableName VARCHAR(50) not null,
-    blockNumber  BIGINT      not null,
-    value        VARCHAR(78) not null,
-    primary key (contractHash, variableName, blockNumber),
-    foreign key (contractHash) references contracts(contractHash),
+    address      CHAR(42) not null,
+    variableName CHAR(50) not null,
+    blockNumber  BIGINT   not null,
+    value        CHAR(78) not null,
+    primary key (address, variableName, blockNumber),
+    foreign key (address) references contracts(address),
     foreign key (blockNumber) references  blocks(blockNumber),
-    foreign key (contractHash, variableName) references  variables(contractHash, variableName)
+    foreign key (address, variableName) references variables(address, variableName)
 );
