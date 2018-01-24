@@ -7,10 +7,9 @@ const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 var Parity = require('../api/parity')(db, log)
 
 db.poolConnect().then(() => {
-  db.getLatestCachedBlockTime() 
+  db.getLatestCachedBlockTime()
   .then((result) => {
-    let currentValue = 1
-    currentValue = parseInt(result) + 1
+    let currentValue = parseInt(result) + 1
     console.log('current value is', currentValue)
     generateBlockTimeMappings(currentValue)
   })
@@ -22,14 +21,13 @@ db.poolConnect().then(() => {
 })
 
 let getCurrentBlock = function () {
-  let result = web3.eth.getBlock('latest')
-  return result.number;
+  return web3.eth.getBlock('latest').number
 }
 
 let currentLatestBlock = getCurrentBlock()
 
 let generateBlockTimeMappings = async function (index) {
-  console.log('Logging block number  ' + index)
+  console.log('Logging block number ' + index)
   console.log('Current latest is: ' + currentLatestBlock)
   if (index >= currentLatestBlock) {
     console.log('Waiting for 1 minute')
@@ -41,7 +39,7 @@ let generateBlockTimeMappings = async function (index) {
       console.log('B,V: ' + index + ', ' + time)
       db.getBlockTime(index)
         .then((result) => {
-          if (result.recordset.length !== 0) {
+          if (result.length !== 0) {
             generateBlockTimeMappings(index += 1)
           } else {
             db.addBlockTime([[index, time, 0]])
@@ -49,7 +47,7 @@ let generateBlockTimeMappings = async function (index) {
                 generateBlockTimeMappings(index += 1)
               })
               .catch(() => {
-                console.log('Error adding - why?')
+                console.log('Error adding block time')
               })
           }
         })

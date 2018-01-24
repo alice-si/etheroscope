@@ -1,8 +1,8 @@
 var login = {
-  database: 'EtheroscopeDB',
+  database: 'etheroscope',
   username: 'alice',
-  password: 'Etheroinc123!',
-  hostname: 'etheroscopedb.database.windows.net'
+  password: 'memes',
+  hostname: 'localhost'
 }
 
 module.exports = login

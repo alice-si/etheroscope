@@ -71,7 +71,6 @@ db.poolConnect().then(() => {
   function cacheMorePoints (contractInfo, address, method, from, upTo, latestBlock) {
     const chunkSize = 1000
     // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
-    console.log('cacheMorePoints:', from, upTo)
     if (upTo === latestBlock + 1) {
       if (from === firstBlock) {
         log.info('Cached all points for ' + address + ' ' + method)

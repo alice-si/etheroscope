@@ -10,7 +10,7 @@
             </td>
         </tr>
         <tr id="graphGraph">
-            <td *ngIf="currGraph === graphState.line">
+            <td *ngIf="currGraph === graphState.line && graphService.lastMethodInfo !== null">
                 <div style="height: 100%; width: 100%;" class="animated fadeIn">
                     <ngx-charts-line-chart [scheme]="colorScheme" [results]="graphService.multi" [gradient]="gradient" [xAxis]="showXAxis" [yAxis]="showYAxis" [legend]="showLegend" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="graphService.lastMethodInfo.unit !== null ? graphService.lastMethodInfo.unit : 'Value'" [autoScale]="autoScale" [timeline]=true>
                     </ngx-charts-line-chart>
@@ -34,7 +34,7 @@
         <clr-icon shape="arrow" size="36" dir="right"></clr-icon><br><br> </p>
     <p>A smart contract may come with certain publicly exposed variables.<br>For example, a charity might make public the amount of money it has donated.<br>Choose a variable you want to see the history of.</p>
 </div>
-<div class="no-graph-with-var animated fadeIn" *ngIf="graphService.graphDatapoints.length === 0 && graphService.progressBar === 100">
+<div class="no-graph-with-var animated fadeIn" *ngIf="graphService.graphDatapoints.length === 0 && graphService.progressBar >= 100">
     <p> There are no points to display </p>
 </div>
 <div class="no-graph-with-var" *ngIf="graphService.curDisplayState === graphService.DisplayState.awaitingInitialPoints">

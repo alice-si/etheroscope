@@ -38,7 +38,7 @@ module.exports = function (app, db, log, validator) {
       })
   })
 
-  app.get('/api/search/', (req, res) => {
+  app.post('/api/search/', (req, res) => {
     return res.status(200).json([])
   })
 

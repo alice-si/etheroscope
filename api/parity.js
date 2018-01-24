@@ -36,7 +36,6 @@ module.exports = function (db, log, validator) {
         if (result.contract === null) {
           const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
           const axiosAPI = '&apikey=TTGWAUJI1M43J65NWVTPXMFZS2HFD36BFW'
-          console.log('Getting: ' + axiosGET + address + axiosAPI)
           return axios.get(axiosGET + address + axiosAPI)
             .then((res) => {
               let parsedContract = parity.parseContract(res.data.result, address)
@@ -102,7 +101,6 @@ module.exports = function (db, log, validator) {
               Promise.map(variables, (elem) => {
                 variableNames.push(elem)
               }, {concurrency: 5}).then(() => {
-                console.log('varNames: ' + variableNames)
                 return resolve({ variables: variableNames, contractName: contractName })
               })
             })
@@ -112,7 +110,6 @@ module.exports = function (db, log, validator) {
           Promise.map(variables, (elem) => {
             variableNames.push(elem)
           }, {concurrency: 5}).then(() => {
-            console.log('varNames: ' + variableNames)
             return resolve({ variables: variableNames, contractName: contractName })
           })
         }
@@ -122,15 +119,10 @@ module.exports = function (db, log, validator) {
 
   // Query value of variable at certain block
   parity.queryAtBlock = function (query, block) {
-    console.log('In query at block')
     let hex = '0x' + block.toString(16)
     web3.eth.defaultBlock = hex
     return new Promise((resolve, reject) => {
       return query((err, result) => {
-        if (err) {
-          console.log('Error is:')
-          console.log(err)
-        }
         return (err ? reject(err) : resolve(parseInt(result.valueOf())))
       })
     })
@@ -145,12 +137,10 @@ module.exports = function (db, log, validator) {
 
   parity.getBlockTime = function (blockNumber) {
     return new Promise((resolve) => {
-      console.log('in get block time')
       db.getBlockTime(blockNumber)
         .then((result) => {
           // Check the database for the blockTimeMapping
           if (result.length !== 0) {
-            console.log('done in get block time 1')
             return resolve(result[0].timeStamp)
           }
           // If it isn't in the database, we need to calculate it
@@ -163,15 +153,13 @@ module.exports = function (db, log, validator) {
               .then((result) => {
                 if (result.length !== 0) {
                   release()
-                  console.log('done in get block time 2')
                   return resolve(result[0].timeStamp)
                 }
                 // If it still isn't in there, we calcuate it and add it
                 parity.calculateBlockTime(blockNumber).then((time) => {
-                  db.addBlockTime([[blockNumber, time, 1]])
+                  db.addBlockTimes([[blockNumber, time, 1]])
                     .then(() => {
                       release()
-                      console.log('done in get block time 3')
                       return resolve(time)
                     })
                 })
@@ -188,8 +176,6 @@ module.exports = function (db, log, validator) {
         if (err) {
           return reject(err)
         }
-        console.log('REEEEEE')
-        console.log(result)
         return resolve(result)
       })
     })
@@ -199,8 +185,6 @@ module.exports = function (db, log, validator) {
     totalFrom, totalTo) {
     return new Promise((resolve, reject) => {
       // log.debug('Generating data points')
-      console.log('EVENTS ARE:')
-      console.log(eventsA)
       Promise.map(eventsA, (event) => {
         // [(time, value, blockNum)]
         return Promise.all(
@@ -215,7 +199,6 @@ module.exports = function (db, log, validator) {
       })
       // Sort the events by time
       .then((events) => {
-        console.log('SORTING')
         return (events.sort((a, b) => {
           return a.time - b.time
         }))
@@ -233,7 +216,6 @@ module.exports = function (db, log, validator) {
         return results
       })
       .then((events) => {
-        console.log('adding points: ' + events)
         return db.addDataPoints(contract.address, method, events, totalFrom, totalTo)
           .then(() => {
             if (events.length > 0) {

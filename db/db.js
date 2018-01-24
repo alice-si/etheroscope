@@ -62,8 +62,6 @@ function checkTables () {
   return new Promise(function (resolve, reject) {
     let query = "SELECT count(*) as count FROM information_schema.TABLES WHERE (TABLE_SCHEMA = 'etheroscope') AND (TABLE_NAME in (" + "'" + tables.join("', '") + "'" + '));'
     poolquery(query).then(rows => {
-      console.log('muh rows')
-      console.log(rows)
       if (rows[0].count === tables.length) {
         resolve()
       }
@@ -104,7 +102,6 @@ module.exports = function (log) {
       })
       poolbulk('insert into contracts (address, name, abi) values ?', [values])
         .then(() => {
-          console.log('Added contract to contract table: ' + contracts[0].address)
           return resolve()
         })
         .catch((err) => {
@@ -152,7 +149,9 @@ module.exports = function (log) {
                   'LIMIT ' + limit
 
       var joined = 'select contracts.address, name, searches from (' + query +
-                   ') as popular join contracts on contracts.address = popular.address'
+                   ') as popular join contracts on ' +
+                   'contracts.address = popular.address ' +
+                   'order by searches desc'
       poolquery(joined)
         .then((result) => {
           return resolve(result)
@@ -204,9 +203,7 @@ module.exports = function (log) {
     return new Promise(function (resolve, reject) {
       if (values.length !== 0) {
         connection.query('insert into dataPoints (address, variableName, blockNumber, value) values ?', [values], (err) => {
-          console.log('4')
           if (err) {
-            console.log('REEE error' + err)
             connection.rollback(() => {
               throw err
             })
@@ -226,7 +223,6 @@ module.exports = function (log) {
         ' where address=? ' +
         'and variableName=?;'
       connection.query(query, [from, upTo, address, method], (err) => {
-        console.log('5')
         if (err) {
           return connection.rollback(() => {
             throw err
@@ -244,31 +240,22 @@ module.exports = function (log) {
   db.addDataPoints = function (address, method, points, from, upTo) {
     return new Promise(function (resolve, reject) {
       let values = []
-      console.log('points are:')
-      console.log(points)
       points.forEach((point) => {
         values.push([address, method, point.block, point.value])
       })
-      console.log('1')
       pool.getConnection((err, connection) => {
-        console.log('2')
         if (err) throw err
         connection.beginTransaction((err) => {
-          console.log('3')
           if (err) throw err
-          console.log('values are: ')
-          console.log(values)
           addDataPoints(connection, values).then(() => {
             return updateFromUpTo(connection, address, method, from, upTo)
           }).then(() => {
             connection.commit((err) => {
-              console.log('6')
               if (err) {
                 return connection.rollback(() => {
                   throw err
                 })
               }
-              console.log('success!')
               connection.release()
               return resolve()
             })
@@ -303,9 +290,6 @@ module.exports = function (log) {
         "' and (dataPoints.variableName='" + method + "')"
       poolquery(query)
         .then((results) => {
-          console.log('dataPoints are:')
-          console.log(results)
-          console.log('done datapoints')
           return resolve(results)
         })
         .catch((err) => {
@@ -336,8 +320,6 @@ module.exports = function (log) {
       var query = "select * from blocks where blockNumber='" + blockNumber + "'"
       poolquery(query)
         .then((results) => {
-          console.log('db results are')
-          console.log(results)
           return resolve(results)
         })
         .catch((err) => {
@@ -348,7 +330,7 @@ module.exports = function (log) {
     })
   }
 
-  db.addBlockTime = function (blockTimes) {
+  db.addBlockTimes = function (blockTimes) {
     return new Promise(function (resolve, reject) {
       var values = []
       blockTimes.forEach((blockTime) => {
@@ -360,6 +342,7 @@ module.exports = function (log) {
           return resolve()
         })
         .catch((err) => {
+          console.log(err)
           log.error('db.js: Error in addBlockTime, you are most likely adding duplicates')
           return reject(err)
         })
@@ -410,9 +393,12 @@ module.exports = function (log) {
 
   db.getLatestCachedBlockTime = function () {
     return new Promise(function (resolve, reject) {
-      var query = 'select MAX(blockNumber) from blocks where userLog=0'
+      var query = 'select MAX(blockNumber) as num from blocks where userLog=0'
       poolquery(query).then((results) => {
-        return resolve(results[0][''])
+        if (results[0].num === null) {
+          return resolve(-1)
+        }
+        return resolve(results[0].num)
       })
     })
   }
@@ -427,8 +413,8 @@ module.exports = function (log) {
         searchField = 'address'
       }
 
-      var query = 'select address, name'/*, difference(' + searchField + ', \'' + pattern +
-        '\') as nameDiff' */+ ' from contracts where ' + searchField + ' LIKE \'' +
+      var query = 'select address, name' + /*, difference(' + searchField + ', \'' + pattern +
+        '\') as nameDiff' + */' from contracts where ' + searchField + ' LIKE \'' +
         interspersedPattern + '\''
 
       if (variables !== null && variables.length > 0) {
