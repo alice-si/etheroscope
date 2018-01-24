@@ -15,5 +15,4 @@ ng serve
 ./node_modules/.bin/ng serve
 # Open your favorite browser
 chromium http://localhost:8080/
-
 ```
