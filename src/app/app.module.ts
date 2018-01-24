@@ -22,6 +22,8 @@ import { CardsComponent } from "./explorer/cards/cards.component";
 // Services
 import { ContractService } from "./_services/contract.service";
 import { GraphService } from "./_services/graph.service";
+import { CsvService } from 'angular2-json2csv';
+
 
 const config: SocketIoConfig = { url: environment.socketURL, options: {} };
 
@@ -47,7 +49,8 @@ const config: SocketIoConfig = { url: environment.socketURL, options: {} };
   ],
   providers: [
     ContractService,
-    GraphService
+    GraphService,
+    CsvService
   ],
   bootstrap: [AppComponent]
 })

@@ -67,6 +67,7 @@
     "@angular/router": "^4.4.6",
     "@swimlane/ngx-charts": "^6.1.0",
     "@webcomponents/custom-elements": "^1.0.0",
+    "angular2-json2csv": "^1.1.2",
     "axios": "^0.17.1",
     "clarity-angular": "^0.10.13",
     "clarity-icons": "^0.10.13",

@@ -93,6 +93,12 @@
             <clr-icon shape="times" style="cursor:pointer;" (click)="deleteFilter(i)"></clr-icon>
         </div>
     </div>
+
+    <div class="card-block">
+        <div class="card-text">
+          Click <a (click)="this.csvService.download(graphService.getDataPoints(), graphService.curContractID + '-' + graphService.lastMethod)">here</a> to download the data as a CSV
+        </div>
+    </div>
 </div>
 
 <div class="card filters animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingGraph">

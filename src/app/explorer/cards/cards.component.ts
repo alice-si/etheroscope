@@ -5,6 +5,8 @@ import { GraphService } from "../../_services/graph.service";
 import { ExplorerComponent } from "../explorer.component";
 import { GraphComponent } from "../graph/graph.component";
 import { Clipboard } from 'ts-clipboard';
+import { CsvService } from 'angular2-json2csv';;
+
 
 enum FilterGroup {
   dates,
@@ -21,6 +23,7 @@ export class CardsComponent {
   contractService: any;
   graphService: any;
   variableScroll: number;
+  csvService: any;
 
   // Graph options
   showXAxis = true;
@@ -38,9 +41,13 @@ export class CardsComponent {
     domain: ['#1998a2', '#A10A28', '#C7B42C', '#AAAAAA']
   };
 
-  constructor(private service: ContractService, private gs: GraphService) {
+  constructor(private service: ContractService,
+  private gs: GraphService,
+  private csv: CsvService
+  ) {
     this.graphService = gs;
     this.contractService = service;
+    this.csvService = csv;
     this.variableScroll = 0;
   }
 

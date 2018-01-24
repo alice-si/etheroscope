@@ -157,4 +157,8 @@ export class GraphService {
     })
   }
 
+  getDataPoints() {
+    return this.methodDatapoints
+  }
+
 }
