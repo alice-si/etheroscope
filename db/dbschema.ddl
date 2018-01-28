@@ -23,7 +23,16 @@ create table variables(
     variableName VARCHAR(50) not null,
     cachedFrom   BIGINT,
     cachedUpTo   BIGINT,
+    unitID       BIGINT,
     primary key (contractHash, variableName)
+);
+
+create table variableUnits(
+    id          BIGINT not null,
+    variable    VARCHAR(50) not null,
+    unit        VARCHAR(50) not null,
+    description NVARCHAR(MAX),
+    primary key (id)
 );
 
 create table dataPoints(
