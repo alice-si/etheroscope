@@ -7,10 +7,9 @@ var path = require('path')
  * we store the configuration in a separate module, login.js.
  */
 const pool = new mssql.ConnectionPool({
-  user: login.username,
+  user: login.user,
   password: login.password,
   server: login.hostname,
-  database: login.database,
   connectionTimeout: 10000,
   requestTimeout: 10000,
   options: {
@@ -21,7 +20,6 @@ const pool = new mssql.ConnectionPool({
     min: 0,
     idleTimeoutMillis: 10000
   }
-
 })
 
 /* DEFINE TABLES FOR BULK INSERT
