@@ -10,6 +10,7 @@ const pool = new mssql.ConnectionPool({
   user: login.user,
   password: login.password,
   server: login.hostname,
+  database: login.database,
   connectionTimeout: 10000,
   requestTimeout: 10000,
   options: {
