@@ -4,7 +4,7 @@
 /dist*
 /blocks
 *.DS_Store
-/devServer/service/login.js
 package-lock.json
 .node-xmlhttpreques*
+login.js
 

@@ -9,7 +9,7 @@
     "@angular/cli": "^1.4.9",
     "@angular/compiler-cli": "^4.4.6",
     "@types/core-js": "~0.9.42",
-    "@types/jasmine": "^2.8.0",
+    "@types/jasmine": "^2.8.6",
     "@types/jasminewd2": "^2.0.2",
     "@types/node": "^8.0.51",
     "bcrypt": "^0.8.5",
