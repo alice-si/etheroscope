@@ -74,8 +74,8 @@ p {
 
     margin: 0 auto;
     position: relative;
-    top: 100%;
-    transform: translateY(-100%);
+    top: 50%;
+    transform: translateY(-50%);
   }
 }
 
@@ -105,9 +105,7 @@ p {
         border-top: 1px solid #1998a2;
         border-radius: 0 0 5px 5px;
         cursor: pointer;
-      } // td:hover {
-      //   background: #eaeaea;
-      // }
+      }
     }
     position: absolute;
     left: 50%;
