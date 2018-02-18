@@ -128,7 +128,7 @@ export class GraphService {
     }
   }
 
-  generateDatapoints(method: string, methodInfo: any, index: number) {
+  generateDatapoints(method: string, methodInfo: any) {
     console.log('Generate Data points for ' + method);
     if (method !== this.lastMethod || this.curContractID !== this.lastContract ||
       this.lastContract === null || this.lastMethod === null) {

@@ -70,10 +70,10 @@ export class ExplorerComponent implements OnInit {
           this.graphService.curContractName = contractInfo.contractName;
         }
         if (method !== null) {
-          let index = this.graphService.methods.find((elem) => {
+          let methodInfo = this.graphService.methods.find((elem) => {
             return elem.variableName.toUpperCase() === method.toUpperCase()
           })
-          this.graphService.generateDatapoints(method, this.graphService.methods[index]);
+          this.graphService.generateDatapoints(method, methodInfo);
         }
       },
       (error) => {
