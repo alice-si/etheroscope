@@ -32,6 +32,9 @@ export class ExplorerComponent implements OnInit {
         this.graphService.latestBlock = latestBlock.latestBlock;
       }
     );
+    // Flush old state
+    this.graphService.curDisplayState = this.graphService.DisplayState.noContract;
+    this.graphService.badRequest = false;
   }
 
   ngOnInit(): void {
