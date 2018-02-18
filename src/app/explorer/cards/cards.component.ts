@@ -141,4 +141,22 @@ export class CardsComponent {
     this.graphService.generateDatapoints(method, methodInfo);
   }
 
+  downloadDatapoints(fileType: string) {
+    let fileBody = ''
+    if (fileType === 'csv') {
+      fileBody += 'data:text/csv;charset=utf-8,'
+      this.graphService.graphDatapoints.forEach((elem) => {
+        fileBody += elem.join(',') + '\r\n'
+      })
+    } else if (fileType === 'json') {
+      fileBody = JSON.stringify(this.graphService.graphDatapoints)
+    }
+    let data = encodeURI(fileBody);
+
+    let link = document.createElement('a');
+    link.setAttribute('href', data);
+    link.setAttribute('download', this.graphService.lastMethod + '.' + fileType);
+    link.click();
+  }
+
 }
