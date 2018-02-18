@@ -78,6 +78,8 @@ export class ExplorerComponent implements OnInit {
       },
       (error) => {
         if (error.status === 400) {
+          this.graphService.badRequest = true;
+          this.graphService.badRequestState = this.graphService.badRequestState_.noABI
           console.log('Error in retrieving contracts')
         }
       },
@@ -87,5 +89,8 @@ export class ExplorerComponent implements OnInit {
         this.displayMethods = true;
       }
     );
+  }
+  verify() {
+    window.open('https://etherscan.io/verifyContract', '_blank')
   }
 }

@@ -1,7 +1,7 @@
 <search-bar (exploreContractEvent)="exploreContract($event, null)"> </search-bar>
 <!-- Help Message without a graph -->
 <div class="no-graph" *ngIf="graphService.curDisplayState === graphService.DisplayState.noContract" (click)="graphService.userSearching = false;">
-    <p *ngIf="graphService.curDisplayState === graphService.DisplayState.noContract" class="animated fadeIn">
+    <p *ngIf="graphService.curDisplayState === graphService.DisplayState.noContract && !graphService.badRequest" class="animated fadeIn">
         <clr-icon shape="arrow" size="36"></clr-icon><br> First, enter a contract to explore. This could be a contract's hash, or a name the contract is associated with.<br> Click <u><a (click)="exploreContract('0xBd897c8885b40d014Fb7941B3043B21adcC9ca1C', null)">here</a></u> to see an example!<br><br><br><br> Or, click <u><a [routerLink]="['/popular']">here</a></u> to see popular smart contracts!<br><br><br><br>
         <clr-icon shape="scroll" size="36"></clr-icon>
         <clr-icon shape="arrow" dir="right" size="36"></clr-icon>
@@ -14,6 +14,12 @@
         <clr-icon shape="scroll" size="36"></clr-icon>
         <clr-icon shape="arrow" dir="right" size="36"></clr-icon>
         <clr-icon shape="scroll" size="36"></clr-icon> <br><br> Each block in the blockchain comes with a unique hash.<br> However, make sure that the hash is associated with a smart contract.
+    </p>
+    <p *ngIf="graphService.curDisplayState === graphService.DisplayState.noContract && graphService.badRequest && this.graphService.badRequestState == this.graphService.badRequestState_.noABI" class="animated fadeIn">
+        This contract either does not exist or its <u><span title="Application Binary Interface">ABI</span></u> is not publicly available<br> Upload your ABI <a (click)="verify()">here</a> to view more details.
+    </p>
+    <p *ngIf="graphService.curDisplayState === graphService.DisplayState.noContract && graphService.badRequest && this.graphService.badRequestState == this.graphService.badRequestState_.incorrectName" class="animated fadeIn">
+        Contract Name is incorrect.
     </p>
     <br>
 </div>

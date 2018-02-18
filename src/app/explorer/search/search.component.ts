@@ -62,6 +62,9 @@ export class SearchBarComponent {
   }
 
   exploreContractMatches(searchbar: string) {
+    if (searchbar.length === 0) {
+      return
+    }
     let pattern;
     if (this.matches.length === 0) {
       pattern = searchbar;
@@ -72,10 +75,14 @@ export class SearchBarComponent {
   }
 
   exploreContract(contract: string) {
+    if (contract.length === 0) {
+      return
+    }
     this.graphService.userSearching = false;
     if (contract[0] !== '0' && (contract[1] !== 'x' && contract[1] !== 'X') && contract.length !== 42) {
       console.log('bad request????')
       this.graphService.badRequest = true;
+      this.graphService.badRequestState = this.graphService.badRequestState_.incorrectName;
     } else {
       this.graphService.badRequest = false;
       this.exploreContractEvent.emit(contract);
@@ -208,5 +215,6 @@ export class SearchBarComponent {
   hasAdvancedConstraints() {
     return this.advancedConstraints.variables.length > 0 || this.advancedConstraints.transactions.length > 0;
   }
+
 
 }

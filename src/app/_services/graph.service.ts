@@ -11,6 +11,12 @@ enum ds {
     displayingHistogram
 };
 
+enum brs {
+  noABI,
+  incorrectName
+};
+
+
 
 @Injectable()
 export class GraphService {
@@ -37,7 +43,11 @@ export class GraphService {
   methodPages: number;
   userSearching: boolean;
   weekDayNames: any;
+
   badRequest: boolean;
+  badRequestState: brs;
+  badRequestState_ = brs;
+
   readonly histoNoBuckets: number;
   histogramData: any[];
 
