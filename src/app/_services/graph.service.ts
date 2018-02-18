@@ -78,6 +78,7 @@ export class GraphService {
     this.graphDatapoints.forEach((elem) => {
       histogramBuckets[Math.floor(elem[1] / bucketSize)] += 1;
     });
+    this.histogramData = new Array(this.histoNoBuckets)
     histogramBuckets.forEach((elem, i) => {
       this.histogramData[i] = {
         "name": (i * bucketSize) + ' - ' + (((i + 1) * bucketSize) - 1),
