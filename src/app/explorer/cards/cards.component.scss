@@ -67,6 +67,13 @@
   overflow: hidden;
 }
 
+.card-w {
+  height: 98%;
+  position: relative;
+  top: 100%;
+  transform: translateY(-100%);
+}
+
 #variables {
   table {
     width: 100%;

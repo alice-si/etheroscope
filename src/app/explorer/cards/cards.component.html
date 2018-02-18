@@ -1,122 +1,123 @@
-<div class="animated fadeIn">
-    <div class="card" id="variables">
-        <div class="card-header" *ngIf="graphService.curContractName.length <= 25">
-            Contract: {{graphService.curContractName}}
-        </div>
-        <div class="card-header" *ngIf="graphService.curContractName.length > 25" [title]="this.curContractName">
-            Contract: {{graphService.curContractName.slice(0,22)}}...
-        </div>
-        <div class="card-block">
-            <table>
-                <tr>
-                    <td style="padding: 0;">
-                        <div class="card-text" style="text-align: center; font-size: 0.9em;">
-                            Address: {{this.graphService.curContractID.substr(0, 20)}}...
+<div class="card-w">
+    <div class="animated fadeIn">
+        <div class="card" id="variables">
+            <div class="card-header" *ngIf="graphService.curContractName.length <= 25">
+                Contract: {{graphService.curContractName}}
+            </div>
+            <div class="card-header" *ngIf="graphService.curContractName.length > 25" [title]="this.curContractName">
+                Contract: {{graphService.curContractName.slice(0,22)}}...
+            </div>
+            <div class="card-block">
+                <table>
+                    <tr>
+                        <td style="padding: 0;">
+                            <div class="card-text" style="text-align: center; font-size: 0.9em;">
+                                Address: {{this.graphService.curContractID.substr(0, 20)}}...
+                            </div>
+                        </td>
+                        <td align="right">
+                            <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the address!" (click)="copyToClipboard(this.graphService.curContractID)">
+                            <clr-icon shape="copy" style="color: #1998a2"></clr-icon>
+                          </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <div id="viewSourceCode" style="text-align: center;" *ngIf="graphService.curContractName !== 'unknown'">
+                            <button class="btn btn-sm view-src-btn" (click)="openSourceCode()">View the contract's source code</button>
                         </div>
-                    </td>
-                    <td align="right">
-                        <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the address!" (click)="copyToClipboard(this.graphService.curContractID)">
-                          <clr-icon shape="copy" style="color: #1998a2"></clr-icon>
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <div id="viewSourceCode" style="text-align: center;" *ngIf="graphService.curContractName !== 'unknown'">
-                        <button class="btn btn-sm view-src-btn" (click)="openSourceCode()">View the contract's source code</button>
+                    </tr>
+                </table>
+            </div>
+            <div class="card-block">
+                <div class="card-text" *ngIf="graphService.relevantMethods.length === 0">
+                    No displayable variables in contract
+                </div>
+                <div class="card-text" *ngIf="graphService.relevantMethods.length !== 0">
+                    <div style="text-align: center;">
+                        Click to view a variable:
                     </div>
-                </tr>
-            </table>
-        </div>
-        <div class="card-block">
-            <div class="card-text" *ngIf="graphService.relevantMethods.length === 0">
-                No displayable variables in contract
-            </div>
-            <div class="card-text" *ngIf="graphService.relevantMethods.length !== 0">
-                <div style="text-align: center;">
-                    Click to view a variable:
+                    <button class="btn btn-sm var-btns animated fadeIn" *ngFor="let m of graphService.relevantMethods; let i = index" (click)="generateDatapoints(m.variableName, m)">
+                            <div *ngIf="m.variableName.length <= 15"> {{m.variableName}}
+                                <span *ngIf="m.unit !== null">
+                                  <clr-icon shape="info-circle" size="18" class="tooltip" [title]="'Units: '+ m.unit + '\nDescription: ' + m.description"></clr-icon>
+                                </span>
+                            </div>
+                            <div *ngIf="m.variableName.length >= 16" title="{{m.variableName}}"> {{m.variableName.slice(0,13)}}..
+                                <span *ngIf="m.unit !== null">
+                                  <clr-icon shape="info-circle" size="18" class="tooltip" [title]="'Units: '+ m.unit + '\nDescription: ' + m.description"></clr-icon>
+                                </span>
+                            </div>
+                          </button>
+                    <br>
+                    <div *ngIf="graphService.methodPages > 1" style="text-align: center">
+                        <button class="btn btn-link" (click)="methodsScroll(true)">
+                                <clr-icon shape="arrow left"></clr-icon>
+                              </button>
+                        <span>{{variableScroll + 1}} / {{graphService.methodPages}} &nbsp; </span>
+                        <button class="btn btn-link" (click)="methodsScroll(false)">
+                                <clr-icon shape="arrow right"></clr-icon>
+                              </button>
+                    </div>
                 </div>
-                <button class="btn btn-sm var-btns animated fadeIn" *ngFor="let m of graphService.relevantMethods; let i = index" (click)="generateDatapoints(m.variableName, m)">
-                          <div *ngIf="m.variableName.length <= 15"> {{m.variableName}}
-                              <span *ngIf="m.unit !== null">
-                                <clr-icon shape="info-circle" size="18" class="tooltip" [title]="'Units: '+ m.unit + '\nDescription: ' + m.description"></clr-icon>
-                              </span>
-                          </div>
-                          <div *ngIf="m.variableName.length >= 16" title="{{m.variableName}}"> {{m.variableName.slice(0,13)}}..
-                              <span *ngIf="m.unit !== null">
-                                <clr-icon shape="info-circle" size="18" class="tooltip" [title]="'Units: '+ m.unit + '\nDescription: ' + m.description"></clr-icon>
-                              </span>
-                          </div>
-                        </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card currViewing animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingGraph || graphService.curDisplayState === graphService.DisplayState.awaitingInitialPoints">
+        <div class="card-header">
+            <div class="row">
+                <div class="col-xs-2"></div>
+                <div class="col-xs-8">
+                    Currently Viewing
+                </div>
+                <div class="col-xs-2">
+                    <clr-icon class="DownloadData" (click)="downloadDatapoints('csv')" title="Download Data" shape="floppy" style="cursor: pointer;"></clr-icon>
+                </div>
+                <!-- Currently Viewing <clr-icon class="DownloadData" title="Download Data" shape="floppy"></clr-icon> -->
+            </div>
+            <div class="card-block">
+                <button class="btn-primary btn btn-sm" style="cursor: default;">{{graphService.lastMethod}}</button>
                 <br>
-                <div *ngIf="graphService.methodPages > 1" style="text-align: center">
-                    <button class="btn btn-link" (click)="methodsScroll(true)">
-                              <clr-icon shape="arrow left"></clr-icon>
-                            </button>
-                    <span>{{variableScroll + 1}} / {{graphService.methodPages}} &nbsp; </span>
-                    <button class="btn btn-link" (click)="methodsScroll(false)">
-                              <clr-icon shape="arrow right"></clr-icon>
-                            </button>
+                <div *ngIf="graphService.lastMethodInfo !== null && graphService.lastMethodInfo.unit !== null">
+                    Units: {{graphService.lastMethodInfo.unit}}
+                    <br> {{graphService.lastMethodInfo.description}}
+                </div>
+            </div>
+
+            <!-- <div class="card-block progress-card"> -->
+            <div *ngIf="graphService.progressBar !== null && graphService.progressBar !== undefined && graphService.progressBar !== 100" class="card-block progress-card">
+                <div class="progress-block">
+                    <label>{{graphService.progressBar}}%</label>
+                    <div class="progress-static">
+                        <div class="progress-meter" [attr.data-value]="graphService.progressBar"></div>
+                    </div>
+                </div>
+                <div class="card-text from-block-to-block">
+                    Got points from block {{graphService.cachedFrom}} to {{graphService.cachedTo}}
+                </div>
+            </div>
+
+            <div class="card-block" *ngIf="graphService.datapointFilters !== undefined && graphService.datapointFilters.length !== 0">
+                <div class="card-text" *ngFor="let filter of graphService.datapointFilters; let i = index">
+                    {{filter.message}}
+                    <clr-icon shape="times" style="cursor:pointer;" (click)="deleteFilter(i)"></clr-icon>
+                </div>
+            </div>
+        </div>
+
+        <div class="card filters animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingGraph">
+            <div class="card-header">
+                Filter the points on the graph
+            </div>
+            <div class="card-block">
+                <div class="btn-group btn-primary">
+                    <button class="button" (click)="filterOnLast(1, 'hour')">1h</button>
+                    <button class="button" (click)="filterOnLast(12, 'hour')">12h</button>
+                    <button class="button" (click)="filterOnLast(1, 'day')">1d</button>
+                    <button class="button" (click)="filterOnLast(1, 'week')">1w</button>
+                    <button class="button" (click)="filterOnLast(1, 'month')">1m</button>
+                    <button class="button" (click)="filterOnLast(1, 'year')">1y</button>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-<div class="card currViewing animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingGraph || graphService.curDisplayState === graphService.DisplayState.awaitingInitialPoints">
-    <div class="card-header">
-        <div class="row">
-            <div class="col-xs-2"></div>
-            <div class="col-xs-8">
-                Currently Viewing
-            </div>
-            <div class="col-xs-2">
-                <clr-icon class="DownloadData" (click)="downloadDatapoints('csv')" title="Download Data" shape="floppy"></clr-icon>
-            </div>
-        </div>
-        <!-- Currently Viewing <clr-icon class="DownloadData" title="Download Data" shape="floppy"></clr-icon> -->
-    </div>
-    <div class="card-block">
-        <button class="btn-primary btn btn-sm" style="cursor: default;">{{graphService.lastMethod}}</button>
-        <br>
-        <div *ngIf="graphService.lastMethodInfo !== null && graphService.lastMethodInfo.unit !== null">
-            Units: {{graphService.lastMethodInfo.unit}}
-            <br> {{graphService.lastMethodInfo.description}}
-        </div>
-    </div>
-
-    <div class="card-block progress-card">
-        <!-- <div *ngIf="graphService.progressBar !== null && graphService.progressBar !== undefined && graphService.progressBar !== 100" class="card-block progress-card"> -->
-        <div class="progress-block">
-            <label>{{graphService.progressBar}}%</label>
-            <div class="progress-static">
-                <div class="progress-meter" [attr.data-value]="graphService.progressBar"></div>
-            </div>
-        </div>
-        <div class="card-text from-block-to-block">
-            Got points from block {{graphService.cachedFrom}} to {{graphService.cachedTo}}
-        </div>
-    </div>
-
-    <div class="card-block" *ngIf="graphService.datapointFilters !== undefined && graphService.datapointFilters.length !== 0">
-        <div class="card-text" *ngFor="let filter of graphService.datapointFilters; let i = index">
-            {{filter.message}}
-            <clr-icon shape="times" style="cursor:pointer;" (click)="deleteFilter(i)"></clr-icon>
-        </div>
-    </div>
-</div>
-
-<div class="card filters animated fadeIn" *ngIf="graphService.curDisplayState === graphService.DisplayState.displayingGraph">
-    <div class="card-header">
-        Filter the points on the graph
-    </div>
-    <div class="card-block">
-        <div class="btn-group btn-primary">
-            <button class="button" (click)="filterOnLast(1, 'hour')">1h</button>
-            <button class="button" (click)="filterOnLast(12, 'hour')">12h</button>
-            <button class="button" (click)="filterOnLast(1, 'day')">1d</button>
-            <button class="button" (click)="filterOnLast(1, 'week')">1w</button>
-            <button class="button" (click)="filterOnLast(1, 'month')">1m</button>
-            <button class="button" (click)="filterOnLast(1, 'year')">1y</button>
-        </div>
-    </div>
-</div>
