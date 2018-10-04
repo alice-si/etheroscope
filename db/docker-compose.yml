@@ -1,0 +1,17 @@
+# This is a little configuration that helps to spin a new mysql (MariaDB) database
+# Make sure that docker-compose tool is installed and execute it by typing:
+# docker-compose up
+# Don't forget to create an empty "etheroscope" database once the mysql db is up and running
+
+version: '2'
+
+services:
+
+  mysql:
+    image: mariadb:10.1.19
+    ports:
+      - 8083:3306
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: wp
