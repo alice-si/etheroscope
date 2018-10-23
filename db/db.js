@@ -258,11 +258,14 @@ module.exports = function (log) {
 
         pool.query(dataPointsTable.sql, [dataPointsTable.values])
           .then(() => {
-            var sql =
-              'update variables set cachedFrom=\'' + from + '\' where contractHash=\'' + contractAddress +
-              '\' and variableName=\'' + method + '\';' //+
+            // var sql =
+              // 'update variables set cachedFrom=\'' + from + '\' where contractHash=\'' + contractAddress +
+              // '\' and variableName=\'' + method + '\';' +
             // 'update variables set cachedUpTo=\'' + to + '\' where contractHash=\'' + contractAddress +
             // '\' and variableName=\'' + method + '\';'
+            var sql =
+              'update variables set cachedFrom=\'' + from + '\', cachedUpTo=\'' + to + '\' where contractHash=\'' + contractAddress +
+              '\' and variableName=\'' + method + '\''
             console.log('\nsql', sql)
             return pool.query(sql)
           })
