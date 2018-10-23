@@ -15,7 +15,7 @@ module.exports = function (db, log, validator, withStateDB = false) {
 
   if (withStateDB) {
     var stateDB = new StateDB(dbPath, true)
-    console.log('stateDB', stateDB)
+    console.log('Eth-Storage connected')
   }
 
   if (!web3.isConnected()) {
@@ -198,11 +198,14 @@ module.exports = function (db, log, validator, withStateDB = false) {
 
   parity.getHistory = function (address, method, startBlock, endBlock) {
     //TODO: method to index translation
+
     console.log('parity.getHistory:args(currently with no method):',startBlock,endBlock)
+
     return new Promise((resolve, reject) => {
-      // console.log('stateDB2', stateDB)
       if (stateDB) {
+
         console.log('parity.getHistory:querylength', endBlock - startBlock)
+
         return stateDB.hashSet(address, 0, startBlock, endBlock, function returnResults (err, result) {
           if (err) return reject(err)
           else return resolve(result)
@@ -213,8 +216,10 @@ module.exports = function (db, log, validator, withStateDB = false) {
 
   parity.generateDataPoints = function (eventsA, contract, method,
                                         totalFrom, totalTo) {
+
     console.log('parity:generateDataPoints,eventsA', eventsA, 'contract adr:', contract.address.slice(0, 8),
       '... method', method, 'total from:', totalFrom, 'total to:', totalTo)
+
     return new Promise((resolve, reject) => {
       // log.debug('Generating data points')
 
@@ -222,12 +227,16 @@ module.exports = function (db, log, validator, withStateDB = false) {
         // [(time, value, blockNum)]
         var rawVal = event.val
 
+        console.log('generateDataPoints:rawval',rawVal,'len',rawVal.length)
+
         var val;
         if (Buffer.isBuffer(rawVal)) {
           var len = rawVal.length
           //TODO: reading itn proper?
           var startIdx = (len - 4 < 0) ? 0 : len - 4
-          val = rawVal.readUIntBE(startIdx, len)
+          // val = rawVal.readUIntBE(0, 4)
+          // val = rawVal.readUIntBE(startIdx, len)
+          val = parseInt(rawVal.toString('hex'), 16)
         }
         else{
           val = 0;
@@ -238,12 +247,12 @@ module.exports = function (db, log, validator, withStateDB = false) {
         return Promise.all([parity.getBlockTime(event.block), val, event.block])
       }, {concurrency: 5})
     // * array of arrays of the form: [[time, 'value', blockNum]]
-      .then((eventsA) => {return db.addDataPoints(contract.address.substr(2), method, eventsA, totalFrom, totalTo)})
-      .then(() => {
-        if (eventsA.length > 0) {
-          log.debug('Added ' + eventsA.length + ' data points for ' + contract.address + ' ' + method)
+      .then((eventsB) => {return db.addDataPoints(contract.address.substr(2), method, eventsB, totalFrom, totalTo)})
+      .then((eventsB) => {
+        if (eventsB.length > 0) {
+          log.debug('Added ' + eventsB.length + ' data points for ' + contract.address + ' ' + method)
         }
-        return resolve(eventsA)
+        return resolve(eventsB)
       })
       .catch((err) => {
         log.error('Data set generation error: ' + err)

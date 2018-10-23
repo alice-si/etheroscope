@@ -15,10 +15,7 @@ const pool = mysql.createPool({
 
 function test () {
   pool.query('SELECT 1 + 1 AS solution').then(function (results) {
-    console.log('The solution is: ', results[0].solution)
-  })
-  pool.query('SHOW DATABASES').then(function (results) {
-    console.log('Show databases: ', results[0].solution)
+    console.log('MYSQL connection test "1+1" the solution is: ', results[0].solution)
   })
 }
 
@@ -33,18 +30,12 @@ test()
  */
 function getNewVariablesTable () {
   console.log('getNewVariablesTable')
-  var variablesTable = {}
-  variablesTable.sql = 'insert into variables (contractHash, variableName, cachedFrom, cachedUpTo) values ?'
-  variablesTable.createTable = 'create table if not exists variables(' +
-    'contractHash varchar(40) primary key not null,' +
-    'variableName varchar(50) primary key not null,' +
-    'cachedFrom bigint,' +
-    'cachedUpTo bigint)'
-  variablesTable.values = []
-  variablesTable.rows = {
-    add: function (address, variable) {
-      variablesTable.values.push([address, variable, null, null])
-    }
+  var variablesTable = {
+    sql: 'insert into variables (contractHash, variableName, cachedFrom, cachedUpTo) values ?',
+    values: [],
+  }
+  variablesTable.add = function (address, variable) {
+    variablesTable.values.push([address, variable, null, null])
   }
   return variablesTable
 }
@@ -53,18 +44,13 @@ function getNewVariablesTable () {
  */
 function getNewDataPointsTable () {
   console.log('getNewDataPointsTable')
-  var dataPointsTable = {}
-  dataPointsTable.sql = 'insert ignore into dataPoints (contractHash, variableName, blockNumber, value) values ?'
-  dataPointsTable.createTable = 'create table if not exists dataPoints(' +
-    'contractHash varchar(40) primary key not null,' +
-    'variableName varchar(50) primary key not null,' +
-    'blockNumber bigint,' +
-    'value varchar(78))'
-  dataPointsTable.values = []
-  dataPointsTable.rows = {
-    add: function (contractAdress, method, blockNumber, value) {
-      dataPointsTable.values.push([contractAdress, method, blockNumber, value])
-    }
+  var dataPointsTable = {
+    sql: 'insert into dataPoints (contractHash, variableName, blockNumber, value) values ?',
+    values: [],
+    //TODO is it good self pointing?
+  }
+  dataPointsTable.add = function (contractAdress, method, blockNumber, value) {
+    dataPointsTable.values.push([contractAdress, method, blockNumber, value])
   }
   return dataPointsTable
 }
@@ -76,7 +62,7 @@ function getNewDataPointsTable () {
  * such arrays, to facilitate inserting
  * multiple records.
  */
-function buildValueString (valuesArray, nonapostrofindex=undefined) {
+function buildValueString (valuesArray, nonapostrofindex = undefined) {
   console.log('buildValueString')
   var result = ''
   for (var i = 0; i < valuesArray.length; i++) {
@@ -102,6 +88,7 @@ module.exports = function (log) {
   function loadSchema () {
     console.log('loadSchema')
     var fs = require('fs')
+    //TODO write new schema
     fs.readFile(path.join(__dirname, '/moduleschema.ddl'), function (err, data) {
       if (err) {
         throw err
@@ -115,6 +102,7 @@ module.exports = function (log) {
     })
   }
 
+  // TODO delete pool connect from code
   db.poolConnect = function () {
     console.log('db.poolConnect')
     return new Promise(function (resolve, reject) {
@@ -148,7 +136,10 @@ module.exports = function (log) {
     console.log('db.updateContractsWithABI')
     return new Promise(function (resolve, reject) {
 
-      var sql = 'update contracts set abi=\'' + JSON.stringify(parsedContract) + '\' where contractHash=\'' + address + '\''
+      // var sql = 'update contracts set abi=\'' + JSON.stringify(parsedContract) + '\' where contractHash=\'' + address + '\''
+      // var sql = 'insert into contracts set abi=\'' + JSON.stringify(parsedContract) + '\' where contractHash=\'' + address + '\''
+      var sql = 'insert into contracts (contractHash, name, abi) values (\'' + address + '\', \'rinkebycontract\',\'' + JSON.stringify(parsedContract) + '\')'
+      console.log('db.updateCOntractswithAbi:sql',sql)
       pool.query(sql)
         .catch((err) => {
           log.error('db.js: Error in updateContractWithABI')
@@ -162,15 +153,11 @@ module.exports = function (log) {
     return new Promise(function (resolve, reject) {
 
       var sql = 'insert into contractLookupHistory (contractHash, date) values (\'' + address + '\', CURDATE())'
-
       console.log('addContractLookup:sql', sql)
-
       pool.query(sql)
         .catch((err) => {
           log.error('db.js: Error in addContractLookup')
           log.error('this error is not invasing, probably duplicate entry')
-          // log.error((err + '').slice(0, 100))
-          // log.error(err)
         })
     })
   }
@@ -242,7 +229,7 @@ module.exports = function (log) {
     return new Promise(function (resolve, reject) {
       if (values.length === 0) {
         console.log('db.addDataPoints empty values', values)
-        return resolve()
+        return resolve(values)
       }
       else {
         let dataPointsTable = getNewDataPointsTable()
@@ -251,18 +238,18 @@ module.exports = function (log) {
 
         values.forEach((elem) => {
           // TODO: is int reading from buffer good?
-          dataPointsTable.rows.add(contractAddress, method, elem[2], elem[1])
+          dataPointsTable.add(contractAddress, method, elem[2], elem[1])
         })
 
-        // console.log('dpt.sql', dataPointsTable.sql, 'values', dataPointsTable.values)
+        console.log('db.addDataPoints dataPOintsTable', dataPointsTable)
 
-        pool.query(dataPointsTable.sql, [dataPointsTable.values])
+        if (values.length != dataPointsTable.values.length) throw error;
+
+        return pool.query(dataPointsTable.sql, [dataPointsTable.values])
           .then(() => {
-            // var sql =
-              // 'update variables set cachedFrom=\'' + from + '\' where contractHash=\'' + contractAddress +
-              // '\' and variableName=\'' + method + '\';' +
-            // 'update variables set cachedUpTo=\'' + to + '\' where contractHash=\'' + contractAddress +
-            // '\' and variableName=\'' + method + '\';'
+
+            console.log('just added datapoints values:\n',dataPointsTable.values,'and sql',dataPointsTable.sql)
+
             var sql =
               'update variables set cachedFrom=\'' + from + '\', cachedUpTo=\'' + to + '\' where contractHash=\'' + contractAddress +
               '\' and variableName=\'' + method + '\''
@@ -270,7 +257,7 @@ module.exports = function (log) {
             return pool.query(sql)
           })
           .then(() => {
-            return resolve()
+            return resolve(values)
           })
           .catch((err) => {
             log.error('db.js: Error in addDataPoints')
@@ -284,12 +271,12 @@ module.exports = function (log) {
 
   /* This function takes a variable */
   db.addVariables = function (address, variables) {
-    console.log('db.addVariables')
+    console.log('db.addVariables:',variables)
     return new Promise(function (resolve, reject) {
 
       let variablesTable = getNewVariablesTable()
       variables.forEach((variable) => {
-        variablesTable.rows.add(address, variable)
+        variablesTable.add(address, variable)
       })
       pool.query(variablesTable.sql, [variablesTable.values])
         .then(() => {
@@ -357,10 +344,10 @@ module.exports = function (log) {
   }
 
   db.addBlockTime = function (values) {
-    console.log('db.addBlockTime:values\n',values)
+    console.log('db.addBlockTime:values\n', values)
     return new Promise(function (resolve, reject) {
 
-      var valueString = buildValueString(values,2)
+      var valueString = buildValueString(values, 2)
       var sql = 'insert into blocks (blockNumber, timeStamp, userLog) values ' + valueString +
         ' on duplicate key update timeStamp = \'' + values[0][1] + '\', userLog=b\'' + values[0][2] + '\''
       pool.query(sql)
@@ -368,7 +355,7 @@ module.exports = function (log) {
           return resolve()
         })
         .catch((err) => {
-          log.error('db.js: Error in addBlocKTime, you are most likely adding duplicates\n'+sql+', err:',err)
+          log.error('db.js: Error in addBlocKTime, you are most likely adding duplicates\n' + sql + ', err:', err)
           return reject(err)
         })
     })
@@ -429,6 +416,7 @@ module.exports = function (log) {
 
       var sql = 'select MAX(blockNumber) from blocks where userLog=0'
       pool.query(sql).then((results) => {
+        console.log('db.getLatestCachedBlockTime:results (will neeed [0][\'\'],',results)
         return resolve(results[0][''])
       })
     })

@@ -53,10 +53,59 @@ db.poolConnect().then(() => {
   io.on('disconnect', function (socket) {
   })
 
+  function sendHistory (address, method, socket) {
+    /* Ignore invalid requests on the socket - the frontend should
+     * ensure these are not send, so any invalid addresses
+     * will not have been sent from our front end */
+    if (!validAddress(address)) {
+      return
+    }
+
+    db.getCachedFromTo(address.substring(2), method)
+      .then((result) => {
+        parity.getLatestBlock()
+          .then((latestBlock) => {
+            io.sockets.in(address + method).emit('latestBlock', { latestBlock: latestBlock })
+            let from = result.cachedFrom
+            let to = result.cachedUpTo
+            if (from === null || to === null) {
+              from = latestBlock
+              to = latestBlock
+            }
+            // Send every point we have in the db so far
+            sendAllDataPointsFromDB(address, method, parseInt(from), parseInt(to), socket)
+            // If there is already a caching process, we don't need to set one up
+            lock.writeLock('setLock', function (release) {
+              if (methodCachesInProgress.has(address + method)) {
+                release()
+                return
+              }
+              methodCachesInProgress.add(address + method)
+              release()
+              from = parseInt(from)
+              to = parseInt(to)
+              latestBlock = parseInt(latestBlock)
+              parity.getContract(address)
+                .then((contractInfo) => {
+                  cacheMorePoints(contractInfo, address, method, parseInt(from), parseInt(to),
+                    parseInt(latestBlock))
+                })
+            })
+          })
+          .catch((err) => {
+            log.error('Parity latest block err at api.js:', err)
+          })
+      })
+      .catch((err) => {
+        log.error('Error caching more points:', err)
+      })
+  }
+
   function sendAllDataPointsFromDB (address, method, from, to, socket) {
     db.getDataPoints(address.substr(2), method)
       .then((dataPoints) => {
         // return Promise.map(dataPoints[0], (elem) => {
+        console.log('index.js:sendDAllDataPointsFromDB',dataPoints)
           return Promise.map(dataPoints, (elem) => {
           return [elem.timeStamp, elem.value]
         })
@@ -113,10 +162,13 @@ db.poolConnect().then(() => {
       // parity.getHistory(contractAddress, method, from, upTo - 1)
       parity.getHistory(contractAddress, method, from, upTo)
       .then(function (events) {
+        console.log('index.js:sendDataPointsFromParity:events',events)
         return parity.generateDataPoints(events, contract, method,
           totalFrom, totalTo)
       })
       .then(function (results) {
+        console.log('index.js:sendDataPointsFromParity:results',results)
+        // if (results.length > 0) throw error;
         io.sockets.in(contractAddress + method).emit('getHistoryResponse',
             { error: false, from: from, to: upTo, results: results })
         return resolve()
@@ -127,53 +179,5 @@ db.poolConnect().then(() => {
         return reject(err)
       })
     })
-  }
-
-  function sendHistory (address, method, socket) {
-    /* Ignore invalid requests on the socket - the frontend should
-     * ensure these are not send, so any invalid addresses
-     * will not have been sent from our front end */
-    if (!validAddress(address)) {
-      return
-    }
-
-    db.getCachedFromTo(address.substring(2), method)
-      .then((result) => {
-        parity.getLatestBlock()
-          .then((latestBlock) => {
-            io.sockets.in(address + method).emit('latestBlock', { latestBlock: latestBlock })
-            let from = result.cachedFrom
-            let to = result.cachedUpTo
-            if (from === null || to === null) {
-              from = latestBlock
-              to = latestBlock
-            }
-            // Send every point we have in the db so far
-            sendAllDataPointsFromDB(address, method, parseInt(from), parseInt(to), socket)
-            // If there is already a caching process, we don't need to set one up
-            lock.writeLock('setLock', function (release) {
-              if (methodCachesInProgress.has(address + method)) {
-                release()
-                return
-              }
-              methodCachesInProgress.add(address + method)
-              release()
-              from = parseInt(from)
-              to = parseInt(to)
-              latestBlock = parseInt(latestBlock)
-              parity.getContract(address)
-              .then((contractInfo) => {
-                cacheMorePoints(contractInfo, address, method, parseInt(from), parseInt(to),
-                                parseInt(latestBlock))
-              })
-            })
-          })
-          .catch((err) => {
-            log.error('Parity latest block err at api.js:', err)
-          })
-      })
-      .catch((err) => {
-        log.error('Error caching more points:', err)
-      })
   }
 })
