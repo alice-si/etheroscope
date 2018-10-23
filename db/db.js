@@ -26,33 +26,38 @@ test()
  * so that we can use them for bulk inserts
  */
 
-/* Variables Table
+/* Variables Table takes in a contract address, method and
+   * array of arrays of the form: [[time, 'value', blockNum]]
+   * time is currently ignored
  */
-function getNewVariablesTable () {
-  console.log('getNewVariablesTable')
-  var variablesTable = {
+function getNewVariablesTable (contractAddress,variables) {
+  // console.log('getNewDataPointsTable')
+  var sqlFormatValues = []
+  variables.forEach((variable) => {
+    sqlFormatValues.push([contractAddress, variable, null, null])
+  })
+
+  return {
     sql: 'insert into variables (contractHash, variableName, cachedFrom, cachedUpTo) values ?',
-    values: [],
+    values: sqlFormatValues
   }
-  variablesTable.add = function (address, variable) {
-    variablesTable.values.push([address, variable, null, null])
-  }
-  return variablesTable
 }
 
-/* DataPoints Table
+/* DataPoints Table takes in a contract address, method and
+   * array of arrays of the form: [[time, 'value', blockNum]]
+   * time is currently ignored
  */
-function getNewDataPointsTable () {
-  console.log('getNewDataPointsTable')
-  var dataPointsTable = {
-    sql: 'insert into dataPoints (contractHash, variableName, blockNumber, value) values ?',
-    values: [],
-    //TODO is it good self pointing?
+function getNewDataPointsTable (contractAddress,method,values) {
+  // console.log('getNewDataPointsTable')
+  var sqlFormatValues = []
+  values.forEach((elem) => {
+    sqlFormatValues.push([contractAddress, method, elem[1], elem[2]])
+  })
+
+  return {
+    sql: 'insert into dataPoints (contractHash, variableName, value, blockNumber) values ?',
+    values: sqlFormatValues
   }
-  dataPointsTable.add = function (contractAdress, method, blockNumber, value) {
-    dataPointsTable.values.push([contractAdress, method, blockNumber, value])
-  }
-  return dataPointsTable
 }
 
 /* A function to build a set of values
@@ -139,7 +144,7 @@ module.exports = function (log) {
       // var sql = 'update contracts set abi=\'' + JSON.stringify(parsedContract) + '\' where contractHash=\'' + address + '\''
       // var sql = 'insert into contracts set abi=\'' + JSON.stringify(parsedContract) + '\' where contractHash=\'' + address + '\''
       var sql = 'insert into contracts (contractHash, name, abi) values (\'' + address + '\', \'rinkebycontract\',\'' + JSON.stringify(parsedContract) + '\')'
-      console.log('db.updateCOntractswithAbi:sql',sql)
+      console.log('db.updateCOntractswithAbi:sql', sql)
       pool.query(sql)
         .catch((err) => {
           log.error('db.js: Error in updateContractWithABI')
@@ -232,23 +237,14 @@ module.exports = function (log) {
         return resolve(values)
       }
       else {
-        let dataPointsTable = getNewDataPointsTable()
-
-        console.log('db.addDataPoints nonTableValues ([0] ignored)', values)
-
-        values.forEach((elem) => {
-          // TODO: is int reading from buffer good?
-          dataPointsTable.add(contractAddress, method, elem[2], elem[1])
-        })
+        let dataPointsTable = getNewDataPointsTable(contractAddress, method, values)
 
         console.log('db.addDataPoints dataPOintsTable', dataPointsTable)
-
-        if (values.length != dataPointsTable.values.length) throw error;
 
         return pool.query(dataPointsTable.sql, [dataPointsTable.values])
           .then(() => {
 
-            console.log('just added datapoints values:\n',dataPointsTable.values,'and sql',dataPointsTable.sql)
+            console.log('just added datapoints values:\n', dataPointsTable.values, 'and sql', dataPointsTable.sql)
 
             var sql =
               'update variables set cachedFrom=\'' + from + '\', cachedUpTo=\'' + to + '\' where contractHash=\'' + contractAddress +
@@ -271,13 +267,10 @@ module.exports = function (log) {
 
   /* This function takes a variable */
   db.addVariables = function (address, variables) {
-    console.log('db.addVariables:',variables)
+    console.log('db.addVariables:', variables)
     return new Promise(function (resolve, reject) {
 
-      let variablesTable = getNewVariablesTable()
-      variables.forEach((variable) => {
-        variablesTable.add(address, variable)
-      })
+      let variablesTable = getNewVariablesTable(address,variables)
       pool.query(variablesTable.sql, [variablesTable.values])
         .then(() => {
             return resolve()
@@ -416,7 +409,7 @@ module.exports = function (log) {
 
       var sql = 'select MAX(blockNumber) from blocks where userLog=0'
       pool.query(sql).then((results) => {
-        console.log('db.getLatestCachedBlockTime:results (will neeed [0][\'\'],',results)
+        console.log('db.getLatestCachedBlockTime:results (will neeed [0][\'\'],', results)
         return resolve(results[0][''])
       })
     })
