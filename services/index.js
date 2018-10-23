@@ -19,7 +19,7 @@ let io = require('socket.io')(server)
 db.poolConnect().then(() => {
   server.listen(socketPort)
 // Initialise the server
-  let parity = require('../api/parity')(db, log, validator)
+  let parity = require('../api/parity')(db, log, validator, true)
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(morgan('dev'))
@@ -56,7 +56,8 @@ db.poolConnect().then(() => {
   function sendAllDataPointsFromDB (address, method, from, to, socket) {
     db.getDataPoints(address.substr(2), method)
       .then((dataPoints) => {
-        return Promise.map(dataPoints[0], (elem) => {
+        // return Promise.map(dataPoints[0], (elem) => {
+          return Promise.map(dataPoints, (elem) => {
           return [elem.timeStamp, elem.value]
         })
       })
@@ -74,7 +75,9 @@ db.poolConnect().then(() => {
   // Find more things, firstly at to - end, and later anything before from
   // pre: from, upTo, latestBlock are numbers, not strings
   function cacheMorePoints (contractInfo, address, method, from, upTo, latestBlock) {
-    const chunkSize = 1000
+    // const chunkSize = 1000
+    //TODO: assert if working
+    const chunkSize = 10000
     // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
     if (upTo === latestBlock + 1) {
       if (from === 1) {
@@ -107,7 +110,8 @@ db.poolConnect().then(() => {
       // First we obtain the contract.
       let contract = contractInfo.parsedContract
       // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
-      parity.getHistory(contractAddress, method, from, upTo - 1)
+      // parity.getHistory(contractAddress, method, from, upTo - 1)
+      parity.getHistory(contractAddress, method, from, upTo)
       .then(function (events) {
         return parity.generateDataPoints(events, contract, method,
           totalFrom, totalTo)

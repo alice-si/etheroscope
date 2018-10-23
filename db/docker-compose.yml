@@ -8,7 +8,7 @@ version: '2'
 services:
 
   mysql:
-    image: mariadb:10.1.19
+    image: mariadb
     ports:
       - 8083:3306
     volumes:

@@ -30,6 +30,7 @@ export class ContractService {
   }
 
   searchContracts(pattern: string, advancedConstraints: {variables: any, transactions: any}) {
+    console.log("search conontract",this.apiUrl)
     return this.http.post(this.apiUrl + 'api/search/' + pattern, advancedConstraints).map(this.extractData);
   }
 

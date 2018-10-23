@@ -57,6 +57,12 @@ db.poolConnect().then(() => {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
 
+
+  process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+    // application specific logging, throwing an error, or other logic here
+  });
+
   require('./api/api.js')(app, db, log, validator) // configure our routes
 
   app.listen(port)

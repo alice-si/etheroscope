@@ -1,71 +1,53 @@
-// var mssql = require('mssql')
-// var login = require('./login.js')
+var mssql = require('mssql')
+var login = require('./login.js')
 var path = require('path')
-var mysql = require('promise-mysql')
 
-const pool = mysql.createPool({
-  connectionLimit: 10,
+/* ESTABLISHING A CONNECTION
+ * Here we create a connection pool to the mssql server.
+ * we store the configuration in a separate module, login.js.
+ */
+const pool = new mssql.ConnectionPool({
+  user: login.user,
+  password: login.password,
+  server: login.hostname,
+  database: login.database,
   connectionTimeout: 10000,
-  host: '192.168.99.100',
-  port: '8083',
-  user: 'root',
-  password: 'wp',
-  database: 'etheroscope'
+  requestTimeout: 10000,
+  options: {
+    encrypt: true
+  },
+  pool: {
+    max: 10,
+    min: 0,
+    idleTimeoutMillis: 10000
+  }
 })
-
-function test () {
-  pool.query('SELECT 1 + 1 AS solution').then(function (results) {
-    console.log('The solution is: ', results[0].solution)
-  })
-  pool.query('SHOW DATABASES').then(function (results) {
-    console.log('Show databases: ', results[0].solution)
-  })
-}
-
-test()
 
 /* DEFINE TABLES FOR BULK INSERT
  * Here we define the table schema
  * so that we can use them for bulk inserts
  */
-
 /* Variables Table
  */
 function getNewVariablesTable () {
-  console.log('getNewVariablesTable')
-  var variablesTable = {}
-  variablesTable.sql = 'insert into variables (contractHash, variableName, cachedFrom, cachedUpTo) values ?'
-  variablesTable.createTable = 'create table if not exists variables(' +
-    'contractHash varchar(40) primary key not null,' +
-    'variableName varchar(50) primary key not null,' +
-    'cachedFrom bigint,' +
-    'cachedUpTo bigint)'
-  variablesTable.values = []
-  variablesTable.rows = {
-    add: function (address, variable) {
-      variablesTable.values.push([address, variable, null, null])
-    }
-  }
+  var variablesTable = new mssql.Table('variables')
+  variablesTable.create = true
+  variablesTable.columns.add('contractHash', mssql.VarChar(40), {nullable: false, primary: true})
+  variablesTable.columns.add('variableName', mssql.VarChar(50), {nullable: false, primary: true})
+  variablesTable.columns.add('cachedFrom', mssql.BigInt, {nullable: true})
+  variablesTable.columns.add('cachedUpTo', mssql.BigInt, {nullable: true})
   return variablesTable
 }
 
 /* DataPoints Table
  */
 function getNewDataPointsTable () {
-  console.log('getNewDataPointsTable')
-  var dataPointsTable = {}
-  dataPointsTable.sql = 'insert ignore into dataPoints (contractHash, variableName, blockNumber, value) values ?'
-  dataPointsTable.createTable = 'create table if not exists dataPoints(' +
-    'contractHash varchar(40) primary key not null,' +
-    'variableName varchar(50) primary key not null,' +
-    'blockNumber bigint,' +
-    'value varchar(78))'
-  dataPointsTable.values = []
-  dataPointsTable.rows = {
-    add: function (contractAdress, method, blockNumber, value) {
-      dataPointsTable.values.push([contractAdress, method, blockNumber, value])
-    }
-  }
+  var dataPointsTable = new mssql.Table('dataPoints')
+  dataPointsTable.create = true
+  dataPointsTable.columns.add('contractHash', mssql.VarChar(40), {nullable: false, primary: true})
+  dataPointsTable.columns.add('variableName', mssql.VarChar(50), {nullable: false, primary: true})
+  dataPointsTable.columns.add('blockNumber', mssql.BigInt, {nullable: false})
+  dataPointsTable.columns.add('value', mssql.VarChar(78), {nullable: false})
   return dataPointsTable
 }
 
@@ -76,16 +58,14 @@ function getNewDataPointsTable () {
  * such arrays, to facilitate inserting
  * multiple records.
  */
-function buildValueString (valuesArray, nonapostrofindex=undefined) {
-  console.log('buildValueString')
+function buildValueString (valuesArray) {
   var result = ''
   for (var i = 0; i < valuesArray.length; i++) {
     result += '('
     for (var j = 0; j < valuesArray[i].length; j++) {
-      if (j !== nonapostrofindex) result += '\''
+      result += "'"
       result += valuesArray[i][j]
-      if (j !== nonapostrofindex) result += '\''
-      result += ', '
+      result += "', "
     }
     // Remove the last two characters ', ' from the string
     result = result.slice(0, -2)
@@ -100,14 +80,13 @@ module.exports = function (log) {
   var isLoadSchema = false
 
   function loadSchema () {
-    console.log('loadSchema')
     var fs = require('fs')
     fs.readFile(path.join(__dirname, '/moduleschema.ddl'), function (err, data) {
       if (err) {
         throw err
       }
-
-      pool.query(data.toString(), (err, result) => {
+      var request = new mssql.Request(pool)
+      request.query(data.toString(), (err, result) => {
         if (err) {
           log.error('db.js: Error creating tables - perhaps they already exist')
         }
@@ -116,10 +95,21 @@ module.exports = function (log) {
   }
 
   db.poolConnect = function () {
-    console.log('db.poolConnect')
+    log.info('db.js: Connecting to pool')
     return new Promise(function (resolve, reject) {
-      log.info('db.js: Successfully connected to pool')
-      resolve()
+      pool.connect(err => {
+        if (err) {
+          log.error('db.js: Error connecting to database pool:')
+          log.error(err)
+          reject(err)
+        } else {
+          log.info('db.js: Successfully connected to pool')
+          if (isLoadSchema) {
+            loadSchema()
+          }
+          resolve()
+        }
+      })
     })
   }
 
@@ -127,12 +117,11 @@ module.exports = function (log) {
    * values = ['0x0123456789', 'name'], and returns a promise
    */
   db.addContracts = function (values) {
-    console.log('db.addContracts')
     return new Promise(function (resolve, reject) {
-
+      var request = new mssql.Request(pool)
       var valueString = buildValueString(values)
-      var sql = 'insert into contracts (contractHash, name) values ' + valueString
-      pool.query(sql)
+      var sql = 'insert into Contracts (contractHash, name) values ' + valueString
+      request.query(sql)
         .then(() => {
           return resolve()
         })
@@ -145,33 +134,26 @@ module.exports = function (log) {
   }
 
   db.updateContractWithABI = function (address, parsedContract) {
-    console.log('db.updateContractsWithABI')
     return new Promise(function (resolve, reject) {
-
-      var sql = 'update contracts set abi=\'' + JSON.stringify(parsedContract) + '\' where contractHash=\'' + address + '\''
-      pool.query(sql)
-        .catch((err) => {
-          log.error('db.js: Error in updateContractWithABI')
-          log.error(err)
-        })
+      var request = new mssql.Request(pool)
+      var sql = "update Contracts set abi='" + JSON.stringify(parsedContract) + "' where contractHash='" + address + "'"
+      request.query(sql)
+      .catch((err) => {
+        log.error('db.js: Error in updateContractWithABI')
+        log.error(err)
+      })
     })
   }
 
   db.addContractLookup = function (address) {
-    console.log('db.addContractLookup')
     return new Promise(function (resolve, reject) {
-
-      var sql = 'insert into contractLookupHistory (contractHash, date) values (\'' + address + '\', CURDATE())'
-
-      console.log('addContractLookup:sql', sql)
-
-      pool.query(sql)
-        .catch((err) => {
-          log.error('db.js: Error in addContractLookup')
-          log.error('this error is not invasing, probably duplicate entry')
-          // log.error((err + '').slice(0, 100))
-          // log.error(err)
-        })
+      var request = new mssql.Request(pool)
+      var sql = "insert into contractLookupHistory (contractHash, date) values ('" + address + "', GETDATE())"
+      request.query(sql)
+      .catch((err) => {
+        log.error('db.js: Error in addContractLookup')
+        log.error(err)
+      })
     })
   }
 
@@ -181,23 +163,21 @@ module.exports = function (log) {
    * limit is the number of contracts to return
    */
   db.getPopularContracts = function (timeUnit, timeAmount, limit) {
-    console.log('db.getPopularContracts:timeUnit', timeUnit)
     return new Promise(function (resolve, reject) {
-
-      var sql = 'select contractHash, COUNT(*) as searches ' +
-        'from contractLookupHistory where DATEDIFF(date, CURDATE()) < ' + timeAmount + ' ' +
-        'GROUP BY contractHash ' +
-        'ORDER BY searches desc ' +
-        'limit ' + limit
+      var request = new mssql.Request(pool)
+      var sql = 'select top ' + limit + ' contractHash, COUNT(*) as searches ' +
+                'from contractLookupHistory where DATEDIFF(' +
+                timeUnit + ', date, GETDATE()) < ' + timeAmount + ' ' +
+                'GROUP BY contractHash ' +
+                'ORDER BY searches desc'
       var joined = 'select contracts.contractHash, name, searches from (' + sql + ') as popular join contracts on contracts.contractHash = popular.contractHash'
-      pool.query(joined)
+      request.query(joined)
         .then((result) => {
-          return resolve(result)
+          return resolve(result.recordset)
         })
         .catch((err) => {
           log.error('db.js: Error in getPopularContracts')
           log.error(err)
-          return reject(err)
         })
     })
   }
@@ -206,20 +186,16 @@ module.exports = function (log) {
    * and returns a promise
    */
   db.getContract = function (contractHash) {
-    console.log('db.getContract')
     return new Promise(function (resolve, reject) {
-
-      var sql = 'select name, abi from contracts where contractHash=\'' + contractHash + '\''
-      pool.query(sql)
+      var request = new mssql.Request(pool)
+      var sql = "select name, abi from Contracts where contractHash='" + contractHash + "'"
+      request.query(sql)
         .then((results) => {
-          console.log('db.getContract:results:', results)
-          let result = {contractName: null, contract: null}
-          if (results.length !== 0) {
-            result.contractName = results[0].name
-            let abi = results[0].abi
+          let result = { contractName: null, contract: null }
+          if (results.rowsAffected[0] !== 0) {
+            result.contractName = results.recordset[0].name
+            let abi = results.recordset[0].abi
             if (abi) {
-              abi = abi.slice(1, abi.length - 1)
-              console.log('sliced rawabi', abi)
               result.contract = JSON.parse(abi)
             }
           }
@@ -238,61 +214,64 @@ module.exports = function (log) {
    * time is currently ignored
    */
   db.addDataPoints = function (contractAddress, method, values, from, to) {
-    console.log('db.addDataPoints')
     return new Promise(function (resolve, reject) {
-      if (values.length === 0) {
-        console.log('db.addDataPoints empty values', values)
-        return resolve()
-      }
-      else {
-        let dataPointsTable = getNewDataPointsTable()
+      let dataPointsTable = getNewDataPointsTable()
+      values.forEach((elem) => {
+        dataPointsTable.rows.add(contractAddress, method, elem[2], elem[1])
+      })
 
-        console.log('db.addDataPoints nonTableValues ([0] ignored)', values)
+      var transaction = new mssql.Transaction(pool)
+      var request = new mssql.Request(transaction)
 
-        values.forEach((elem) => {
-          // TODO: is int reading from buffer good?
-          dataPointsTable.rows.add(contractAddress, method, elem[2], elem[1])
+      transaction.begin()
+        .then(() => {
+          return request.bulk(dataPointsTable)
         })
-
-        // console.log('dpt.sql', dataPointsTable.sql, 'values', dataPointsTable.values)
-
-        pool.query(dataPointsTable.sql, [dataPointsTable.values])
-          .then(() => {
-            var sql =
-              'update variables set cachedFrom=\'' + from + '\' where contractHash=\'' + contractAddress +
-              '\' and variableName=\'' + method + '\';' //+
-            // 'update variables set cachedUpTo=\'' + to + '\' where contractHash=\'' + contractAddress +
-            // '\' and variableName=\'' + method + '\';'
-            console.log('\nsql', sql)
-            return pool.query(sql)
-          })
-          .then(() => {
-            return resolve()
-          })
-          .catch((err) => {
-            log.error('db.js: Error in addDataPoints')
-            log.error(err)
-            process.exit(1)
-            return reject(err)
-          })
-      }
+        .then(() => {
+          var sql =
+            "update variables set cachedFrom='" + from + "' where contractHash='" + contractAddress +
+             "' and variableName='" + method + "';" +
+            "update variables set cachedUpTo='" + to + "' where contractHash='" + contractAddress +
+             "' and variableName='" + method + "';"
+          return request.query(sql)
+        })
+        .then(() => {
+          return transaction.commit()
+        })
+        .then(() => {
+          return resolve()
+        })
+        .catch((err) => {
+          log.error('db.js: Error in addDataPoints')
+          log.error(err)
+          transaction.rollback()
+            .then(() => {
+              log.error('db.js: Rolled back transaction')
+              process.exit(1)
+              return reject(err)
+            })
+            .catch((err) => {
+              log.error('db.js: Failed to rollback failed transaction!!')
+              log.error(err)
+              process.exit(1)
+              return reject(err)
+            })
+        })
     })
   }
 
   /* This function takes a variable */
   db.addVariables = function (address, variables) {
-    console.log('db.addVariables')
     return new Promise(function (resolve, reject) {
-
+      var request = new mssql.Request(pool)
       let variablesTable = getNewVariablesTable()
       variables.forEach((variable) => {
         variablesTable.rows.add(address, variable)
       })
-      pool.query(variablesTable.sql, [variablesTable.values])
-        .then(() => {
-            return resolve()
-          }
-        )
+      request.bulk(variablesTable)
+      .then(() => {
+        return resolve()
+      })
     })
   }
 
@@ -300,15 +279,15 @@ module.exports = function (log) {
    * for a given contract hash
    */
   db.getDataPoints = function (contractHash, method) {
-    console.log('db.getDataPoints')
     return new Promise(function (resolve, reject) {
+      var request = new mssql.Request(transaction)
       var sql =
-        'select timeStamp, value from (dataPoints inner join blocks on dataPoints.blockNumber = blocks.blockNumber) ' +
-        'where dataPoints.contractHash=\'' + contractHash +
-        '\' and (dataPoints.variableName=\'' + method + '\')'
-      pool.query(sql)
+        'select timeStamp, value from (DataPoints inner join Blocks on DataPoints.blockNumber = Blocks.blockNumber) ' +
+        "where DataPoints.contractHash='" + contractHash +
+        "' and (DataPoints.variableName='" + method + "')"
+      request.query(sql)
         .then((results) => {
-          return resolve(results)
+          return resolve(results.recordsets)
         })
         .catch((err) => {
           log.error('db.js: Error in getDataPoints')
@@ -319,11 +298,10 @@ module.exports = function (log) {
   }
 
   db.getVariables = function (contractHash) {
-    console.log('db.getVariables')
     return new Promise(function (resolve, reject) {
-
-      var sql = 'select v.variableName, u.unit, u.description from variables as v left join variableUnits as u on v.unitID = u.id where v.contractHash=\'' + contractHash + '\''
-      pool.query(sql)
+      var request = new mssql.Request(pool)
+      var sql = "select v.variableName, u.unit, u.\"description\" from variables as v left outer join variableUnits as u on v.unitID = u.id where v.contractHash='" + contractHash + "'"
+      request.query(sql)
         .then((results) => {
           return resolve(results)
         })
@@ -336,11 +314,10 @@ module.exports = function (log) {
   }
 
   db.getBlockTime = function (blockNumber) {
-    console.log('db.getBlockTime')
     return new Promise(function (resolve, reject) {
-
-      var sql = 'select * from blocks where blockNumber=\'' + blockNumber + '\''
-      pool.query(sql)
+      var request = new mssql.Request(pool)
+      var sql = "select * from Blocks where blockNumber='" + blockNumber + "'"
+      request.query(sql)
         .then((results) => {
           return resolve(results)
         })
@@ -354,41 +331,38 @@ module.exports = function (log) {
   }
 
   db.addBlockTime = function (values) {
-    console.log('db.addBlockTime:values\n',values)
     return new Promise(function (resolve, reject) {
-
-      var valueString = buildValueString(values,2)
-      var sql = 'insert into blocks (blockNumber, timeStamp, userLog) values ' + valueString +
-        ' on duplicate key update timeStamp = \'' + values[0][1] + '\', userLog=b\'' + values[0][2] + '\''
-      pool.query(sql)
+      var request = new mssql.Request(pool)
+      var valueString = buildValueString(values)
+      var sql = 'insert into Blocks (blockNumber, timeStamp, userLog) values ' + valueString
+      request.query(sql)
         .then(() => {
           return resolve()
         })
         .catch((err) => {
-          log.error('db.js: Error in addBlocKTime, you are most likely adding duplicates\n'+sql+', err:',err)
+          log.error('db.js: Error in addBlocKTime, you are most likely adding duplicates')
           return reject(err)
         })
     })
-      .catch((err) => {
-        log.error('db.js: Error 2 in addBlocKTime, you are most likely adding duplicates')
-      })
+    .catch((err) => {
+      log.error('db.js: Error in addBlocKTime, you are most likely adding duplicates')
+    })
   }
 
   /* This function returns *all* the variables in a given date range
    * for a given contract hash
    */
   db.getDataPointsInDateRange = function (contractHash, method, from, to) {
-    console.log('db.getDataPointsInDateRange')
     return new Promise(function (resolve, reject) {
-
+      var request = new mssql.Request(pool)
       var sql =
-        'select timeStamp, value from (dataPoints inner join blocks on dataPoints.blockNumber = blocks.blockNumber) ' +
-        'where dataPoints.contractHash=\'' + contractHash +
-        '\' and (dataPoints.blockNumber between \'' + from + '\' and \'' + to + '\')' +
-        ' and (dataPoints.variableName=\'' + method + '\')'
-      pool.query(sql)
+        'select timeStamp, value from (DataPoints inner join Blocks on DataPoints.blockNumber = Blocks.blockNumber) ' +
+        "where DataPoints.contractHash='" + contractHash +
+        "' and (DataPoints.blockNumber between '" + from + "' and '" + to + "')" +
+        " and (DataPoints.variableName='" + method + "')"
+      request.query(sql)
         .then((results) => {
-          return resolve(results)
+          return resolve(results.recordsets)
         })
         .catch((err) => {
           log.error('db.js: Error in getDataPointsInDateRange')
@@ -399,17 +373,16 @@ module.exports = function (log) {
   }
 
   db.getCachedFromTo = function (contractHash, method) {
-    console.log('db.getCachedFromTo')
     return new Promise(function (resolve, reject) {
-
+      var request = new mssql.Request(pool)
       var sql = 'select cachedFrom, cachedUpTo from variables ' +
-        'where contractHash=\'' + contractHash + '\' ' +
-        'and variableName=\'' + method + '\''
-      pool.query(sql)
+        "where contractHash='" + contractHash + "' " +
+        "and variableName='" + method + "'"
+      request.query(sql)
         .then((results) => {
           return resolve({
-            cachedFrom: results[0].cachedFrom,
-            cachedUpTo: results[0].cachedUpTo
+            cachedFrom: results.recordset[0].cachedFrom,
+            cachedUpTo: results.recordset[0].cachedUpTo
           })
         })
         .catch((err) => {
@@ -421,19 +394,18 @@ module.exports = function (log) {
   }
 
   db.getLatestCachedBlockTime = function () {
-    console.log('db.getLatestCachedBlockTime')
     return new Promise(function (resolve, reject) {
-
+      var request = new mssql.Request(pool)
       var sql = 'select MAX(blockNumber) from blocks where userLog=0'
-      pool.query(sql).then((results) => {
-        return resolve(results[0][''])
+      request.query(sql).then((results) => {
+        return resolve(results.recordset[0][''])
       })
     })
   }
 
   db.searchContract = function (pattern, variables, transactions) {
-    console.log('db.searchContract')
     return new Promise(function (resolve, reject) {
+      var request = new mssql.Request(pool)
 
       let interspersedPattern = intersperse(pattern, '%')
       let searchField = 'name'
@@ -443,12 +415,10 @@ module.exports = function (log) {
         interspersedPattern = pattern + '%'
         searchField = 'contractHash'
       }
-
-      var sql = 'select *, strcmp(' + searchField + ', \'' + pattern +
+      
+      var sql = 'select top 5 *, difference(' + searchField + ', \'' + pattern +
         '\') as nameDiff' + ' from contracts where ' + searchField + ' LIKE \'' +
         interspersedPattern + '\''
-
-      console.log('sql with difference: ', sql)
 
       if (variables !== null && variables.length > 0) {
         for (let i = 0; i < variables.length; i++) {
@@ -458,11 +428,11 @@ module.exports = function (log) {
             ' variableName = \'' + variables[i].name + '\''
           if (variables[i].endTime !== '' && variables[i].startTime !== '') {
             sql += ' and (timestamp between ' + variables[i].startTime + ' and ' +
-              variables[i].endTime + ')'
+            variables[i].endTime + ')'
           }
           if (variables[i].min !== null && variables[i].max !== null) {
             sql += ' and (value between ' + variables[i].min +
-              ' and ' + variables[i].max + ')'
+            ' and ' + variables[i].max + ')'
           }
           sql += ')'
         }
@@ -474,18 +444,17 @@ module.exports = function (log) {
             ' (select contracthash from datapoints inner join blocks' +
             ' on datapoints.blocknumber = blocks.blocknumber where' +
             ' timestamp between ' + transactions[i].startTime + ' and ' +
-            transactions[i].endTime + ') ' +
-            'limit 5'
+            transactions[i].endTime + ')'
         }
       }
 
       sql += ' order by nameDiff DESC;'
-      pool.query(sql).then((results) => {
-        return resolve(results)
+      request.query(sql).then((results) => {
+        return resolve(results.recordset)
       })
-        .catch((err) => {
-          log.error(err)
-        })
+      .catch((err) => {
+        log.error(err)
+      })
     })
   }
 

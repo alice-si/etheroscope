@@ -72,6 +72,7 @@
     "clarity-ui": "^0.10.13",
     "core-js": "^2.4.1",
     "d3": "^4.11.0",
+    "eth-storage": "git+https://github.com/alice-si/eth-storage.git",
     "event-stream": "^3.3.4",
     "forever": "^0.15.3",
     "forever-monitor": "^1.7.1",
