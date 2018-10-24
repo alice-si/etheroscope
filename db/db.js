@@ -91,8 +91,8 @@ module.exports = function (log) {
   function loadSchema () {
     console.log('loadSchema')
     var fs = require('fs')
-    //TODO write new schema
-    fs.readFile(path.join(__dirname, '/moduleschema.ddl'), function (err, data) {
+    //TODO probably string from schema needs "\;" not ";"
+    fs.readFile(path.join(__dirname, './mysql-dbschema.ddl'), function (err, data) {
       if (err) {
         throw err
       }
