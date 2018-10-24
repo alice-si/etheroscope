@@ -1,4 +1,4 @@
-###To start etheroscope backend setup with MYSQL
+### Etheroscope backend setup with MYSQL
 You need to set your api connector and geth database path in api/parity.js file.
 
 You need to set your mysql connection in db/db.js file.
