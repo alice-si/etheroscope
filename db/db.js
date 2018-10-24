@@ -26,9 +26,7 @@ test()
  * so that we can use them for bulk inserts
  */
 
-/* Variables Table takes in a contract address, method and
-   * array of arrays of the form: [[time, 'value', blockNum]]
-   * time is currently ignored
+/* Variables Table
  */
 function getNewVariablesTable (contractAddress,variables) {
   // console.log('getNewDataPointsTable')
@@ -141,8 +139,8 @@ module.exports = function (log) {
     console.log('db.updateContractsWithABI')
     return new Promise(function (resolve, reject) {
 
+      //TODO: update or insert?
       // var sql = 'update contracts set abi=\'' + JSON.stringify(parsedContract) + '\' where contractHash=\'' + address + '\''
-      // var sql = 'insert into contracts set abi=\'' + JSON.stringify(parsedContract) + '\' where contractHash=\'' + address + '\''
       var sql = 'insert into contracts (contractHash, name, abi) values (\'' + address + '\', \'rinkebycontract\',\'' + JSON.stringify(parsedContract) + '\')'
       console.log('db.updateCOntractswithAbi:sql', sql)
       pool.query(sql)

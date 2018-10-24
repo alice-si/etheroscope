@@ -4,11 +4,12 @@ var Promise = require('bluebird')
 var ReadWriteLock = require('rwlock')
 var lock = new ReadWriteLock()
 
-const parityUrl = 'http://localhost:8545'
+const parityUrl = 'http://localhost:8545' // api connector
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
 var StateDB = require('eth-storage/ethStorage/layers/highLevel.js')
-var dbPath = 'C:/Users/ja1/Alice/dirforfullrinkeby/geth/chaindata'  // database path
+// geth database path (must be different then choosen api connector database)
+var dbPath = 'C:/Users/ja1/Alice/dirforfullrinkeby/geth/chaindata'
 
 module.exports = function (db, log, validator, withStateDB = false) {
   const parity = {}
@@ -63,7 +64,7 @@ module.exports = function (db, log, validator, withStateDB = false) {
                 return reject(err)
               })
           }
-          console.log('parity.getContract:result',result)
+          console.log('parity.getContract:result', result)
           let parsedContract = parity.parseContract(result.contract, address)
           return resolve({contractName: result.contractName, parsedContract: parsedContract})
         })
@@ -76,15 +77,14 @@ module.exports = function (db, log, validator, withStateDB = false) {
     var contractABI = desc
     try {
       //TODO: type of
-      console.log('parity.parseContract:typeofdesc',typeof desc)
-      if (typeof desc === "string")
-      {
+      console.log('parity.parseContract:typeofdesc', typeof desc)
+      if (typeof desc === 'string') {
         contractABI = JSON.parse(desc)
       }
-    }catch(err) {
-      console.log("error in JSON parse")
+    } catch (err) {
+      console.log('error in JSON parse')
       console.log(err)
-      console.log('tried to parse:\n',desc)
+      console.log('tried to parse:\n', desc)
     }
     var Contract = web3.eth.contract(contractABI)
     return Contract.at(address)
@@ -199,65 +199,45 @@ module.exports = function (db, log, validator, withStateDB = false) {
   parity.getHistory = function (address, method, startBlock, endBlock) {
     //TODO: method to index translation
 
-    console.log('parity.getHistory:args(currently with no method):',startBlock,endBlock)
+    console.log('parity.getHistory:currently with no method, always returs value at index 0):\n',
+      'startBlock', startBlock, 'endBlock', endBlock, 'querylength', endBlock - startBlock)
 
     return new Promise((resolve, reject) => {
-      if (stateDB) {
-
-        console.log('parity.getHistory:querylength', endBlock - startBlock)
-
-        return stateDB.hashSet(address, 0, startBlock, endBlock, function returnResults (err, result) {
-          if (err) return reject(err)
-          else return resolve(result)
-        })
-      }
+      return stateDB.hashSet(address, 0, startBlock, endBlock, function returnResults (err, result) {
+        if (err) return reject(err)
+        else return resolve(result)
+      }, 8)
     })
   }
 
-  parity.generateDataPoints = function (eventsA, contract, method,
+  function decodeValueInBuffer (rawVal) {
+    //TODO: is reading int proper?
+    return (Buffer.isBuffer(rawVal)) ? parseInt(rawVal.toString('hex'), 16) : 0
+  }
+
+  parity.generateDataPoints = function (rawEvents, contract, method,
                                         totalFrom, totalTo) {
 
-    console.log('parity:generateDataPoints,eventsA', eventsA, 'contract adr:', contract.address.slice(0, 8),
-      '... method', method, 'total from:', totalFrom, 'total to:', totalTo)
+    // console.log('parity:generateDataPoints,rawEvents', rawEvents, 'contract adr:', contract.address.slice(0, 8),
+    //   '... method', method, 'total from:', totalFrom, 'total to:', totalTo)
 
     return new Promise((resolve, reject) => {
-      // log.debug('Generating data points')
 
-      Promise.map(eventsA, (event) => {
+      Promise.map(rawEvents, (event) => {
         // [(time, value, blockNum)]
-        var rawVal = event.val
-
-        console.log('generateDataPoints:rawval',rawVal,'len',rawVal.length)
-
-        var val;
-        if (Buffer.isBuffer(rawVal)) {
-          var len = rawVal.length
-          //TODO: reading itn proper?
-          var startIdx = (len - 4 < 0) ? 0 : len - 4
-          // val = rawVal.readUIntBE(0, 4)
-          // val = rawVal.readUIntBE(startIdx, len)
-          val = parseInt(rawVal.toString('hex'), 16)
-        }
-        else{
-          val = 0;
-        }
-
-        console.log('generateDataPoints:nonrawval',val)
-
-        return Promise.all([parity.getBlockTime(event.block), val, event.block])
+        return Promise.all([parity.getBlockTime(event.block), decodeValueInBuffer(event.val), event.block])
       }, {concurrency: 5})
-    // * array of arrays of the form: [[time, 'value', blockNum]]
-      .then((eventsB) => {return db.addDataPoints(contract.address.substr(2), method, eventsB, totalFrom, totalTo)})
-      .then((eventsB) => {
-        if (eventsB.length > 0) {
-          log.debug('Added ' + eventsB.length + ' data points for ' + contract.address + ' ' + method)
-        }
-        return resolve(eventsB)
-      })
-      .catch((err) => {
-        log.error('Data set generation error: ' + err)
-        return reject(err)
-      })
+        .then((events) => {return db.addDataPoints(contract.address.substr(2), method, events, totalFrom, totalTo)})
+        .then((events) => {
+          if (events.length > 0) {
+            log.debug('Added ' + events.length + ' data points for ' + contract.address + ' ' + method)
+          }
+          return resolve(events)
+        })
+        .catch((err) => {
+          log.error('Data set generation error: ' + err)
+          return reject(err)
+        })
     })
   }
 
