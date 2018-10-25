@@ -14,9 +14,13 @@ const pool = mysql.createPool({
 })
 
 function test () {
-  pool.query('SELECT 1 + 1 AS solution').then(function (results) {
-    console.log('MYSQL connection test "1+1" the solution is: ', results[0].solution)
-  })
+  pool.query('SELECT 1 + 1 AS solution')
+    .then(function (results) {
+      console.log('MYSQL connection test "1+1" the solution is: ', results[0].solution)
+    })
+    .catch(err => {
+      console.log('MYSQL connection test "1+1" error:\n', err)
+    })
 }
 
 test()
@@ -28,7 +32,7 @@ test()
 
 /* Variables Table
  */
-function getNewVariablesTable (contractAddress,variables) {
+function getNewVariablesTable (contractAddress, variables) {
   // console.log('getNewDataPointsTable')
   var sqlFormatValues = []
   variables.forEach((variable) => {
@@ -45,7 +49,7 @@ function getNewVariablesTable (contractAddress,variables) {
    * array of arrays of the form: [[time, 'value', blockNum]]
    * time is currently ignored
  */
-function getNewDataPointsTable (contractAddress,method,values) {
+function getNewDataPointsTable (contractAddress, method, values) {
   // console.log('getNewDataPointsTable')
   var sqlFormatValues = []
   values.forEach((elem) => {
@@ -88,7 +92,7 @@ module.exports = function (log) {
   var db = {}
   var isLoadSchema = false
 
-  function loadSchema () {
+  db.loadSchema = function () {
     console.log('loadSchema')
     var fs = require('fs')
     //TODO probably string from schema needs "\;" not ";"
@@ -100,6 +104,9 @@ module.exports = function (log) {
       pool.query(data.toString(), (err, result) => {
         if (err) {
           log.error('db.js: Error creating tables - perhaps they already exist')
+        }
+        else {
+          console.log('successefuly loaded schema, result is:\n', result)
         }
       })
     })
@@ -268,7 +275,7 @@ module.exports = function (log) {
     console.log('db.addVariables:', variables)
     return new Promise(function (resolve, reject) {
 
-      let variablesTable = getNewVariablesTable(address,variables)
+      let variablesTable = getNewVariablesTable(address, variables)
       pool.query(variablesTable.sql, [variablesTable.values])
         .then(() => {
             return resolve()
