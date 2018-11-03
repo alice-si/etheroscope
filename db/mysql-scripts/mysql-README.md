@@ -7,15 +7,10 @@ wich creates database for Eth-storage module.
 
 You need to set your mysql connection in `db/db.js` file.
 
-You need to make tables in your database like in `mysql-dbschema.ddl`.
-//TODO check if db.loadSchema() works
-
-You need to addBlocks to your database running `mysql-add-blocks.js`.
-(you can simply change start and end block in code)
-
-To get resonable timestamps for blocks in quick way
- run `mysql-update-block-times.js`.
-(its not generating real timestamps but similar, like on Rinkeby)
+You need to create database running `db/mysql-scripts/createDatabase.js`.
+You need to create tables in your database running `db/mysql-scripts/createTables.js`.
+You need to addBlocks to your database running `db/mysql-scripts/addBlocksWIthTimestamps.js`.
+(its not generating real timestamps for blocks but similar, like on Rinkeby)
 //TODO check if cacheBlocks.js works (if yes it is probably slow)
 
 (You don`t need to add anything to 'contracts' table)

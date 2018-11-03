@@ -1,6 +1,7 @@
 
 var mysql = require('promise-mysql')
-var sqlContracts = 'create table if not exists Contracts(\n' +
+
+var sqlContracts = 'create table if not exists contracts(\n' +
   '    contractHash VARCHAR(40)  not null,\n' +
   '    name         VARCHAR(128),\n' +
   '    abi          NVARCHAR(11844),\n' +
@@ -44,52 +45,36 @@ var sqlDataPoints = 'create table if not exists dataPoints(\n' +
   ');\n'
 
 function test () {
-  pool.query('SELECT 1 + 1 AS solution').then(function (results) {
-    console.log('The solution is: ', results[0].solution)
-  })
-  // pool.query(strangeString).then(function (results) {
-  //   console.log('Create if not exist: ', results)
-  // })
-  pool.query(sqlVariableUnits).then(function (results) {
-    console.log('Show tables: ', results)
-  })
-
   pool.query(sqlContractLookupHistory).then(function (results) {
-    console.log('create: ', results)
+    console.log('create table ('+sqlContractLookupHistory+'): ', results)
   }).then(() => {
     pool.query(sqlContracts).then(function (results) {
-      console.log('create: ', results)
+      console.log('create('+sqlContracts+'): ', results)
     })
   }).then(() => {
     pool.query(sqlBlocks).then(function (results) {
-      console.log('create: ', results)
+      console.log('create('+sqlBlocks+'): ', results)
     })
   }).then(() => {
     pool.query(sqlVariables).then(function (results) {
-      console.log('create: ', results)
+      console.log('create('+sqlVariables+'): ', results)
     })
   }).then(() => {
     pool.query(sqlVariableUnits).then(function (results) {
-      console.log('create: ', results)
+      console.log('create('+sqlVariableUnits+'): ', results)
     })
   }).then(() => {
     pool.query(sqlDataPoints).then(function (results) {
-      console.log('create: ', results)
+      console.log('create('+sqlDataPoints+'): ', results)
     })
   })
 
-  pool.query('show tables').then(function (results) {
-    console.log('Show tables: ', results)
-  })
-  // pool.query('SHOW DATABASES').then(function (results) {
-  //   console.log('Show databases: ', results)
-  // })
 }
 
 const pool = mysql.createPool({
   connectionLimit: 10,
   connectionTimeout: 10000,
-  host: '192.168.99.100',
+  host: 'localhost',
   port: '8083',
   user: 'root',
   password: 'wp',
