@@ -7,10 +7,13 @@ wich creates database for Eth-storage module.
 
 You need to set your mysql connection in `db/db.js` file.
 
-You need to create database running `db/mysql-scripts/createDatabase.js`.
-You need to create tables in your database running `db/mysql-scripts/createTables.js`.
-You need to addBlocks to your database running `db/mysql-scripts/addBlocksWIthTimestamps.js`.
-(its not generating real timestamps for blocks but similar, like on Rinkeby)
+##### Run `setupNewMysqlDatabaseAllInOne.js` to setup new database ready for etheroscope.
+
+##### Alternativley you can do the same using 3 scripts: <br>
+You need to create database running `db/mysql-scripts/createDatabase.js`.<br>
+You need to create tables in your database running `db/mysql-scripts/createTables.js`.<br>
+You need to addBlocks to your database running `db/mysql-scripts/addBlocksWIthTimestamps.js`.<br>
+(its not generating real timestamps for blocks but similar, like on Rinkeby)<br>
 //TODO check if cacheBlocks.js works (if yes it is probably slow)
 
 (You don`t need to add anything to 'contracts' table)
