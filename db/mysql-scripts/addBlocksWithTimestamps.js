@@ -21,7 +21,7 @@ async function test () {
       var blockNumber = i
       await array.push([blockNumber, timesStampOfFirstBlock + (blockNumber * 15), 0])
 
-      console.log('pushed to array block', blockNumber, 'percent completed', blockNumber / endBlock)
+      console.log('pushed to array block', blockNumber, 'percent completed', 100 * (blockNumber / endBlock), '%')
     }
 
     sql = 'insert into blocks (blockNumber, timeStamp, userLog) values ?'
@@ -31,7 +31,7 @@ async function test () {
 
 const pool = mysql.createPool({
   connectionLimit: 10,
-  connectionTimeout: 10000000,
+  connectionTimeout: 1000000,
   host: 'localhost',
   port: '8083',
   user: 'root',
