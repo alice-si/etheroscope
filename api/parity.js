@@ -9,7 +9,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
 var StateDB = require('eth-storage/ethStorage/layers/highLevel.js')
 // geth database path (must be different then choosen api connector database)
-var dbPath = 'C:/Users/ja1/Alice/dirforfullrinkeby/geth/chaindata'
+var dbPath = '../geth/fullRinkebyBlockchain/geth/chaindata'
 
 module.exports = function (db, log, validator, withStateDB = false) {
   const parity = {}
