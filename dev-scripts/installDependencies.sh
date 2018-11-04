@@ -1,6 +1,7 @@
 #NodeJS
 sudo apt-get install nodejs
 sudo apt-get install npm
+npm install
 #Docker
 sudo apt-get install docker
 sudo apt-get install docker-compose
