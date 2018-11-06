@@ -1,1 +1,1 @@
-geth --datadir ../geth/fastRinkebyBlockchain console --rinkeby --rpc --nodiscover
+geth --datadir ../geth-blockchains/fastRinkebyBlockchain console --rinkeby --rpc --nodiscover

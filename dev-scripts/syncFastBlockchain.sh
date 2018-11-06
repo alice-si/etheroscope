@@ -1,1 +1,1 @@
-geth --datadir ../geth/fastRinkebyBlockchain console --rinkeby
+geth --datadir ../geth-blockchains/fastRinkebyBlockchain console --rinkeby

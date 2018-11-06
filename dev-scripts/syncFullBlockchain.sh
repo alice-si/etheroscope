@@ -1,1 +1,1 @@
-geth --datadir ../geth/fullRinkebyBlockchain console --rinkeby --gcmode archive
+geth --datadir ../geth-blockchains/fullRinkebyBlockchain console --rinkeby --gcmode archive
