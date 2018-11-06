@@ -76,3 +76,114 @@ You need to addBlocks to your database running `dev-scripts/mysql-scripts/addBlo
 //TODO check if cacheBlocks.js works (if yes it is probably slow)
 (You don`t need to add anything to 'contracts' table)
 
+
+
+# Documentation 06.11.2018
+```shell
+.
+./angular-cli.json
+./api
+./api/api.js            # handles requests
+./api/parity.js         # functions for exploring blockchain
+./blocknum
+./contract_mappings
+./contract_mappings/contracts.csv
+./db
+./db/cacheBlocks.js
+./db/cacheBlocks.sh
+./db/db.js              # functions for mysql database
+./db/dbschema.ddl
+./dev-scripts           # helpful scripts during development
+./dev-scripts/docker-compose.yml                                 # docker config file
+./dev-scripts/installDependencies.sh                             # installs dependencies on linux
+./dev-scripts/mysql-scripts                                      # scripts for actions on mysql database
+./dev-scripts/mysql-scripts/addBlocksWithTimestamps.js
+./dev-scripts/mysql-scripts/createDatabase.js
+./dev-scripts/mysql-scripts/createTables.js
+./dev-scripts/mysql-scripts/dropTable.js
+./dev-scripts/mysql-scripts/mysql-dbschema.ddl
+./dev-scripts/mysql-scripts/setupNewDatabase.js                  # installs start content of database
+./dev-scripts/mysql-scripts/showTables.js
+./dev-scripts/mysql-scripts/testQuery.js
+./dev-scripts/mysql-scripts/upadateBlockTimes.js
+./dev-scripts/setupDockerAndMysql.sh                             # installs MariaDB (our mysql databas) and start content of db
+./dev-scripts/startBackend.sh
+./dev-scripts/startFrontend.sh
+./dev-scripts/startMysql.sh
+./dev-scripts/startRPCAPI.sh
+./dev-scripts/syncFastBlockchain.sh
+./dev-scripts/syncFullBlockchain.sh
+./e2e
+./e2e/app.e2e-spec.ts
+./e2e/app.po.ts
+./e2e/tsconfig.json
+./forever
+./forever/deploy.json
+./karma.conf.js
+./LICENSE
+./logo.png
+./package.json
+./protractor.config.js
+./README.md              # readme with instructions
+./server.js              # main server, handles http
+./services
+./services/index.js      # micro-service, generetes blockchain variable history, uses websocket
+./spec
+./spec/api
+./spec/api/api_spec.js
+./spec/api/parity_spec.js
+./spec/support
+./spec/support/jasmine.json
+./src                    # Angular application frontend
+./src/app
+./src/app/app.component.html
+./src/app/app.component.scss
+./src/app/app.component.ts
+./src/app/app.module.ts
+./src/app/app.routing.ts
+./src/app/explorer
+./src/app/explorer/cards
+./src/app/explorer/cards/cards.component.html
+./src/app/explorer/cards/cards.component.scss
+./src/app/explorer/cards/cards.component.ts
+./src/app/explorer/contractHash.ts
+./src/app/explorer/explorer.component.global.scss
+./src/app/explorer/explorer.component.html
+./src/app/explorer/explorer.component.scss
+./src/app/explorer/explorer.component.ts
+./src/app/explorer/graph
+./src/app/explorer/graph/graph.component.html
+./src/app/explorer/graph/graph.component.scss
+./src/app/explorer/graph/graph.component.ts
+./src/app/explorer/search
+./src/app/explorer/search/search.component.html
+./src/app/explorer/search/search.component.scss
+./src/app/explorer/search/search.component.ts
+./src/app/home
+./src/app/home/home.component.html
+./src/app/home/home.component.scss
+./src/app/home/home.component.ts
+./src/app/index.ts
+./src/app/popular
+./src/app/popular/popular.component.html
+./src/app/popular/popular.component.scss
+./src/app/popular/popular.component.ts
+./src/app/_services
+./src/app/_services/contract.service.ts
+./src/app/_services/graph.service.ts
+./src/environments
+./src/environments/environment.prod.ts
+./src/environments/environment.ts
+./src/favicon.ico
+./src/images
+./src/images/clarity_logo.svg
+./src/index.html
+./src/main.ts
+./src/polyfills.ts
+./src/styles.css
+./src/test.ts
+./src/tsconfig.json
+./src/typings.d.ts
+./tslint.json
+./typings.json
+```
