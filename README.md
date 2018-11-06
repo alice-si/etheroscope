@@ -76,7 +76,8 @@ You need to addBlocks to your database running `dev-scripts/mysql-scripts/addBlo
 //TODO check if cacheBlocks.js works (if yes it is probably slow)
 (You don`t need to add anything to 'contracts' table)
 
-
+### Architecture diagram
+![Etheroscope internal dependencies](https://raw.githubusercontent.com/Jab1one/materialy/master/architecture-diagrams/prostyrysunekarchitektury.jpg)
 
 ### Documentation 06.11.2018
 ```shell
