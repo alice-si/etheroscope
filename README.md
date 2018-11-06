@@ -83,17 +83,26 @@ You need to addBlocks to your database running `dev-scripts/mysql-scripts/addBlo
 ```shell
 .
 ./angular-cli.json
+```
+```shell
 ./api
 ./api/api.js            # handles requests
 ./api/parity.js         # functions for exploring blockchain
+```
+```shell
 ./blocknum
+```
+```shell
 ./contract_mappings
 ./contract_mappings/contracts.csv
+```
+```shell
 ./db
 ./db/cacheBlocks.js
 ./db/cacheBlocks.sh
 ./db/db.js              # functions for mysql database
-./db/dbschema.ddl
+```
+```shell
 ./dev-scripts           # helpful scripts during development
 ./dev-scripts/docker-compose.yml                                 # docker config file
 ./dev-scripts/installDependencies.sh                             # installs dependencies on linux
@@ -114,12 +123,18 @@ You need to addBlocks to your database running `dev-scripts/mysql-scripts/addBlo
 ./dev-scripts/startRPCAPI.sh
 ./dev-scripts/syncFastBlockchain.sh
 ./dev-scripts/syncFullBlockchain.sh
+```
+```shell
 ./e2e
 ./e2e/app.e2e-spec.ts
 ./e2e/app.po.ts
 ./e2e/tsconfig.json
+```
+```shell
 ./forever
-./forever/deploy.json
+./forever/deploy.json    # script for running aplication on server (version from branch MASTER)
+```
+```shell
 ./karma.conf.js
 ./LICENSE
 ./logo.png
@@ -127,14 +142,20 @@ You need to addBlocks to your database running `dev-scripts/mysql-scripts/addBlo
 ./protractor.config.js
 ./README.md              # readme with instructions
 ./server.js              # main server, handles http
+```
+```shell
 ./services
 ./services/index.js      # micro-service, generetes blockchain variable history, uses websocket
+```
+```shell
 ./spec
 ./spec/api
 ./spec/api/api_spec.js
 ./spec/api/parity_spec.js
 ./spec/support
 ./spec/support/jasmine.json
+```
+```shell
 ./src                    # Angular application frontend
 ./src/app
 ./src/app/app.component.html
@@ -185,6 +206,8 @@ You need to addBlocks to your database running `dev-scripts/mysql-scripts/addBlo
 ./src/test.ts
 ./src/tsconfig.json
 ./src/typings.d.ts
+```
+```shell
 ./tslint.json
 ./typings.json
 ```
