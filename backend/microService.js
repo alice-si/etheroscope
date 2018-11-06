@@ -7,7 +7,7 @@ var Promise = require('bluebird')
 
 let log = require('loglevel')
 let validator = require('validator')
-let db = require('./../db/db.js')(log)
+let db = require('./db/db.js')(log)
 
 let socketPort = 8081
 
@@ -19,7 +19,7 @@ let io = require('socket.io')(server)
 db.poolConnect().then(() => {
   server.listen(socketPort)
 // Initialise the server
-  let parity = require('../api/parity')(db, log, validator, true)
+  let ethClient = require('./ethClient')(db, log, validator, true)
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(morgan('dev'))
@@ -63,7 +63,7 @@ db.poolConnect().then(() => {
 
     db.getCachedFromTo(address.substring(2), method)
       .then((result) => {
-        parity.getLatestBlock()
+        ethClient.getLatestBlock()
           .then((latestBlock) => {
             io.sockets.in(address + method).emit('latestBlock', { latestBlock: latestBlock })
             let from = result.cachedFrom
@@ -85,7 +85,7 @@ db.poolConnect().then(() => {
               from = parseInt(from)
               to = parseInt(to)
               latestBlock = parseInt(latestBlock)
-              parity.getContract(address)
+              ethClient.getContract(address)
                 .then((contractInfo) => {
                   cacheMorePoints(contractInfo, address, method, parseInt(from), parseInt(to),
                     parseInt(latestBlock))
@@ -159,11 +159,11 @@ db.poolConnect().then(() => {
       // First we obtain the contract.
       let contract = contractInfo.parsedContract
       // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
-      // parity.getHistory(contractAddress, method, from, upTo - 1)
-      parity.getHistory(contractAddress, method, from, upTo)
+      // ethClient.getHistory(contractAddress, method, from, upTo - 1)
+      ethClient.getHistory(contractAddress, method, from, upTo)
       .then(function (events) {
         console.log('index.js:sendDataPointsFromParity:events',events)
-        return parity.generateDataPoints(events, contract, method,
+        return ethClient.generateDataPoints(events, contract, method,
           totalFrom, totalTo)
       })
       .then(function (results) {
@@ -174,7 +174,7 @@ db.poolConnect().then(() => {
         return resolve()
       })
       .catch(function (err) {
-        log.error('Error in parity sending' + err)
+        log.error('Error in ethClient sending' + err)
         io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: true })
         return reject(err)
       })

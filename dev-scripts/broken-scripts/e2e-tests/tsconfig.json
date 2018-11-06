@@ -2,7 +2,7 @@
     "compileOnSave": false,
     "compilerOptions": {
         "rootDir": "../",
-        "baseUrl": "",
+        "baseUrl": "tsconfig",
         "declaration": false,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,

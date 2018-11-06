@@ -63,7 +63,7 @@ db.poolConnect().then(() => {
     // application specific logging, throwing an error, or other logic here
   });
 
-  require('./api/api.js')(app, db, log, validator) // configure our routes
+  require('./api.js')(app, db, log, validator) // configure our routes
 
   app.listen(port)
 

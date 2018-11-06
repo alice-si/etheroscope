@@ -1,30 +1,22 @@
 var mysql = require('promise-mysql')
+var mysqlConnectionOptions = require('../../backend/backendSettings.js').mysqlConnectionOptions
+
+var optionsBeforeDBCreation = JSON.parse(JSON.stringify(mysqlConnectionOptions)) // full copy
+delete optionsBeforeDBCreation['database'] // delete database field
+
+console.log('opt\n', optionsBeforeDBCreation)
+
+var pool = mysql.createPool(optionsBeforeDBCreation)
 
 function createDatabase () {
   pool.query('create database etheroscope')
     .then(function (results) {
       console.log('Database creation success! results:\n ', results)
-      pool = mysql.createPool({
-        connectionLimit: 10,
-        connectionTimeout: 10000000,
-        host: 'localhost',
-        port: '8083',
-        user: 'root',
-        password: 'wp',
-        database: 'etheroscope'
-      })
+      pool = mysql.createPool(mysqlConnectionOptions)
     })
     .catch(function (err) {
       console.log('Database cretion error:\n', err)
-      pool = mysql.createPool({
-        connectionLimit: 10,
-        connectionTimeout: 10000000,
-        host: 'localhost',
-        port: '8083',
-        user: 'root',
-        password: 'wp',
-        database: 'etheroscope'
-      })
+      pool = mysql.createPool(mysqlConnectionOptions)
     })
 }
 
@@ -73,26 +65,26 @@ var sqlDataPoints = 'create table if not exists dataPoints(\n' +
 
 function createTables () {
   pool.query(sqlContractLookupHistory).then(function (results) {
-    console.log('create table ('+sqlContractLookupHistory+'): ', results)
+    console.log('create table (' + sqlContractLookupHistory + '): ', results)
   }).then(() => {
     pool.query(sqlContracts).then(function (results) {
-      console.log('create('+sqlContracts+'): ', results)
+      console.log('create(' + sqlContracts + '): ', results)
     })
   }).then(() => {
     pool.query(sqlBlocks).then(function (results) {
-      console.log('create('+sqlBlocks+'): ', results)
+      console.log('create(' + sqlBlocks + '): ', results)
     })
   }).then(() => {
     pool.query(sqlVariables).then(function (results) {
-      console.log('create('+sqlVariables+'): ', results)
+      console.log('create(' + sqlVariables + '): ', results)
     })
   }).then(() => {
     pool.query(sqlVariableUnits).then(function (results) {
-      console.log('create('+sqlVariableUnits+'): ', results)
+      console.log('create(' + sqlVariableUnits + '): ', results)
     })
   }).then(() => {
     pool.query(sqlDataPoints).then(function (results) {
-      console.log('create('+sqlDataPoints+'): ', results)
+      console.log('create(' + sqlDataPoints + '): ', results)
     })
   })
 
@@ -102,12 +94,13 @@ async function addBlocksWithTimestamps () {
 
   var step = 100          // size of inserted block pack
   var startBlock = 0
-  var endBlock = 294
-  // var endBlock = 2946440
+  // var endBlock = 1000000
+  var endBlock = 2946440
 
   var timesStampOfFirstBlock = 1492107044
 
   var i = startBlock // second for iterator
+  var sql
   for (var curEndBlock = startBlock + step; curEndBlock < endBlock; curEndBlock += step) {
 
     var array = []
@@ -116,22 +109,14 @@ async function addBlocksWithTimestamps () {
       var blockNumber = i
       await array.push([blockNumber, timesStampOfFirstBlock + (blockNumber * 15), 0])
 
-      console.log('pushed to array block', blockNumber, 'percent completed', 100 * (blockNumber / endBlock), '%')
+      console.log('pushed to array block', blockNumber, 'percent completed (+/-', step, '):', 100 * (blockNumber / endBlock), '%')
     }
 
     sql = 'insert into blocks (blockNumber, timeStamp, userLog) values ?'
     pool.query(sql, [array], console.log)
   }
+  console.log('[setupNewDatabase.js]: Pushing blocks completed, turn off this script.\n')
 }
-
-var pool = mysql.createPool({
-  connectionLimit: 10,
-  connectionTimeout: 10000000,
-  host: 'localhost',
-  port: '8083',
-  user: 'root',
-  password: 'wp',
-})
 
 setTimeout(createDatabase, 500)
 setTimeout(createTables, 3500)

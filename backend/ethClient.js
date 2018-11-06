@@ -7,25 +7,26 @@ var lock = new ReadWriteLock()
 const parityUrl = 'http://localhost:8545' // api connector
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
-var StateDB = require('eth-storage/ethStorage/layers/highLevel.js')
+var EthStorage = require('eth-storage/ethStorage/layers/highLevel.js')
+
 // geth database path (must be different then choosen api connector database)
-var dbPath = '../geth/fullRinkebyBlockchain/geth/chaindata'
+var fullBlockchainPath = require('./backendSettings.js').fullBlockchainPath
 
 module.exports = function (db, log, validator, withStateDB = false) {
-  const parity = {}
+  const ethClient = {}
 
   if (withStateDB) {
-    var stateDB = new StateDB(dbPath, true)
+    var ethStorage = new EthStorage(fullBlockchainPath, true)
     console.log('Eth-Storage connected')
   }
 
   if (!web3.isConnected()) {
-    console.log('Please start parity')
+    console.log('Please start ethClient')
     process.exit(1)
   }
-  console.log('Successfully connected to parity')
+  console.log('Successfully connected to ethClient')
 
-  parity.getLatestBlock = function () {
+  ethClient.getLatestBlock = function () {
     return new Promise((resolve, reject) => {
       return web3.eth.getBlockNumber((error, block) => {
         if (error) {
@@ -36,48 +37,48 @@ module.exports = function (db, log, validator, withStateDB = false) {
     })
   }
 
-  parity.getContract = function (address) {
+  ethClient.getContract = function (address) {
     return new Promise((resolve, reject) => {
       db.getContract(address.substr(2))
         .then((result) => {
           // If we don't have the contract, get it from etherscan
           if (result.contract === null) {
             // const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
-            //TODO: choose axiosGET between ethereum and rinkeby
+            // TODO: choose axiosGET between ethereum and rinkeby
             const axiosGET = 'https://api-rinkeby.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
             const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
             console.log('address', address)
             return axios.get(axiosGET + address + axiosAPI)
               .then((res) => {
-                let parsedContract = parity.parseContract(res.data.result, address)
+                let parsedContract = ethClient.parseContract(res.data.result, address)
                 // Add the contract to the database, assuming it is already in there (with a name)
                 console.log('will updateContractWithABI')
                 db.updateContractWithABI(address.substr(2), res.data.result)
                   .catch((err) => {
-                    log.error('parity.js: Error adding contract abi to the db')
+                    log.error('ethClient.js: Error adding contract abi to the db')
                     log.error(err)
                   })
                 return resolve({parsedContract: parsedContract, contractName: result.contractName})
               })
               .catch((err) => {
-                log.error('parity.js: Etherscan.io API error: ' + err)
+                log.error('ethClient.js: Etherscan.io API error: ' + err)
                 return reject(err)
               })
           }
-          console.log('parity.getContract:result', result)
-          let parsedContract = parity.parseContract(result.contract, address)
+          console.log('ethClient.getContract:result', result)
+          let parsedContract = ethClient.parseContract(result.contract, address)
           return resolve({contractName: result.contractName, parsedContract: parsedContract})
         })
     })
   }
 
   // Obtaining Contract information from ABI and address
-  parity.parseContract = function (desc, address) {
+  ethClient.parseContract = function (desc, address) {
     // console.log('desc', desc)
     var contractABI = desc
     try {
       //TODO: type of
-      console.log('parity.parseContract:typeofdesc', typeof desc)
+      console.log('ethClient.parseContract:typeofdesc', typeof desc)
       if (typeof desc === 'string') {
         contractABI = JSON.parse(desc)
       }
@@ -90,7 +91,7 @@ module.exports = function (db, log, validator, withStateDB = false) {
     return Contract.at(address)
   }
 
-  parity.getContractVariables = function (contractInfo) {
+  ethClient.getContractVariables = function (contractInfo) {
     let parsedContract = contractInfo.parsedContract
     let contractName = contractInfo.contractName
     return new Promise((resolve, reject) => {
@@ -98,7 +99,7 @@ module.exports = function (db, log, validator, withStateDB = false) {
       db.getVariables(address).then((res) => {
         console.log('res', res)
         if (res.length === 0) {
-          log.debug('parity.js: Caching variables for contract')
+          log.debug('ethClient.js: Caching variables for contract')
           var abi = parsedContract.abi
           let variableNames = []
           return Promise.each(abi, (item) => {
@@ -114,14 +115,14 @@ module.exports = function (db, log, validator, withStateDB = false) {
                   return results
                 })
                 .catch((err) => {
-                  log.error('parity.js: Error adding variable names to db')
+                  log.error('ethClient.js: Error adding variable names to db')
                   log.error(err)
                   process.exit(1)
                 })
             })
             .then((results) => {
               db.getVariables(address).then((res) => {
-                console.log('parity:res', res)
+                console.log('ethClient:res', res)
                 let variableNames = []
                 Promise.map(res, (elem) => {
                   variableNames.push(elem)
@@ -145,7 +146,7 @@ module.exports = function (db, log, validator, withStateDB = false) {
   }
 
   // Query value of variable at certain block
-  parity.queryAtBlock = function (query, block) {
+  ethClient.queryAtBlock = function (query, block) {
     let hex = '0x' + block.toString(16)
     web3.eth.defaultBlock = hex
     return new Promise((resolve, reject) => {
@@ -155,14 +156,14 @@ module.exports = function (db, log, validator, withStateDB = false) {
     })
   }
 
-  parity.calculateBlockTime = function (blockNumber) {
+  ethClient.calculateBlockTime = function (blockNumber) {
     return new Promise((resolve) => {
       let time = web3.eth.getBlock(blockNumber).timestamp
       return resolve(time)
     })
   }
 
-  parity.getBlockTime = function (blockNumber) {
+  ethClient.getBlockTime = function (blockNumber) {
     return new Promise((resolve) => {
       db.getBlockTime(blockNumber)
         .then((result) => {
@@ -183,7 +184,7 @@ module.exports = function (db, log, validator, withStateDB = false) {
                   return resolve(result[0].timeStamp)
                 }
                 // If it still isn't in there, we calcuate it and add it
-                parity.calculateBlockTime(blockNumber).then((time) => {
+                ethClient.calculateBlockTime(blockNumber).then((time) => {
                   db.addBlockTime([[blockNumber, time, 1]])
                     .then(() => {
                       release()
@@ -196,14 +197,14 @@ module.exports = function (db, log, validator, withStateDB = false) {
     })
   }
 
-  parity.getHistory = function (address, method, startBlock, endBlock) {
-    //TODO: method to index translation
+  ethClient.getHistory = function (address, method, startBlock, endBlock) {
+    // TODO: method to index translation
 
-    console.log('parity.getHistory:currently with no method, always returs value at index 0):\n',
+    console.log('ethClient.getHistory:currently with no method, always returs value at index 0):\n',
       'startBlock', startBlock, 'endBlock', endBlock, 'querylength', endBlock - startBlock)
 
     return new Promise((resolve, reject) => {
-      return stateDB.hashSet(address, 0, startBlock, endBlock, function returnResults (err, result) {
+      return ethStorage.hashSet(address, 0, startBlock, endBlock, function returnResults (err, result) {
         if (err) return reject(err)
         else return resolve(result)
       }, 8)
@@ -211,21 +212,21 @@ module.exports = function (db, log, validator, withStateDB = false) {
   }
 
   function decodeValueInBuffer (rawVal) {
-    //TODO: is reading int proper?
+    // TODO: is reading int proper?
     return (Buffer.isBuffer(rawVal)) ? parseInt(rawVal.toString('hex'), 16) : 0
   }
 
-  parity.generateDataPoints = function (rawEvents, contract, method,
+  ethClient.generateDataPoints = function (rawEvents, contract, method,
                                         totalFrom, totalTo) {
 
-    // console.log('parity:generateDataPoints,rawEvents', rawEvents, 'contract adr:', contract.address.slice(0, 8),
+    // console.log('ethClient:generateDataPoints,rawEvents', rawEvents, 'contract adr:', contract.address.slice(0, 8),
     //   '... method', method, 'total from:', totalFrom, 'total to:', totalTo)
 
     return new Promise((resolve, reject) => {
 
       Promise.map(rawEvents, (event) => {
         // [(time, value, blockNum)]
-        return Promise.all([parity.getBlockTime(event.block), decodeValueInBuffer(event.val), event.block])
+        return Promise.all([ethClient.getBlockTime(event.block), decodeValueInBuffer(event.val), event.block])
       }, {concurrency: 5})
         .then((events) => {return db.addDataPoints(contract.address.substr(2), method, events, totalFrom, totalTo)})
         .then((events) => {
@@ -241,5 +242,5 @@ module.exports = function (db, log, validator, withStateDB = false) {
     })
   }
 
-  return parity
+  return ethClient
 }

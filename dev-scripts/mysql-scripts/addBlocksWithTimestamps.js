@@ -1,4 +1,7 @@
 var mysql = require('promise-mysql')
+var mysqlConnectionOptions = require('../../backend/backendSettings.js').mysqlConnectionOptions
+
+const pool = mysql.createPool(mysqlConnectionOptions)
 
 /*
 simple and quick block generating for mysql, block.timeStamp = block.blockNumber
@@ -13,6 +16,7 @@ async function test () {
   var timesStampOfFirstBlock = 1492107044
 
   var i = startBlock // second for iterator
+  var sql
   for (var curEndBlock = startBlock + step; curEndBlock < endBlock; curEndBlock += step) {
 
     var array = []
@@ -30,16 +34,6 @@ async function test () {
   console.log('[addBlocksWithTImestamps.js]: Pushing blocks completed, turn off this script.\n')
 
 }
-
-const pool = mysql.createPool({
-  connectionLimit: 10,
-  connectionTimeout: 1000000,
-  host: 'localhost',
-  port: '8083',
-  user: 'root',
-  password: 'wp',
-  database: 'etheroscope'
-})
 
 setTimeout(test, 500)
 

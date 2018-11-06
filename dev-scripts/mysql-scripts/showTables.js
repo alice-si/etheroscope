@@ -1,4 +1,7 @@
 var mysql = require('promise-mysql')
+var mysqlConnectionOptions = require('../../backend/backendSettings.js').mysqlConnectionOptions
+
+const pool = mysql.createPool(mysqlConnectionOptions)
 
 function test () {
   pool.query('show tables')
@@ -9,15 +12,5 @@ function test () {
       console.log('Show tables error:\n', err)
     })
 }
-
-const pool = mysql.createPool({
-  connectionLimit: 10,
-  connectionTimeout: 10000,
-  host: 'localhost',
-  port: '8083',
-  user: 'root',
-  password: 'wp',
-  database: 'etheroscope'
-})
 
 setTimeout(test, 500)

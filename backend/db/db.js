@@ -1,17 +1,9 @@
-// var mssql = require('mssql')
-// var login = require('./login.js')
 var path = require('path')
 var mysql = require('promise-mysql')
 
-const pool = mysql.createPool({
-  connectionLimit: 10,
-  connectionTimeout: 10000,
-  host: 'localhost',
-  port: '8083',
-  user: 'root',
-  password: 'wp',
-  database: 'etheroscope'
-})
+var mysqlConnectionOptions = require('../backendSettings.js').mysqlConnectionOptions
+
+const pool = mysql.createPool(mysqlConnectionOptions)
 
 function test () {
   pool.query('SELECT 1 + 1 AS solution')

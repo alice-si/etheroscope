@@ -1,3 +1,3 @@
 echo assert: first run ./startRPCAPI.sh and ./startMysql in another terminals
-node ../server.js &
-node ../services/index.js
+node ../backend/server.js &
+node ../services/backend/index.js

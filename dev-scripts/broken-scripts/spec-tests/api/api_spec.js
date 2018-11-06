@@ -1,5 +1,5 @@
 /* global expect, describe, it */
-let api = require('../../api/api')
+let api = require('../../../../backend/api')
 describe('API endpoint Unit Tests', function () {
   describe('APISanityCheck', function () {
     it('checks test library is functioning', function (done) {

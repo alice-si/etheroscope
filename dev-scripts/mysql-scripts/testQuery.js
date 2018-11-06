@@ -1,5 +1,9 @@
 var mysql = require('promise-mysql')
-function  test() {
+var mysqlConnectionOptions = require('../../backend/backendSettings.js').mysqlConnectionOptions
+
+const pool = mysql.createPool(mysqlConnectionOptions)
+
+function test () {
   // pool.query('select * from blocks where timeStamp != blockNumber').then(function (results) {
   //   console.log('results blocks: ', results)
   // })
@@ -27,15 +31,4 @@ function  test() {
   })
 }
 
-
-const pool = mysql.createPool({
-  connectionLimit: 10,
-  connectionTimeout: 10000,
-  host: 'localhost',
-  port: '8083',
-  user: 'root',
-  password: 'wp',
-  database: 'etheroscope'
-})
-
-setTimeout(test,500)
+setTimeout(test, 500)

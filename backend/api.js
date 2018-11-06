@@ -1,7 +1,7 @@
 let axios = require('axios')
 
 module.exports = function (app, db, log, validator) {
-  let parity = require('./parity')(db, log, validator)
+  let ethClient = require('./ethClient')(db, log, validator)
   let Promise = require('bluebird')
 
   function validAddress (address) {
@@ -26,9 +26,9 @@ module.exports = function (app, db, log, validator) {
       return res.status(400).json(err)
     }
     db.addContractLookup(address.substr(2))
-    return parity.getContract(address)
+    return ethClient.getContract(address)
       .then((contractInfo) => {
-        return parity.getContractVariables(contractInfo)
+        return ethClient.getContractVariables(contractInfo)
       })
       .then((contractInfo) => {
         return res.status(200).json(contractInfo)

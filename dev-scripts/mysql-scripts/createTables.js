@@ -1,5 +1,7 @@
-
 var mysql = require('promise-mysql')
+var mysqlConnectionOptions = require('../../backend/backendSettings.js').mysqlConnectionOptions
+
+const pool = mysql.createPool(mysqlConnectionOptions)
 
 var sqlContracts = 'create table if not exists contracts(\n' +
   '    contractHash VARCHAR(40)  not null,\n' +
@@ -46,39 +48,29 @@ var sqlDataPoints = 'create table if not exists dataPoints(\n' +
 
 function test () {
   pool.query(sqlContractLookupHistory).then(function (results) {
-    console.log('create table ('+sqlContractLookupHistory+'): ', results)
+    console.log('create table (' + sqlContractLookupHistory + '): ', results)
   }).then(() => {
     pool.query(sqlContracts).then(function (results) {
-      console.log('create('+sqlContracts+'): ', results)
+      console.log('create(' + sqlContracts + '): ', results)
     })
   }).then(() => {
     pool.query(sqlBlocks).then(function (results) {
-      console.log('create('+sqlBlocks+'): ', results)
+      console.log('create(' + sqlBlocks + '): ', results)
     })
   }).then(() => {
     pool.query(sqlVariables).then(function (results) {
-      console.log('create('+sqlVariables+'): ', results)
+      console.log('create(' + sqlVariables + '): ', results)
     })
   }).then(() => {
     pool.query(sqlVariableUnits).then(function (results) {
-      console.log('create('+sqlVariableUnits+'): ', results)
+      console.log('create(' + sqlVariableUnits + '): ', results)
     })
   }).then(() => {
     pool.query(sqlDataPoints).then(function (results) {
-      console.log('create('+sqlDataPoints+'): ', results)
+      console.log('create(' + sqlDataPoints + '): ', results)
     })
   })
 
 }
-
-const pool = mysql.createPool({
-  connectionLimit: 10,
-  connectionTimeout: 10000,
-  host: 'localhost',
-  port: '8083',
-  user: 'root',
-  password: 'wp',
-  database: 'etheroscope'
-})
 
 test()

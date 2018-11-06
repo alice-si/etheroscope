@@ -51,7 +51,7 @@
     "lint": "tslint \"src/**/*.ts\" && standard --env jasmine \"*.js\" \"devServer/**/*.js\" \"spec/**/*.js\"",
     "test": "./node_modules/.bin/jasmine",
     "build-prod": "./node_modules/.bin/ng build --prod --env=prod",
-    "deploy": "./node_modules/.bin/forever start ./forever/deploy.json",
+    "deploy": "./node_modules/.bin/forever start ./deploy-scripts/deploy.json",
     "stop-deploy": "./node_modules/.bin/forever stopall"
   },
   "dependencies": {
