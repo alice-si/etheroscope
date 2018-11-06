@@ -50,7 +50,7 @@ ng serve --port 8090 # alias ng="C:/Users/ja1/AppData/Roaming/npm/node_modules/@
 go localhost:8090
 ```
 
-### Etheroscope backend setup with MYSQL
+### Own Etheroscope backend setup with MYSQL
 ###### Etheroscope needs Geth RPC API (WEB3) and database(LevelDB) with blockchain creted by Geth
 You need to set your api connector and geth database path in `api/parity.js` file.
 Geth database can be accessed only by one process,
