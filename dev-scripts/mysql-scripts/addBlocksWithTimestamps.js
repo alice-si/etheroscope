@@ -27,6 +27,8 @@ async function test () {
     sql = 'insert into blocks (blockNumber, timeStamp, userLog) values ?'
     pool.query(sql, [array], console.log)
   }
+  console.log('Pushing blocks completed\n turn off this script\n')
+
 }
 
 const pool = mysql.createPool({
