@@ -59,7 +59,7 @@ and one with `archive sync` (`--gcmode archive`),
 wich creates database for Eth-storage module (quick history searching).
 
 ###### Etheroscope needs MYSQL Database for storing app data.
-You need to set your mysql connection in `db/db.js` file.
+You need to set your mysql connection in `backend/db/db.js` file.
 
 Best way to install MYSQL is to run Docker command `docker-compose up` in
 folder with `.yml` file https://github.com/alice-si/etheroscope/blob/ZPP/dev-scripts/docker-compose.yml.
@@ -76,8 +76,6 @@ You need to addBlocks to your database running `dev-scripts/mysql-scripts/addBlo
 //TODO check if cacheBlocks.js works (if yes it is probably slow)
 (You don`t need to add anything to 'contracts' table)
 
-### Architecture diagram
-![Etheroscope internal dependencies](https://raw.githubusercontent.com/Jab1one/materialy/master/architecture-diagrams/prostyrysunekarchitektury.jpg)
 
 ### Documentation 06.11.2018
 ```shell
@@ -85,27 +83,38 @@ You need to addBlocks to your database running `dev-scripts/mysql-scripts/addBlo
 ./angular-cli.json
 ```
 ```shell
-./api
-./api/api.js            # handles requests
-./api/parity.js         # functions for exploring blockchain
+./backend
+./backend/api.js               # handles requests
+./backend/backendSettings.js   # settings with paths and adresses
+./backend/db
+./backend/db/db.js             # functions for using mysql db
+./backend/ethClient.js         # functions for exploring blockchain
+./backend/microService.js      # handles generating contracts history, uses websocket
+./backend/server.js            # gets http request
 ```
 ```shell
-./blocknum
-```
-```shell
-./contract_mappings
-./contract_mappings/contracts.csv
-```
-```shell
-./db
-./db/cacheBlocks.js
-./db/cacheBlocks.sh
-./db/db.js              # functions for mysql database
-```
-```shell
-./dev-scripts           # helpful scripts during development
+./dev-scripts                  # helpful scripts during development
 ./dev-scripts/docker-compose.yml                                 # docker config file
 ./dev-scripts/installDependencies.sh                             # installs dependencies on linux
+```
+```shell
+./dev-scripts/broken-scripts                                     # potentialy useful scripts form old versions
+./dev-scripts/broken-scripts/blocknum
+./dev-scripts/broken-scripts/cacheBlocks.js
+./dev-scripts/broken-scripts/cacheBlocks.sh
+./dev-scripts/broken-scripts/contract_mappings.csv
+./dev-scripts/broken-scripts/e2e-tests
+./dev-scripts/broken-scripts/e2e-tests/app.e2e-spec.ts
+./dev-scripts/broken-scripts/e2e-tests/app.po.ts
+./dev-scripts/broken-scripts/e2e-tests/tsconfig.json
+./dev-scripts/broken-scripts/spec-tests
+./dev-scripts/broken-scripts/spec-tests/api
+./dev-scripts/broken-scripts/spec-tests/api/api_spec.js
+./dev-scripts/broken-scripts/spec-tests/api/parity_spec.js
+./dev-scripts/broken-scripts/spec-tests/support
+./dev-scripts/broken-scripts/spec-tests/support/jasmine.json
+```
+```shell
 ./dev-scripts/mysql-scripts                                      # scripts for actions on mysql database
 ./dev-scripts/mysql-scripts/addBlocksWithTimestamps.js
 ./dev-scripts/mysql-scripts/createDatabase.js
@@ -115,7 +124,9 @@ You need to addBlocks to your database running `dev-scripts/mysql-scripts/addBlo
 ./dev-scripts/mysql-scripts/setupNewDatabase.js                  # installs start content of database
 ./dev-scripts/mysql-scripts/showTables.js
 ./dev-scripts/mysql-scripts/testQuery.js
-./dev-scripts/mysql-scripts/upadateBlockTimes.js
+./dev-scripts/mysql-scripts/updateBlockTimes.js
+```
+```shell
 ./dev-scripts/setupDockerAndMysql.sh                             # installs MariaDB (our mysql databas) and start content of db
 ./dev-scripts/startBackend.sh                                    # starts backend
 ./dev-scripts/startFrontend.sh                                   # starts frontend
@@ -125,38 +136,16 @@ You need to addBlocks to your database running `dev-scripts/mysql-scripts/addBlo
 ./dev-scripts/syncFullBlockchain.sh
 ```
 ```shell
-./e2e
-./e2e/app.e2e-spec.ts
-./e2e/app.po.ts
-./e2e/tsconfig.json
-```
-```shell
-./forever
-./forever/deploy.json    # script for running aplication on server (version from branch MASTER)
-```
-```shell
 ./karma.conf.js
 ./LICENSE
 ./logo.png
 ./package.json
 ./protractor.config.js
-./README.md              # readme with instructions
-./server.js              # main server, handles http
+./README.md                    # readme with instructions
+./server.js                    # main server, handles http
 ```
 ```shell
-./services
-./services/index.js      # micro-service, generetes blockchain variable history, uses websocket
-```
-```shell
-./spec
-./spec/api
-./spec/api/api_spec.js
-./spec/api/parity_spec.js
-./spec/support
-./spec/support/jasmine.json
-```
-```shell
-./src                    # Angular application frontend
+./src                          # Angular application frontend
 ./src/app
 ./src/app/app.component.html
 ./src/app/app.component.scss
