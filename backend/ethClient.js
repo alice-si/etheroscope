@@ -10,7 +10,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 var EthStorage = require('eth-storage/ethStorage/layers/highLevel.js')
 
 // geth database path (must be different then choosen api connector database)
-var fullBlockchainPath = require('./backendSettings.js').fullBlockchainPath
+var fullBlockchainPath = require('./settings.js').fullBlockchainPath
 
 module.exports = function (db, log, validator, withStateDB = false) {
   const ethClient = {}

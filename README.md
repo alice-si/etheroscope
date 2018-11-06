@@ -51,12 +51,12 @@ go localhost:8090
 ```
 
 ### Own Etheroscope backend setup with MYSQL
+Set paths and hosts etc. in 'backend/settings.js'
 ###### Etheroscope needs Geth RPC API (WEB3) and database(LevelDB) with blockchain creted by Geth
-You need to set your api connector and geth database path in `api/parity.js` file.
+You need to set your api connector and geth database path in `backend/settings.js` file.
 Geth database can be accessed only by one process,
 so you can create to databases with blockchain one with `fast sync` for RPC API
-and one with `archive sync` (`--gcmode archive`),
-wich creates database for Eth-storage module (quick history searching).
+and one with `archive sync` (`--gcmode archive`) for Eth-storage module (quick history searching).
 
 ###### Etheroscope needs MYSQL Database for storing app data.
 You need to set your mysql connection in `backend/db/db.js` file.

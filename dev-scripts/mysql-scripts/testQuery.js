@@ -1,5 +1,5 @@
 var mysql = require('promise-mysql')
-var mysqlConnectionOptions = require('../../backend/backendSettings.js').mysqlConnectionOptions
+var mysqlConnectionOptions = require('../../backend/settings.js').mysqlConnectionOptions
 
 const pool = mysql.createPool(mysqlConnectionOptions)
 

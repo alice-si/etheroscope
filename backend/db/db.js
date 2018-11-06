@@ -1,7 +1,7 @@
 var path = require('path')
 var mysql = require('promise-mysql')
 
-var mysqlConnectionOptions = require('../backendSettings.js').mysqlConnectionOptions
+var mysqlConnectionOptions = require('../settings.js').mysqlConnectionOptions
 
 const pool = mysql.createPool(mysqlConnectionOptions)
 
