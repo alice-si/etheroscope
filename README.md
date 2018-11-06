@@ -117,10 +117,10 @@ You need to addBlocks to your database running `dev-scripts/mysql-scripts/addBlo
 ./dev-scripts/mysql-scripts/testQuery.js
 ./dev-scripts/mysql-scripts/upadateBlockTimes.js
 ./dev-scripts/setupDockerAndMysql.sh                             # installs MariaDB (our mysql databas) and start content of db
-./dev-scripts/startBackend.sh
-./dev-scripts/startFrontend.sh
-./dev-scripts/startMysql.sh
-./dev-scripts/startRPCAPI.sh
+./dev-scripts/startBackend.sh                                    # starts backend
+./dev-scripts/startFrontend.sh                                   # starts frontend
+./dev-scripts/startMysql.sh                                      # starts Mysql server MariaDB on Dockerbackend
+./dev-scripts/startRPCAPI.sh                                     # starts Geth`s rpc API needed for backend
 ./dev-scripts/syncFastBlockchain.sh
 ./dev-scripts/syncFullBlockchain.sh
 ```
