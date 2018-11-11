@@ -106,9 +106,7 @@ module.exports = function (log) {
 
   // TODO delete pool connect from code
   db.poolConnect = function () {
-    console.log('db.poolConnect')
     return new Promise(function (resolve, reject) {
-      log.info('db.js: Successfully connected to pool')
       resolve()
     })
   }
@@ -270,9 +268,12 @@ module.exports = function (log) {
       let variablesTable = getNewVariablesTable(address, variables)
       pool.query(variablesTable.sql, [variablesTable.values])
         .then(() => {
-            return resolve()
-          }
-        )
+          return resolve()
+        })
+        .catch((err) => {
+          console.log('sql query', variablesTable.sql, 'values [', variablesTable.values, ']')
+          console.log('err', err)
+        })
     })
   }
 

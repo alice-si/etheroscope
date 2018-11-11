@@ -1,7 +1,10 @@
 var mysql = require('promise-mysql')
 var mysqlConnectionOptions = require('../../backend/settings.js').mysqlConnectionOptions
 
-const pool = mysql.createPool(mysqlConnectionOptions)
+var optionsBeforeDBCreation = JSON.parse(JSON.stringify(mysqlConnectionOptions)) // full copy
+delete optionsBeforeDBCreation['database'] // delete database field
+
+const pool = mysql.createPool(optionsBeforeDBCreation)
 
 function test () {
   pool.query('create database etheroscope')

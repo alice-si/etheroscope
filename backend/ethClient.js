@@ -12,6 +12,8 @@ var EthStorage = require('eth-storage/ethStorage/layers/highLevel.js')
 // geth database path (must be different then choosen api connector database)
 var fullBlockchainPath = require('./settings.js').fullBlockchainPath
 
+
+
 module.exports = function (db, log, validator, withStateDB = false) {
   const ethClient = {}
 
@@ -47,9 +49,9 @@ module.exports = function (db, log, validator, withStateDB = false) {
             // TODO: choose axiosGET between ethereum and rinkeby
             const axiosGET = 'https://api-rinkeby.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
             const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
-            console.log('address', address)
             return axios.get(axiosGET + address + axiosAPI)
               .then((res) => {
+                console.log('address', address)
                 let parsedContract = ethClient.parseContract(res.data.result, address)
                 // Add the contract to the database, assuming it is already in there (with a name)
                 console.log('will updateContractWithABI')
@@ -65,7 +67,7 @@ module.exports = function (db, log, validator, withStateDB = false) {
                 return reject(err)
               })
           }
-          console.log('ethClient.getContract:result', result)
+          // console.log('ethClient.getContract:result', result)
           let parsedContract = ethClient.parseContract(result.contract, address)
           return resolve({contractName: result.contractName, parsedContract: parsedContract})
         })
@@ -79,6 +81,7 @@ module.exports = function (db, log, validator, withStateDB = false) {
     try {
       //TODO: type of
       console.log('ethClient.parseContract:typeofdesc', typeof desc)
+      console.log('desc:----------\n',desc)
       if (typeof desc === 'string') {
         contractABI = JSON.parse(desc)
       }
