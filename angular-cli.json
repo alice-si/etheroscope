@@ -52,7 +52,7 @@
   "defaults": {
     "serve": {
       "port": 8080,
-      "host": "localhost"
+      "host": "0.0.0.0"
     },
     "styleExt": "scss",
     "prefixInterfaces": false,
