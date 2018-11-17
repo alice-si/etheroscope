@@ -21,7 +21,7 @@ spec:
       containers:
       - name: alice-eth-geth-rinkeby
         image: ethereum/client-go
-        command: ["geth", "--rinkeby", "--rpc", "--rpcaddr",  "0.0.0.0", "--datadir=/ethereum-data", "--gcmode=archive", "--rpcapi=\"db,eth,net,web3,personal,web3\""]
+        command: ["geth", "--rinkeby", "--rpc", "--rpcaddr",  "0.0.0.0", "--datadir=/ethereum-data", "--cache=64", "--rpcapi=\"db,eth,net,web3,personal,web3\""]
         volumeMounts:
           - name: rinkeby-geth-volume
             mountPath: /ethereum-data/
