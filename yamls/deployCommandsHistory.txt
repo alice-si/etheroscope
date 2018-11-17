@@ -1,0 +1,22 @@
+etheroscope>doskey /history
+gcloud auth configure-docker
+cd
+cd ../../../../
+cd etheroscope
+ls
+dir
+docker images
+docker push gcr.io/etheroscope/etheroscope-frontend
+gcloud components install kubectl
+gcloud container clusters get-credentials etheroscope --zone europe-west2-a --project etheroscope
+kubectl apply -f ./yamls/frontEndDeployment.yaml
+kubectl get pods
+kubectl exec -it etheroscope-frontend-854f447cb6-8ctd4 bash
+kubectl apply -f yamls/frontEndLoadBalancer.yaml
+dir
+ls
+dir
+doskey \history
+doskey /history
+
+
