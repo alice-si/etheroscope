@@ -13,3 +13,4 @@ RUN npm install
 
 # Bundle app source
 CMD ./node_modules/.bin/forever start ./deploy-scripts/deploy.json
+#CMD node ./backend/server.js & ; node ./backend/microService.js
