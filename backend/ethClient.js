@@ -4,7 +4,8 @@ var Promise = require('bluebird')
 var ReadWriteLock = require('rwlock')
 var lock = new ReadWriteLock()
 
-const parityUrl = 'http://' + require('../settings.js').gethHost + ':8545' // api connector
+var gethHost = require('../settings.js').gethHost
+const parityUrl = 'http://' + gethHost + ':8545' // api connector
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
 var EthStorage = require('eth-storage/ethStorage/layers/highLevel.js')
@@ -21,7 +22,7 @@ module.exports = function (db, log, validator, withStateDB = false) {
   }
 
   if (!web3.isConnected()) {
-    console.log('Please start ethClient')
+    console.log('Please start ethClient, have tried: ', parityUrl)
     process.exit(1)
   }
   console.log('Successfully connected to ethClient')
