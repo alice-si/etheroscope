@@ -3,7 +3,7 @@
     "uid": "etheroscope-webserver",
     "append": true,
     "watch": true,
-    "script": "backend/server.js",
+    "script": "server.js",
     "sourceDir": "/usr/src/app/etheroscope/backend",
     "OUTFILE": "./out/webserver_stdout.log",
     "ERRFILE": "./out/webserver_stderr.log"
