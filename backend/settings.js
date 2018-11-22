@@ -1,7 +1,7 @@
 module.exports.fullBlockchainPath = '../geth-blockchains/fullRinkebyBlockchain/geth/chaindata'
 // module.exports.fullBlockchainPath = '../../Alice/dirForFullRinkeby/geth/chaindata'
 
-module.exports.gethHost = 'alice-eth-geth-rinkeby'
+module.exports.gethHost = 'alice-eth-geth-service'
 
 module.exports.mysqlConnectionOptions = {
   connectionLimit: 10,
