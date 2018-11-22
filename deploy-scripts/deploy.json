@@ -4,7 +4,7 @@
     "append": true,
     "watch": true,
     "script": "server.js",
-    "sourceDir": "/home/ubuntu/etheroscope",
+    "sourceDir": "/usr/src/app/etheroscope/backend",
     "OUTFILE": "./out/webserver_stdout.log",
     "ERRFILE": "./out/webserver_stderr.log"
   },
@@ -12,8 +12,8 @@
     "uid": "etheroscope-microservice",
     "append": true,
     "watch": true,
-    "script": "index.js",
-    "sourceDir": "/home/ubuntu/etheroscope/services",
+    "script": "microService.js",
+    "sourceDir": "/usr/src/app/etheroscope/backend",
     "OUTFILE": "./out/microservice_stdout.log",
     "ERRFILE": "./out/microservice_stderr.log"
   }

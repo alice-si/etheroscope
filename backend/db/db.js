@@ -138,7 +138,8 @@ module.exports = function (log) {
 
       //TODO: update or insert?
       // var sql = 'update contracts set abi=\'' + JSON.stringify(parsedContract) + '\' where contractHash=\'' + address + '\''
-      var sql = 'insert into contracts (contractHash, name, abi) values (\'' + address + '\', \'rinkebycontract\',\'' + JSON.stringify(parsedContract) + '\')'
+      var sql = 'insert into contracts (contractHash, name, abi) values (\''
+      sql = sql + address + '\', \'rinkebycontract\',\'' + JSON.stringify(parsedContract) + '\')'
       console.log('db.updateCOntractswithAbi:sql', sql)
       pool.query(sql)
         .catch((err) => {

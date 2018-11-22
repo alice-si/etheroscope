@@ -4,15 +4,13 @@ var Promise = require('bluebird')
 var ReadWriteLock = require('rwlock')
 var lock = new ReadWriteLock()
 
-const parityUrl = 'http://localhost:8545' // api connector
+const parityUrl = 'http://' + require('../settings.js').gethHost + ':8545' // api connector
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
 var EthStorage = require('eth-storage/ethStorage/layers/highLevel.js')
 
 // geth database path (must be different then choosen api connector database)
 var fullBlockchainPath = require('./settings.js').fullBlockchainPath
-
-
 
 module.exports = function (db, log, validator, withStateDB = false) {
   const ethClient = {}
@@ -81,7 +79,7 @@ module.exports = function (db, log, validator, withStateDB = false) {
     try {
       //TODO: type of
       console.log('ethClient.parseContract:typeofdesc', typeof desc)
-      console.log('desc:----------\n',desc)
+      console.log('desc:----------\n', desc)
       if (typeof desc === 'string') {
         contractABI = JSON.parse(desc)
       }
@@ -220,7 +218,7 @@ module.exports = function (db, log, validator, withStateDB = false) {
   }
 
   ethClient.generateDataPoints = function (rawEvents, contract, method,
-                                        totalFrom, totalTo) {
+                                           totalFrom, totalTo) {
 
     // console.log('ethClient:generateDataPoints,rawEvents', rawEvents, 'contract adr:', contract.address.slice(0, 8),
     //   '... method', method, 'total from:', totalFrom, 'total to:', totalTo)
