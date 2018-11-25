@@ -15,4 +15,5 @@ spec:
     spec:
       containers:
       - name: etheroscope-backend-container
-        image: gcr.io/etheroscope/etheroscope-backend
+        image: gcr.io/etheroscope/etheroscope-backend:latest
+        imagePullPolicy: "Always"

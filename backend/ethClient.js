@@ -25,7 +25,7 @@ module.exports = function (db, log, validator, withStateDB = false) {
     console.log('Please start ethClient, have tried: ', parityUrl)
     process.exit(1)
   }
-  console.log('Successfully connected to ethClient')
+  console.log('Successfully connected to ethClient, have tried: ', parityUrl)
 
   ethClient.getLatestBlock = function () {
     return new Promise((resolve, reject) => {
