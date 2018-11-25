@@ -13,6 +13,7 @@ spec:
       labels:
         app: etheroscope-backend
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
       - name: etheroscope-backend-container
         image: gcr.io/etheroscope/etheroscope-backend:latest
