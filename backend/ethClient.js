@@ -4,7 +4,7 @@ var Promise = require('bluebird')
 var ReadWriteLock = require('rwlock')
 var lock = new ReadWriteLock()
 
-var gethHost = require('../settings.js').gethHost
+var gethHost = require('./settings.js').gethHost
 const parityUrl = 'http://' + gethHost + ':8545' // api connector
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
