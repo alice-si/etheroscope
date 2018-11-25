@@ -5,6 +5,4 @@ metadata:
 spec:
     selector:
         app: etheroscope-backend
-    ports:
-    - protocol: TCP
 
