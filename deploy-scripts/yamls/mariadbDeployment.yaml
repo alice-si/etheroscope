@@ -18,10 +18,11 @@ spec:
           image: gcr.io/etheroscope/mariadb
           env:
               - name: MYSQL_ROOT_PASSWORD
-                valueFrom:
-                  secretKeyRef:
-                      name: mariadb
-                      key: password
+                value: "etheroscope-mariadb-password"
+#                valueFrom:
+#                  secretKeyRef:
+#                      name: mariadb
+#                      key: password
           ports:
               - containerPort: 3306
                 name: mariadb
