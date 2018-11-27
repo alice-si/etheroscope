@@ -92,10 +92,10 @@ function createTables () {
 
 async function addBlocksWithTimestamps () {
 
-  var step = 1000          // size of inserted block pack
+  var step = 10000          // size of inserted block pack
   var startBlock = 0
   // var endBlock = 1000000
-  var endBlock = 2946440
+  var endBlock = 4500000
 
   var timesStampOfFirstBlock = 1492107044
 
@@ -109,8 +109,8 @@ async function addBlocksWithTimestamps () {
       var blockNumber = i
       await array.push([blockNumber, timesStampOfFirstBlock + (blockNumber * 15), 0])
 
-      console.log('pushed to array block', blockNumber, 'percent completed (+/-', parseInt(step / endBlock), '):', 100 * (blockNumber / endBlock), '%')
     }
+    console.log('pushed to array block', blockNumber, 'percent completed (+/-', parseInt(step / endBlock), '):', 100 * (blockNumber / endBlock), '%')
 
     sql = 'insert into blocks (blockNumber, timeStamp, userLog) values ?'
     pool.query(sql, [array], console.log)
