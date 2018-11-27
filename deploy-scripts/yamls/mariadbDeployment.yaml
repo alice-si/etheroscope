@@ -14,22 +14,22 @@ spec:
         app: mariadb
     spec:
       containers:
-      - name: mariadb-container
-        image: gcr.io/etheroscope/mariadb
-        env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: "wp"
-#              valueFrom:
-#                secretKeyRef:
-#                    name: mariadb
-#                    key: password
-        ports:
-            - containerPort: 3306
-              name: mariadb
-        volumeMounts:
-            - name: mysql-persistent-storage
-              mountPath: /var/lib/mysql
-    volumes:
-        - name: mysql-persistent-storage
-          persistentVolumeClaim:
-            claimName: mariadb-volumeclaim
+        - name: mariadb-container
+          image: gcr.io/etheroscope/mariadb
+          env:
+              - name: MYSQL_ROOT_PASSWORD
+                value: "wp"
+#                valueFrom:
+#                  secretKeyRef:
+#                      name: mariadb
+#                      key: password
+          ports:
+              - containerPort: 3306
+                name: mariadb
+          volumeMounts:
+              - name: mysql-persistent-storage
+                mountPath: /var/lib/mysql
+      volumes:
+          - name: mysql-persistent-storage
+            persistentVolumeClaim:
+              claimName: mariadb-volumeclaim
