@@ -113,7 +113,10 @@ async function addBlocksWithTimestamps () {
     console.log('pushed to array block', blockNumber, 'percent completed (+/-', parseInt(step / endBlock), '):', 100 * (blockNumber / endBlock), '%')
 
     sql = 'insert into blocks (blockNumber, timeStamp, userLog) values ?'
-    pool.query(sql, [array], console.log)
+    pool.query(sql, [array], console.log).catch(error => {
+      console.log('Pushing blocks to db Error')
+      console.log(error)
+    })
   }
   console.log('[setupNewDatabase.js]: Pushing blocks completed, turn off this script.\n')
 }

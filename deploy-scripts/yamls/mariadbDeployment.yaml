@@ -18,14 +18,17 @@ spec:
           image: gcr.io/etheroscope/mariadb
           env:
               - name: MYSQL_ROOT_PASSWORD
-                value: "etheroscope-mariadb-password"
+                value: "wp"
 #                valueFrom:
 #                  secretKeyRef:
 #                      name: mariadb
 #                      key: password
           ports:
-              - containerPort: 3306
-                name: mariadb
+#              - containerPort: 3306
+#                name: mariadb
+          - protocol: TCP
+            port: 8083
+            targetPort: 3306
           volumeMounts:
               - name: mysql-persistent-storage
                 mountPath: /var/lib/mysql

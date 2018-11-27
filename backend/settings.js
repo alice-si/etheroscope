@@ -8,8 +8,8 @@ module.exports.mysqlConnectionOptions = {
   connectionTimeout: 10000,
   // host: '192.168.99.100',
   host: '10.3.240.97',
-  port: '3306',
+  port: '8083',
   user: 'root',
-  password: 'etheroscope-mariadb-password',
+  password: 'wp',
   database: 'etheroscope'
 }
