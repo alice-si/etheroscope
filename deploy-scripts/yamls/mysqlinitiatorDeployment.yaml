@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: etheroscope-mysql-initiator
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: etheroscope-mysql-initiator
+  template:
+    metadata:
+      labels:
+        app: etheroscope-mysql-initiator
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: etheroscope-mysql-initiator-container
+        image: gcr.io/etheroscope/etheroscope-mysql-initiator:latest
+        imagePullPolicy: "Always"
