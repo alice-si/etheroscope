@@ -12,4 +12,4 @@ WORKDIR /usr/src/app/etheroscope
 RUN npm install
 
 # Bundle app source
-CMD ./node_modules/@angular/cli/bin/ng serve --host 0.0.0.0 --port 8090
+CMD git pull && npm install && ./node_modules/@angular/cli/bin/ng serve --host 0.0.0.0 --port 8090
