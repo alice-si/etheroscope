@@ -26,6 +26,7 @@ export class ContractService {
   exploreContract(contract: string) {
     console.log("Sending Request...");
     this.locate.go('/explorer/' + contract);
+    console.log(this.apiUrl);
     return this.http.get(this.apiUrl + 'api/explore/' + contract).map(this.extractData);
   }
 
