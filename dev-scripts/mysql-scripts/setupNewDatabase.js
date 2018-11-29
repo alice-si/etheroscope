@@ -11,11 +11,11 @@ var pool = mysql.createPool(optionsBeforeDBCreation)
 function createDatabase () {
   pool.query('create database etheroscope')
     .then(function (results) {
-      console.log('Database creation success! results:\n ', results)
+      console.log('Database creation success! results:\n ')
       pool = mysql.createPool(mysqlConnectionOptions)
     })
     .catch(function (err) {
-      console.log('Database cretion error:\n', err)
+      console.log('Database creation error:\n', err)
       pool = mysql.createPool(mysqlConnectionOptions)
     })
 }
@@ -122,6 +122,6 @@ async function addBlocksWithTimestamps () {
 }
 
 setTimeout(createDatabase, 500)
-setTimeout(createTables, 3500)
-setTimeout(createTables, 5500) // datapoints table doesnt create first time
+// setTimeout(createTables, 3500)
+// setTimeout(createTables, 5500) // datapoints table doesnt create first time
 // setTimeout(addBlocksWithTimestamps, 7500)
