@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: etheroscope-micro-service
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: etheroscope-micro-service
+  template:
+    metadata:
+      labels:
+        app: etheroscope-micro-service
+    spec:
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: rinkeby-geth-volume
+        gcePersistentDisk:
+          pdName: rinkeby-geth-disk
+          fsType: ext4
+      containers:
+      - name: etheroscope-micro-service-container
+        image: gcr.io/etheroscope/etheroscope-micro-service:latest
+        imagePullPolicy: "Always"
+        volumeMounts:
+        - name: rinkeby-geth-volume
+          mountPath: /usr/src/app/etheroscope/geth-blockchains/fullRinkebyBlockchain/
