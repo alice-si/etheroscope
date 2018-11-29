@@ -1,10 +1,10 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: etheroscope-backend-load-balancer-8081
+  name: etheroscope-micro-service-load-balancer-8081
 spec:
   selector:
-    app: etheroscope-backend
+    app: etheroscope-micro-service
   ports:
   - protocol: TCP
     port: 8081
