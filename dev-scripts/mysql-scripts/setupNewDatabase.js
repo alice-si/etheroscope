@@ -124,4 +124,4 @@ async function addBlocksWithTimestamps () {
 setTimeout(createDatabase, 500)
 setTimeout(createTables, 3500)
 setTimeout(createTables, 5500) // datapoints table doesnt create first time
-setTimeout(addBlocksWithTimestamps, 7500)
+// setTimeout(addBlocksWithTimestamps, 7500)
