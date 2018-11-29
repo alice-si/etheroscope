@@ -12,7 +12,7 @@
     "uid": "etheroscope-microservice",
     "append": true,
     "watch": true,
-    "script": "backend/microService.js",
+    "script": "microService.js",
     "sourceDir": "/usr/src/app/etheroscope/backend",
     "OUTFILE": "./out/microservice_stdout.log",
     "ERRFILE": "./out/microservice_stderr.log"
