@@ -14,4 +14,4 @@ RUN npm install
 # Bundle app source
 #CMD ./node_modules/.bin/forever start ./deploy-scripts/deploy.json
 
-CMD git pull && npm install && npnode dev-scripts/mysql-scripts/setupNewDatabase.js
+CMD git pull && npm install && node dev-scripts/mysql-scripts/setupNewDatabase.js
