@@ -19,6 +19,7 @@ module.exports = function (app, db, log, validator) {
   })
 
   app.get('/api/explore/:contractAddress', (req, res) => {
+    console.log('Reached API')
     let address = req.params.contractAddress
     if (!validAddress(address)) {
       log.debug('User requested something stupid')
