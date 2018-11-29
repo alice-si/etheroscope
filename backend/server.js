@@ -11,6 +11,9 @@ var validator = require('validator')
 log.setLevel('trace')
 log.enableAll()
 
+console.log('server.js: Starting server.js')
+console.log('server.js: Will require ./db/db.js')
+
 var db = require('./db/db.js')(log)
 
 // Set port to 8080
@@ -22,13 +25,13 @@ Promise.config({
 })
 
 process.on('uncaughtException', function (err) {
-  log.error('server.js: Error: uncaughtException: ' + err)
+  log.error('server.js: Error: processs got uncaughtException:\n' + err)
 })
 
 // Application options and configurations
 app.use(bodyParser.json()) // parse application/json
-app.use(bodyParser.json({ type: 'application/vnd.api+json' })) // parse application/vnd.api+json as json
-app.use(bodyParser.urlencoded({ extended: true })) // parse application/x-www-form-urlencoded
+app.use(bodyParser.json({type: 'application/vnd.api+json'})) // parse application/vnd.api+json as json
+app.use(bodyParser.urlencoded({extended: true})) // parse application/x-www-form-urlencoded
 app.use(methodOverride('X-HTTP-Method-Override')) // override with the X-HTTP-Method-Override header in the request. simulate DELETE/PUT
 
 app.use(function (req, res, next) {
@@ -42,6 +45,9 @@ app.use(morgan('dev'))
 var staticdir = 'dist'
 app.use(express.static(path.join(__dirname, '/', staticdir)))
 
+console.log('server.js: Will db.poolCOnnect')
+
+// kickstart db connection
 db.poolConnect().then(() => {
   // Home page endpoint
   // app.get('/', function (req, res) {
@@ -57,11 +63,10 @@ db.poolConnect().then(() => {
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
   })
 
-
   process.on('unhandledRejection', (reason, p) => {
-    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason)
     // application specific logging, throwing an error, or other logic here
-  });
+  })
 
   require('./api.js')(app, db, log, validator) // configure our routes
 
@@ -70,4 +75,6 @@ db.poolConnect().then(() => {
   // Start application
   log.info('server.js: Starting server at: ' + port)    // shoutout to the user
   exports = module.exports = app                        // expose app
-}) // kickstart db connection
+}).catch(err => {
+  console.log('server.js: error in db.poolConnect():', err)
+})
