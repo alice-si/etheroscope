@@ -1,4 +1,4 @@
-module.exports.fullBlockchainPath = '../geth-blockchains/fullRinkebyBlockchain/geth/chaindata'
+module.exports.fullBlockchainPath = '/usr/src/app/etheroscope/geth-blockchains/fullRinkebyBlockchain/geth/chaindata'
 // module.exports.fullBlockchainPath = '../../Alice/dirForFullRinkeby/geth/chaindata'
 
 module.exports.gethHost = '10.3.255.188'
