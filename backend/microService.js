@@ -18,15 +18,14 @@ let socketPort = 8081
 let express = require('express')
 let app = express()
 let server = require('http').createServer(app)
-let io = require('socket.io')(server)
-io.set('origins', 'http://35.242.161.116:80')
-
-// .use(cors({origin: 'http://35.242.161.116', credentials: true}))
-// .set('origins', 'http://35.242.161.116:80')
-io.use(function (socket, next) {
-  socket.handshake.setHeader('Access-Control-Allow-Origin', socket.req.header.origin)
-  next()
+let io = require('socket.io')(server, {
+  extraHeaders: {
+    'Access-Control-Allow-Credentials': 'omit'
+  }
 })
+
+  // .use(cors({origin: 'http://35.242.161.116', credentials: true}))
+// .set('origins', 'http://35.242.161.116:80')
 
 db.poolConnect().then(() => {
   server.listen(socketPort)
