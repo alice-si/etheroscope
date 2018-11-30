@@ -23,19 +23,19 @@ let io = require('socket.io')(server)
 // .set('origins', 'http://35.242.161.116:80')
 
 db.poolConnect().then(() => {
-  server.listen(socketPort)
-// Initialise the server
-  let ethClient = require('./ethClient')(db, log, validator, true)
-  app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded({extended: true}))
-  app.use(morgan('dev'))
-
   app.use(function (req, res, next) {
     console.log('Access-Control-Allow-Origin')
     res.setHeader('Access-Control-Allow-Origin', req.header('origin'))
     res.setHeader('Access-Control-Allow-Headers', 'Origin')
     next()
   })
+
+  server.listen(socketPort)
+// Initialise the server
+  let ethClient = require('./ethClient')(db, log, validator, true)
+  app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({extended: true}))
+  app.use(morgan('dev'))
 
   function validAddress (address) {
     return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
