@@ -23,6 +23,16 @@ io.set('origins', 'http://35.242.161.116:80')
 
 // .use(cors({origin: 'http://35.242.161.116', credentials: true}))
 // .set('origins', 'http://35.242.161.116:80')
+app.use(function (req, res, next) {
+  res.header('Access-Control-Allow-Origin', req.headers.origin)
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT ,DELETE')
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept'
+  )
+  res.header('Access-Control-Allow-Credentials', true)
+  next()
+})
 
 db.poolConnect().then(() => {
   server.listen(socketPort)
@@ -30,16 +40,6 @@ db.poolConnect().then(() => {
   let ethClient = require('./ethClient')(db, log, validator, true)
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({extended: true}))
-  app.use(function (req, res, next) {
-    res.header('Access-Control-Allow-Origin", "http://35.242.161.116:80')
-    res.header('Access-Control-Allow-Methods", "GET, POST, PUT ,DELETE')
-    res.header(
-      'Access-Control-Allow-Headers',
-      'Origin, X-Requested-With, Content-Type, Accept'
-    );
-    res.header('Access-Control-Allow-Credentials', true)
-    next()
-  })
   app.use(morgan('dev'))
 
   function validAddress (address) {
