@@ -26,7 +26,15 @@ app.use(function (req, res, next) {
 
 let server = require('http').createServer(app)
 let io = require('socket.io')(server, {
-  origins: 'http://35.242.161.116'
+  origins: 'http://35.242.161.116',
+  transportOptions: {
+    polling: {
+      extraHeaders: {
+        'Access-Control-Allow-Origin': 'http://35.242.161.116',
+        'Access-Control-Allow-Headers': 'Origin'
+      }
+    }
+  }
 })
 
 // .use(cors({origin: 'http://35.242.161.116', credentials: true}))
