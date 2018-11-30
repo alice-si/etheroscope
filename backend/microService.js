@@ -18,8 +18,10 @@ let socketPort = 8081
 let express = require('express')
 let app = express()
 let server = require('http').createServer(app)
-let io = require('socket.io')(server)
-io.origins(['http://35.242.161.116:80'])
+let io = require('socket.io')(server, {
+  origins: '*:*',
+  transports: ['websocket']
+})
   // .use(cors({origin: 'http://35.242.161.116', credentials: true}))
 // .set('origins', 'http://35.242.161.116:80')
 
