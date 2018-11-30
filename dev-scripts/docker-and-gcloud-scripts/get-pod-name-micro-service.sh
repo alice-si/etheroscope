@@ -1,0 +1,1 @@
+kubectl get pods | grep etheroscope-micro-service | awk '{print $1;}'
