@@ -17,7 +17,7 @@ let socketPort = 8081
 let express = require('express')
 let app = express()
 let server = require('http').createServer(app)
-let io = require('socket.io')(server).set('origins', '*35.242.161.116:80')
+let io = require('socket.io')(server).set('origins', 'http://35.242.161.116:80')
 
 db.poolConnect().then(() => {
   server.listen(socketPort)
