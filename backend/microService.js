@@ -17,23 +17,20 @@ let socketPort = 8081
 // var cors = require('cors');
 let express = require('express')
 let app = express()
-let server = require('http').createServer(app)
-let io = require('socket.io')(server, {
-  origins: 'http://35.242.161.116'
+app.use(function (req, res, next) {
+  console.log('Access-Control-Allow-Origin')
+  res.setHeader('Access-Control-Allow-Origin', req.header('Origin'))
+  res.setHeader('Access-Control-Allow-Headers', 'Origin')
+  next()
 })
-  // .use(cors({origin: 'http://35.242.161.116', credentials: true}))
+
+let server = require('http').createServer(app)
+let io = require('socket.io')(server)
+
+// .use(cors({origin: 'http://35.242.161.116', credentials: true}))
 // .set('origins', 'http://35.242.161.116:80')
 
 db.poolConnect().then(() => {
-  app.use(function (req, res, next) {
-    console.log('Access-Control-Allow-Origin')
-    res.setHeader('Access-Control-Allow-Origin', 'http://35.242.161.116')
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept-Type')
-    res.setHeader('Access-Control-Allow-Credentials', 'true')
-    
-    next()
-  })
-
   server.listen(socketPort)
 // Initialise the server
   let ethClient = require('./ethClient')(db, log, validator, true)
