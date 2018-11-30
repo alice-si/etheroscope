@@ -8,8 +8,6 @@ var Promise = require('bluebird')
 let log = require('loglevel')
 let validator = require('validator')
 
-
-
 console.log('microService.js: Starting microService.js')
 
 let db = require('./db/db.js')(log)
@@ -19,14 +17,14 @@ let socketPort = 8081
 let express = require('express')
 let app = express()
 let server = require('http').createServer(app)
-let io = require('socket.io')(server)
+let io = require('socket.io')(server, {origins: '*:*'})
 
 db.poolConnect().then(() => {
   server.listen(socketPort)
 // Initialise the server
   let ethClient = require('./ethClient')(db, log, validator, true)
   app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(bodyParser.urlencoded({extended: true}))
   app.use(morgan('dev'))
 
   function validAddress (address) {
@@ -47,10 +45,10 @@ db.poolConnect().then(() => {
         log.debug('Unsubbing')
         socket.leave(address + method, (err) => {
           log.debug('unsubbed!!')
-          socket.emit('unsubscribed', { error: err })
+          socket.emit('unsubscribed', {error: err})
         })
       } else {
-        socket.emit('unsubscribed', { error: null })
+        socket.emit('unsubscribed', {error: null})
       }
     })
   })
@@ -70,7 +68,7 @@ db.poolConnect().then(() => {
       .then((result) => {
         ethClient.getLatestBlock()
           .then((latestBlock) => {
-            io.sockets.in(address + method).emit('latestBlock', { latestBlock: latestBlock })
+            io.sockets.in(address + method).emit('latestBlock', {latestBlock: latestBlock})
             let from = result.cachedFrom
             let to = result.cachedUpTo
             if (from === null || to === null) {
@@ -110,18 +108,18 @@ db.poolConnect().then(() => {
     db.getDataPoints(address.substr(2), method)
       .then((dataPoints) => {
         // return Promise.map(dataPoints[0], (elem) => {
-        console.log('index.js:sendDAllDataPointsFromDB',dataPoints)
-          return Promise.map(dataPoints, (elem) => {
+        console.log('index.js:sendDAllDataPointsFromDB', dataPoints)
+        return Promise.map(dataPoints, (elem) => {
           return [elem.timeStamp, elem.value]
         })
       })
       .then((dataPoints) => {
-        socket.emit('getHistoryResponse', { error: false, from: from, to: to, results: dataPoints })
+        socket.emit('getHistoryResponse', {error: false, from: from, to: to, results: dataPoints})
       })
       .catch(function (err) {
         log.error('Error sending datapoints from DD')
         log.error(err)
-        socket.emit('getHistoryResponse', { error: true })
+        socket.emit('getHistoryResponse', {error: true})
       })
   }
 
@@ -143,46 +141,46 @@ db.poolConnect().then(() => {
       } else {
         let newFrom = Math.max(from - chunkSize, 1)
         sendDataPointsFromParity(contractInfo, address, method, newFrom, from, newFrom, upTo)
-        .then(() => {
-          cacheMorePoints(contractInfo, address, method, newFrom, upTo, latestBlock)
-        })
+          .then(() => {
+            cacheMorePoints(contractInfo, address, method, newFrom, upTo, latestBlock)
+          })
       }
     } else {
       // newTo is exclusive, so can be at most latestBlock + 1
       let newUpTo = Math.min(upTo + chunkSize, latestBlock + 1)
       sendDataPointsFromParity(contractInfo, address, method, upTo, newUpTo, from, newUpTo)
-      .then(() => {
-        cacheMorePoints(contractInfo, address, method, from, newUpTo, latestBlock)
-      })
+        .then(() => {
+          cacheMorePoints(contractInfo, address, method, from, newUpTo, latestBlock)
+        })
     }
   }
 
   // Send all points from from up to but not including to
   function sendDataPointsFromParity (contractInfo, contractAddress, method, from, upTo,
-    totalFrom, totalTo) {
+                                     totalFrom, totalTo) {
     return new Promise((resolve, reject) => {
       // First we obtain the contract.
       let contract = contractInfo.parsedContract
       // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
       // ethClient.getHistory(contractAddress, method, from, upTo - 1)
       ethClient.getHistory(contractAddress, method, from, upTo)
-      .then(function (events) {
-        console.log('index.js:sendDataPointsFromParity:events',events)
-        return ethClient.generateDataPoints(events, contract, method,
-          totalFrom, totalTo)
-      })
-      .then(function (results) {
-        console.log('index.js:sendDataPointsFromParity:results',results)
-        // if (results.length > 0) throw error;
-        io.sockets.in(contractAddress + method).emit('getHistoryResponse',
-            { error: false, from: from, to: upTo, results: results })
-        return resolve()
-      })
-      .catch(function (err) {
-        log.error('Error in ethClient sending' + err)
-        io.sockets.in(contractAddress + method).emit('getHistoryResponse', { error: true })
-        return reject(err)
-      })
+        .then(function (events) {
+          console.log('index.js:sendDataPointsFromParity:events', events)
+          return ethClient.generateDataPoints(events, contract, method,
+            totalFrom, totalTo)
+        })
+        .then(function (results) {
+          console.log('index.js:sendDataPointsFromParity:results', results)
+          // if (results.length > 0) throw error;
+          io.sockets.in(contractAddress + method).emit('getHistoryResponse',
+            {error: false, from: from, to: upTo, results: results})
+          return resolve()
+        })
+        .catch(function (err) {
+          log.error('Error in ethClient sending' + err)
+          io.sockets.in(contractAddress + method).emit('getHistoryResponse', {error: true})
+          return reject(err)
+        })
     })
   }
 })
