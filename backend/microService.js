@@ -30,6 +30,11 @@ db.poolConnect().then(() => {
   app.use(bodyParser.urlencoded({extended: true}))
   app.use(morgan('dev'))
 
+  app.use(function (req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin', req.header('origin'))
+    next()
+  })
+
   function validAddress (address) {
     return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
   }
