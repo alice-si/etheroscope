@@ -17,25 +17,9 @@ let socketPort = 8081
 // var cors = require('cors');
 let express = require('express')
 let app = express()
-app.use(function (req, res, next) {
-  console.log('Access-Control-Allow-Origin')
-  res.setHeader('Access-Control-Allow-Origin', req.header('Origin'))
-  res.setHeader('Access-Control-Allow-Headers', 'Origin')
-  next()
-})
-
 let server = require('http').createServer(app)
-let io = require('socket.io')(server, {
-  origins: 'http://35.242.161.116',
-  transportOptions: {
-    polling: {
-      extraHeaders: {
-        'Access-Control-Allow-Origin': 'http://35.242.161.116',
-        'Access-Control-Allow-Headers': 'Origin'
-      }
-    }
-  }
-})
+let io = require('socket.io')(server)
+io.set('origins', 'http://35.242.161.116:80')
 
 // .use(cors({origin: 'http://35.242.161.116', credentials: true}))
 // .set('origins', 'http://35.242.161.116:80')
@@ -46,6 +30,16 @@ db.poolConnect().then(() => {
   let ethClient = require('./ethClient')(db, log, validator, true)
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({extended: true}))
+  app.use(function (req, res, next) {
+    res.header('Access-Control-Allow-Origin", "http://35.242.161.116:80')
+    res.header('Access-Control-Allow-Methods", "GET, POST, PUT ,DELETE')
+    res.header(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept'
+    );
+    res.header('Access-Control-Allow-Credentials', true)
+    next()
+  })
   app.use(morgan('dev'))
 
   function validAddress (address) {
