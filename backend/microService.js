@@ -17,7 +17,18 @@ let socketPort = 8081
 const cors = require('cors');
 let express = require('express')
 let app = express()
-app.use(cors());
+const whitelist = ['http://35.242.161.116:80']
+const corsOptions = {
+  credentials: true, // This is important.
+  origin: (origin, callback) => {
+    if (whitelist.includes(origin))
+      return callback(null, true)
+
+    callback(new Error('Not allowed by CORS'))
+  }
+}
+
+app.use(cors(corsOptions))
 let server = require('http').createServer(app)
 let io = require('socket.io')(server)
 io.set('origins', 'http://35.242.161.116:80')
