@@ -71,6 +71,7 @@
     "clarity-icons": "^0.10.13",
     "clarity-ui": "^0.10.13",
     "core-js": "^2.4.1",
+    "cors": "^2.8.5",
     "d3": "^4.11.0",
     "eth-storage": "git+https://github.com/alice-si/eth-storage.git",
     "ethereumjs-util": "^6.0.0",
