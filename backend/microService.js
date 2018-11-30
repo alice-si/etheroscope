@@ -27,11 +27,10 @@ let io = require('socket.io')(server, {
 db.poolConnect().then(() => {
   app.use(function (req, res, next) {
     console.log('Access-Control-Allow-Origin')
-    if (req.header('Origin')) {
-      res.setHeader('Access-Control-Allow-Origin', 'http://35.242.161.116')
-      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept-Type')
-      res.setHeader('Access-Control-Allow-Credentials', 'true')
-    }
+    res.setHeader('Access-Control-Allow-Origin', 'http://35.242.161.116')
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept-Type')
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+    
     next()
   })
 
