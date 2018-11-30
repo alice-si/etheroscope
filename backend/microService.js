@@ -31,8 +31,9 @@ db.poolConnect().then(() => {
   app.use(morgan('dev'))
 
   app.use(function (req, res, next) {
-    console.log('Access-Control-Allow-Origin');
+    console.log('Access-Control-Allow-Origin')
     res.setHeader('Access-Control-Allow-Origin', req.header('origin'))
+    res.setHeader('Access-Control-Allow-Headers', 'Origin')
     next()
   })
 
