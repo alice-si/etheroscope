@@ -16,9 +16,9 @@ let socketPort = 8081
 
 var cors = require('cors')
 let express = require('express')
-let app = express()
+let app = express().use(cors({origin: 'http://35.242.161.116', credentials: true}))
 let server = require('http').createServer(app)
-let io = require('socket.io')(server).use(cors({origin: 'http://35.242.161.116', credentials: true}))
+let io = require('socket.io')(server)
 // .set('origins', 'http://35.242.161.116:80')
 
 db.poolConnect().then(() => {
