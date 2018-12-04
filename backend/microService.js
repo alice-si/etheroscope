@@ -14,13 +14,15 @@ let db = require('./db/db.js')(log)
 
 let socketPort = 8081
 
-// var cors = require('cors');
 let express = require('express')
+var cors = require('cors')
 let app = express()
+app.use(cors())
 let server = require('http').createServer(app)
-let io = require('socket.io')(server, {
-  origins: 'http://35.246.65.214:8081/*'
-})
+let io = require('socket.io')(server)
+// (server, {
+//   origins: 'http://35.246.65.214:8081/*'
+// })
 
   // .use(cors({origin: 'http://35.242.161.116', credentials: true}))
 // .set('origins', 'http://35.242.161.116:80')
