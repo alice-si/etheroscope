@@ -18,7 +18,8 @@ let express = require('express')
 var cors = require('cors')
 let app = express()
 app.use(cors({
-  origin: 'http://35.242.161.116:80'
+  origin: 'http://35.246.65.214:8081'
+  // origin: 'http://35.242.161.116:80'
 }))
 let server = require('http').createServer(app)
 let io = require('socket.io')(server)
