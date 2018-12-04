@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+    name: etheroscope-tester
+spec:
+    selector:
+        app: etheroscope-tester
+    ports:
+    - protocol: TCP
+      port: 8088
+      targetPort: 8088
+
+

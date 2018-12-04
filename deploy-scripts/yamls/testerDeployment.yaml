@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: etheroscope-tester
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: etheroscope-tester
+  template:
+    metadata:
+      labels:
+        app: etheroscope-tester
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: etheroscope-tester-container
+        image: gcr.io/etheroscope/etheroscope-tester:latest
+        imagePullPolicy: "Always"
