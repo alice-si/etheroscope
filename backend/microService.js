@@ -17,7 +17,9 @@ let socketPort = 8081
 let express = require('express')
 var cors = require('cors')
 let app = express()
-app.use(cors())
+app.use(cors({
+  origin: 'http://35.242.161.116:80'
+}))
 let server = require('http').createServer(app)
 let io = require('socket.io')(server)
 // (server, {
