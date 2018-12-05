@@ -15,7 +15,11 @@ let socketPort = 8081
 let express = require('express')
 var cors = require('cors')
 let bodyParser = require('body-parser')
+var http = require('http')
+let server = http.createServer(app)
+server.listen(socketPort)
 
+let io = require('socket.io')(server)
 let app = express()
 //app.use(cors({origin: 'http://35.242.161.116'}))
 
@@ -41,11 +45,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(morgan('dev'))
 
-var http = require('http')
-let server = http.createServer(app)
-server.listen(socketPort)
 
-let io = require('socket.io')(server)
 // io.set('origins', '*35.242.161.116*:*')
 // origin: 'http://35.246.65.214:8081'
 // (server, { origins: 'http://35.246.65.214:8081/*' })
