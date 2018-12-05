@@ -17,11 +17,16 @@ let socketPort = 8081
 let express = require('express')
 var cors = require('cors')
 let app = express()
-app.use(cors({
-  origin: 'http://35.242.161.116'
-}))
+app.use(function(req, res, next) {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "X-Requested-With");
+        res.header("Access-Control-Allow-Headers", "Content-Type");
+        res.header("Access-Control-Allow-Methods", "PUT, GET, POST, DELETE, OPTIONS");
+        next();
+    });
 let server = http.createServer(app)
-let io = require('socket.io')(server, {origins: ['35.242.161.116']})
+let io = socketio.listen(server, {log:false, origins:'*:*'});
+//let io = require('socket.io')(server, {origins: ['35.242.161.116']})
 
 // (server, {
 //   origins: 'http://35.246.65.214:8081/*'
