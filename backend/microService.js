@@ -22,7 +22,7 @@ app.use(cors({
   origin: 'http://35.242.161.116'
 }))
 let server = require('http').createServer(app)
-let io = require('socket.io')(server, {origins: '*http://35.242.161.116*'})
+let io = require('socket.io')(server, {origins: '*35.242.161.116*'})
 
 // (server, {
 //   origins: 'http://35.246.65.214:8081/*'
