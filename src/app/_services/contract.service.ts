@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, NgModule} from '@angular/core';
 import {Http, Headers, Response, RequestOptions} from '@angular/http';
 import {Observable} from "rxjs/Observable";
 import 'rxjs/add/operator/map';
@@ -6,6 +6,23 @@ import {SocketIoModule, SocketIoConfig, Socket} from 'ng-socket-io';
 
 import {environment} from '../../environments/environment';
 import {Location, LocationStrategy, PathLocationStrategy} from '@angular/common';
+import {AppComponent} from "../app.component";
+import {BrowserModule} from "@angular/platform-browser";
+
+const config: SocketIoConfig = { url: 'http://localhost:8988', options: {} };
+
+@NgModule({
+    declarations: [
+        AppComponent
+    ],
+    imports: [
+        BrowserModule,
+        SocketIoModule.forRoot(config)
+    ],
+    providers: [],
+    bootstrap: [AppComponent]
+})
+export class AppModule { }
 
 @Injectable()
 export class ContractService {
