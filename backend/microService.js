@@ -25,8 +25,8 @@ app.use(function(req, res, next) {
         next();
     });
 let server = http.createServer(app)
-let io = socketio.listen(server, {log:false, origins:'*:*'});
-//let io = require('socket.io')(server, {origins: ['35.242.161.116']})
+//let io = socketio.listen(server, {log:false, origins:'*:*'});
+let io = require('socket.io')(server, {origins: '35.242.161.116'})
 
 // (server, {
 //   origins: 'http://35.246.65.214:8081/*'
