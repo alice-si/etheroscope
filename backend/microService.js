@@ -34,7 +34,7 @@ var corsOptions = {
 app.use(cors(corsOptions));
 
 let server = http.createServer(app)
-let io = require('socket.io')(server, {origins: '*:*'})
+let io = require('socket.io')(server)
 
 // (server, {
 //   origins: 'http://35.246.65.214:8081/*'
