@@ -10,5 +10,5 @@ export const environment = {
     // apiURL: 'localhost:8080/',
     // socketURL: 'localhost:8081/'
     apiURL: 'http://35.230.140.68:8080/',
-    socketURL: 'http://35.246.65.214:8081/',
+    socketURL: 'http://35.246.65.214:80/',
 };

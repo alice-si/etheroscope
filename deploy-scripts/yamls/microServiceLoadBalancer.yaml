@@ -7,6 +7,6 @@ spec:
     app: etheroscope-micro-service
   ports:
   - protocol: TCP
-    port: 8081
+    port: 80
     targetPort: 8081
   type: LoadBalancer
