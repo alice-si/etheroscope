@@ -17,7 +17,26 @@ var cors = require('cors')
 let bodyParser = require('body-parser')
 
 let app = express()
-app.use(cors({origin: 'http://35.242.161.116'}))
+//app.use(cors({origin: 'http://35.242.161.116'}))
+
+var whitelist = ['http://35.242.161.116', 'http://example2.com']
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
+
+io.origins((origin, callback) => {
+  if (origin !== 'http://35.242.161.116') {
+    return callback('origin not allowed', false);
+  }
+  callback(null, true);
+});
+
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(morgan('dev'))
@@ -35,12 +54,6 @@ let io = require('socket.io')(server)
 
 // import other parts of project
 
-io.origins((origin, callback) => {
-  if (origin !== '35.242.161.116') {
-    return callback('origin not allowed', false);
-  }
-  callback(null, true);
-});
 
 
 let db = require('./db/db.js')(log)
