@@ -4,7 +4,7 @@ var lock = new ReadWriteLock()
 let methodCachesInProgress = new Set()
 var morgan = require('morgan')
 var Promise = require('bluebird')
-
+var http = require('http')
 let log = require('loglevel')
 let validator = require('validator')
 
@@ -21,7 +21,7 @@ app.use(cors({
   // origin: 'http://35.246.65.214:8081'
   origin: 'http://35.242.161.116'
 }))
-let server = require('http').createServer(app)
+let server = http.createServer(app)
 let io = require('socket.io')(server, {origins: '*35.242.161.116*'})
 
 // (server, {
@@ -32,7 +32,7 @@ let io = require('socket.io')(server, {origins: '*35.242.161.116*'})
 // .set('origins', 'http://35.242.161.116:80')
 
 db.poolConnect().then(() => {
-  server.listen(socketPort)
+  http.listen(socketPort)
 // Initialise the server
   let ethClient = require('./ethClient')(db, log, validator, true)
   app.use(bodyParser.json())
