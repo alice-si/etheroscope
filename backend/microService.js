@@ -16,11 +16,11 @@ let express = require('express')
 // var cors = require('cors')
 let bodyParser = require('body-parser')
 var http = require('http')
+let app = express()
 let server = http.createServer(app)
 server.listen(socketPort)
 
 let io = require('socket.io')(server)
-let app = express()
 //app.use(cors({origin: 'http://35.242.161.116'}))
 
 io.origins((origin, callback) => {
