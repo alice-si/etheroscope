@@ -27,13 +27,22 @@ let server = http.createServer(app)
 server.listen(socketPort)
 
 let io = require('socket.io')(server)
-io.set('origins', '*35.242.161.116*:*')
+// io.set('origins', '*35.242.161.116*:*')
 // origin: 'http://35.246.65.214:8081'
 // (server, { origins: 'http://35.246.65.214:8081/*' })
 // .use(cors({origin: 'http://35.242.161.116', credentials: true}))
 // .set('origins', 'http://35.242.161.116:80')
 
 // import other parts of project
+
+io.origins((origin, callback) => {
+  if (origin !== '35.242.161.116') {
+    return callback('origin not allowed', false);
+  }
+  callback(null, true);
+});
+
+
 let db = require('./db/db.js')(log)
 let ethClient = require('./ethClient')(db, log, validator, true)
 
