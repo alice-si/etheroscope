@@ -17,26 +17,12 @@ let socketPort = 8081
 let express = require('express')
 var cors = require('cors')
 let app = express()
-//app.use(cors({
-  // origin: 'http://35.246.65.214:8081'
-//  origin: 'http://35.242.161.116'
-//}))
+app.use(cors({
+  origin: 'http://35.242.161.116'
+}))
+let server = http.createServer(app)
+let io = require('socket.io')(server, {origins: ['35.242.161.116']})
 
-var originsWhitelist = ['http://35.242.161.116'];
-var corsOptions = {
-  origin: function(origin, callback){
-        var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
-        callback(null, isWhitelisted);
-  },
-  credentials:true
-}
-//here is the magic
-app.use(cors(corsOptions));
-
-//let server = http.createServer(app)
-let server = app.listen(socketPort)
-let io = require('socket.io').listen(server)
-io.origins(['35.242.161.116:80']);
 // (server, {
 //   origins: 'http://35.246.65.214:8081/*'
 // })
