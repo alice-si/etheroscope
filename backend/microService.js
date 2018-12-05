@@ -32,7 +32,7 @@ let io = require('socket.io')(server, {origins: '*35.242.161.116*'})
 // .set('origins', 'http://35.242.161.116:80')
 
 db.poolConnect().then(() => {
-  http.listen(socketPort)
+  server.listen(socketPort)
 // Initialise the server
   let ethClient = require('./ethClient')(db, log, validator, true)
   app.use(bodyParser.json())
