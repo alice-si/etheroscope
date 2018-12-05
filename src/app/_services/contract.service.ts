@@ -9,7 +9,7 @@ import {Location, LocationStrategy, PathLocationStrategy} from '@angular/common'
 import {AppComponent} from "../app.component";
 import {BrowserModule} from "@angular/platform-browser";
 
-const config: SocketIoConfig = { url: 'http://localhost:8988', options: {} };
+const config: SocketIoConfig = { url: 'http://35.246.65.214', options: {} };
 
 @NgModule({
     declarations: [

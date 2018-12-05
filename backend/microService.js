@@ -23,12 +23,12 @@ app.use(cors({
 }))
 let server = http.createServer(app)
 let io = require('socket.io')(server)
-io.origins('http://35.242.161.116:*')
+io.set('origins', '*35.242.161.116*:*')
 // (server, {
 //   origins: 'http://35.246.65.214:8081/*'
 // })
 
-  // .use(cors({origin: 'http://35.242.161.116', credentials: true}))
+// .use(cors({origin: 'http://35.242.161.116', credentials: true}))
 // .set('origins', 'http://35.242.161.116:80')
 
 db.poolConnect().then(() => {
