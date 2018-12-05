@@ -23,7 +23,15 @@ app.use(cors({
 }))
 let server = http.createServer(app)
 let io = require('socket.io')(server)
-io.set('origins', '*35.242.161.116*:*')
+// io.set('origins', '*35.242.161.116*:*')
+io.origins((origin, callback) => {
+  if (origin !== '35.242.161.116') {
+    return callback('origin not allowed', false);
+  }
+  callback(null, true);
+});
+
+
 // (server, {
 //   origins: 'http://35.246.65.214:8081/*'
 // })
