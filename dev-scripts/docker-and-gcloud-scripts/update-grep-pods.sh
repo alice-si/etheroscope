@@ -13,7 +13,7 @@ done
 echo "deleteing done"
 
 
-if [ $1 != "micro" ]
+if [ $1 == "micro" ]
 then
 	echo "will sleep 10 seconds"
 	sleep 10
