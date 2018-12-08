@@ -21,7 +21,7 @@ let server = http.createServer(app)
 server.listen(socketPort)
 
 let io = require('socket.io')(server, {
-  transports: ['xhr-polling']
+  transports: ['websocket', 'xhr-polling']
 })
 
 //app.use(cors({origin: 'http://35.242.161.116'}))
