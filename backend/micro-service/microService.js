@@ -8,6 +8,7 @@ let log = require('loglevel')
 let validator = require('validator')
 
 console.log('microService.js: Starting microService.js')
+console.log('Extra test log')
 
 let socketPort = 8081
 
