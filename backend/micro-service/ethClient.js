@@ -4,14 +4,14 @@ var Promise = require('bluebird')
 var ReadWriteLock = require('rwlock')
 var lock = new ReadWriteLock()
 
-var gethHost = require('./settings.js').gethHost
+var gethHost = require('../serwer/settings.js').gethHost
 const parityUrl = 'http://' + gethHost + ':8545' // api connector
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
 var EthStorage = require('eth-storage/ethStorage/layers/highLevel.js')
 
 // geth database path (must be different then choosen api connector database)
-var fullBlockchainPath = require('./settings.js').fullBlockchainPath
+var fullBlockchainPath = require('../serwer/settings.js').fullBlockchainPath
 
 module.exports = function (db, log, validator, withStateDB = false) {
   const ethClient = {}
