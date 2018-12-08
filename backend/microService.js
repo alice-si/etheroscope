@@ -20,15 +20,24 @@ let app = express()
 let server = http.createServer(app)
 server.listen(socketPort)
 
-let io = require('socket.io')(server)
+let io = require('socket.io')(server, {
+  transports: ['websocket', 'xhr-polling']
+})
+
 //app.use(cors({origin: 'http://35.242.161.116'}))
 
-io.origins((origin, callback) => {
-  if (origin !== 'http://35.242.161.116:*') {
-    return callback('origin not allowed', false);
-  }
-  callback(null, true);
-});
+// io.origins((origin, callback) => {
+//   if (origin !== 'http://35.242.161.116:*') {
+//     return callback('origin not allowed', false);
+//   }
+//   callback(null, true);
+// });
+
+app.use(function (req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+  next()
+})
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))

@@ -23,7 +23,7 @@ import { CardsComponent } from "./explorer/cards/cards.component";
 import { ContractService } from "./_services/contract.service";
 import { GraphService } from "./_services/graph.service";
 
-const config: SocketIoConfig = { url: environment.socketURL, options: { transport : ['websocket'] } };
+const config: SocketIoConfig = { url: environment.socketURL, options: { transports: ['websocket', 'xhr-polling'] } };
 
 @NgModule({
   declarations: [
