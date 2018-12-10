@@ -2,7 +2,7 @@
     "compileOnSave": false,
     "compilerOptions": {
         "rootDir": "../",
-        "baseUrl": "",
+        "baseUrl": "tsconfig",
         "declaration": false,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
@@ -28,6 +28,6 @@
     "exclude": [
         "node_modules",
         "dist",
-        "test.ts"
+      "test.ts"
     ]
 }
