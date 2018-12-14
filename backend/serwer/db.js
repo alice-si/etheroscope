@@ -1,7 +1,8 @@
 var path = require('path')
 var mysql = require('promise-mysql')
 
-var mysqlConnectionOptions = require('../settings.js').mysqlConnectionOptions
+var settings = require('./settings.js')
+var mysqlConnectionOptions = settings.mysqlConnectionOptions
 
 const pool = mysql.createPool(mysqlConnectionOptions)
 
@@ -104,12 +105,6 @@ module.exports = function (log) {
     })
   }
 
-  // TODO delete pool connect from code
-  db.poolConnect = function () {
-    return new Promise(function (resolve, reject) {
-      resolve()
-    })
-  }
 
   /* This function takes in an array of arrays of the form:
    * values = ['0x0123456789', 'name'], and returns a promise

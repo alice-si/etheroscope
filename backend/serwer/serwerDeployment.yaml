@@ -14,15 +14,18 @@ spec:
         app: etheroscope-serwer
     spec:
       terminationGracePeriodSeconds: 30
-#      volumes:
-#      - name: rinkeby-geth-volume
-#        gcePersistentDisk:
-#          pdName: rinkeby-geth-disk
-#          fsType: ext4
       containers:
       - name: etheroscope-serwer-container
         image: gcr.io/etheroscope/etheroscope-serwer:latest
+        env:
+        - name: ETHEROSCOPEGETHHOST
+          value: "10.3.255.188:8545"
+        - name: ETHEROSCOPEMARIADB
+          value: "10.3.240.97:8083"
+        - name: ETHEROSCOPEMICROSERVICE
+          value: "35.246.65.214:80"
+        - name: ETHEROSCOPESERVER
+          value: "35.230.140.68:8080"
+        - name: ETHEROSCOPEFRONTEND
+          value: "35.242.161.116:80"
         imagePullPolicy: "Always"
-#        volumeMounts:
-#        - name: rinkeby-geth-volume
-#          mountPath: /usr/src/app/etheroscope/geth-blockchains/fullRinkebyBlockchain/

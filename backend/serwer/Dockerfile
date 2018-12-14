@@ -1,7 +1,12 @@
-FROM node:8
+FROM node:alpine
 
 # Create app directory
-WORKDIR /usr/src/app
+WORKDIR /app
+
+# Download add source
+RUN apk update && \
+    apk upgrade && \
+    apk --no-cache add git
 
 # Copy files
 COPY . ./

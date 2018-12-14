@@ -3,13 +3,21 @@ module.exports.fullBlockchainPath = '/usr/src/app/etheroscope/geth-blockchains/f
 
 module.exports.gethHost = '10.3.255.188'
 
+module.exports.ETHEROSCOPEGETHHOST=process.env.ETHEROSCOPEGETHHOST
+module.exports.ETHEROSCOPEMARIADB=process.env.ETHEROSCOPEMARIADB
+module.exports.ETHEROSCOPEMICROSERVICE=process.env.ETHEROSCOPEMICROSERVICE
+module.exports.ETHEROSCOPESERVER=process.env.ETHEROSCOPESERVER
+module.exports.ETHEROSCOPEFRONTEND=process.env.ETHEROSCOPEFRONTEND
+module.exports.ETHEROSCOPEBLOCKCHAIN=process.env.ETHEROSCOPEBLOCKCHAIN
+
 module.exports.mysqlConnectionOptions = {
   connectionLimit: 10,
   connectionTimeout: 10000,
   // host: '192.168.99.100',
-  host: '10.3.240.97',
-  port: '8083',
+  host: module.exports.ETHEROSCOPEMARIADB.toString().slice(0,-5),
+  port: module.exports.ETHEROSCOPEMARIADB.toString().slice(-4),
   user: 'root',
   password: 'wp',
   database: 'etheroscope'
 }
+

@@ -14,18 +14,18 @@ log.enableAll()
 console.log('server.js: Starting server.js')
 console.log('server.js: Will require ./db/db.js')
 
-var db = require('./db/db.js')(log)
+var db = require('./db.js')(log)
 
 // Set port to 8080
 var port = process.env.PORT || 8080
 
 var Promise = require('bluebird')
 Promise.config({
-  cancellation: true
+    cancellation: true
 })
 
 process.on('uncaughtException', function (err) {
-  log.error('server.js: Error: processs got uncaughtException:\n' + err)
+    log.error('server.js: Error: processs got uncaughtException:\n' + err)
 })
 
 // Application options and configurations
@@ -35,9 +35,9 @@ app.use(bodyParser.urlencoded({extended: true})) // parse application/x-www-form
 app.use(methodOverride('X-HTTP-Method-Override')) // override with the X-HTTP-Method-Override header in the request. simulate DELETE/PUT
 
 app.use(function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*')
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
-  next()
+    res.header('Access-Control-Allow-Origin', '*')
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
+    next()
 })
 app.use(morgan('dev'))
 
@@ -45,36 +45,33 @@ app.use(morgan('dev'))
 var staticdir = 'dist'
 app.use(express.static(path.join(__dirname, '/', staticdir)))
 
-console.log('server.js: Will db.poolCOnnect')
-
-// kickstart db connection
-db.poolConnect().then(() => {
-  // Home page endpoint
-  // app.get('/', function (req, res) {
-  //   res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
-  // })
-  app.get('/explorer', function (req, res) {
+// Home page endpoint
+// app.get('/', function (req, res) {
+//     console.log('/')
+//     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
+// })
+app.get('/explorer', function (req, res) {
+    console.log('/explorer')
     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
-  })
-  app.get('/explorer/*', function (req, res) {
-    res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
-  })
-  app.get('/popular', function (req, res) {
-    res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
-  })
-
-  process.on('unhandledRejection', (reason, p) => {
-    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason)
-    // application specific logging, throwing an error, or other logic here
-  })
-
-  require('./api.js')(app, db, log, validator) // configure our routes
-
-  app.listen(port)
-
-  // Start application
-  log.info('server.js: Starting server at: ' + port)    // shoutout to the user
-  exports = module.exports = app                        // expose app
-}).catch(err => {
-  console.log('server.js: error in db.poolConnect():', err)
 })
+app.get('/explorer/*', function (req, res) {
+    console.log('/explorer/*')
+    res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
+})
+app.get('/popular', function (req, res) {
+    console.log('/popular')
+    res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
+})
+
+process.on('unhandledRejection', (reason, p) => {
+    console.log('server.js: Unhandled Rejection at:\n Promise:\n', p, '\nreason:\n', reason)
+    // application specific logging, throwing an error, or other logic here
+})
+
+require('./api.js')(app, db, log, validator) // configure our routes
+
+app.listen(port)
+
+// Start application
+log.info('server.js: Starting server at: ' + port)    // shoutout to the user
+exports = module.exports = app                        // expose app
