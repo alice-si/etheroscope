@@ -7,6 +7,9 @@ var path = require('path')
 var log = require('loglevel')
 var validator = require('validator')
 
+var errorHandle = require('../common/errorHandlers').errorHandle
+var errorCallbackHandle = require('../common/errorHandlers').errorCallbackHandle
+
 // Change this to alter how much information is printed out
 log.setLevel('trace')
 log.enableAll()
@@ -15,9 +18,6 @@ console.log('server.js: Starting server.js')
 console.log('server.js: Will require db.js')
 
 var db = require('../common/db.js')(log)
-
-// Set port to 8080
-var port = process.env.PORT || 8080
 
 var Promise = require('bluebird')
 Promise.config({
@@ -70,7 +70,11 @@ process.on('unhandledRejection', (reason, p) => {
 
 require('./api.js')(app, db, log, validator) // configure our routes
 
+// Set port to 8080
+var port = process.env.PORT || 8080
+
 app.listen(port)
+    // .catch(errorCallbackHandle('server.js app.listen',console.log))
 
 // Start application
 log.info('server.js: Starting server at: ' + port)    // shoutout to the user

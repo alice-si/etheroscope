@@ -71,14 +71,14 @@ module.exports = function (db, log, validator, withStateDB = false) { // TODO: d
     try {
       //TODO: type of
       console.log('web3Client.parseContract:typeofdesc', typeof desc)
-      console.log('desc:----------\n', desc)
+      // console.log('desc:----------\n', desc)
       if (typeof desc === 'string') {
         contractABI = JSON.parse(desc)
       }
     } catch (err) {
       console.log('error in JSON parse')
       console.log(err)
-      console.log('tried to parse:\n', desc)
+      console.log('tried to parse desc\n')
     }
     var Contract = web3.eth.contract(contractABI)
     return Contract.at(address)

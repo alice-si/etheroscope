@@ -195,14 +195,14 @@ module.exports = function (log) {
       var sql = 'select name, abi from contracts where contractHash=\'' + contractHash + '\''
       pool.query(sql)
         .then((results) => {
-          console.log('db.getContract:results:', results)
+          // console.log('db.getContract:results:', results)
           let result = {contractName: null, contract: null}
           if (results.length !== 0) {
             result.contractName = results[0].name
             let abi = results[0].abi
             if (abi) {
               abi = abi.slice(1, abi.length - 1)
-              console.log('sliced rawabi', abi)
+              // console.log('sliced rawabi', abi)
               result.contract = JSON.parse(abi)
             }
           }
