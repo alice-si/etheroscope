@@ -1,22 +1,22 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: etheroscope-serwer
+  name: etheroscope-server
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: etheroscope-serwer
+      app: etheroscope-server
   template:
     metadata:
       labels:
-        app: etheroscope-serwer
+        app: etheroscope-server
     spec:
       terminationGracePeriodSeconds: 30
       containers:
-      - name: etheroscope-serwer-container
-        image: gcr.io/etheroscope/etheroscope-serwer:latest
+      - name: etheroscope-server-container
+        image: gcr.io/etheroscope/etheroscope-server:latest
         env:
         - name: ETHEROSCOPEGETHHOST
           value: "10.3.255.188:8545"
@@ -25,7 +25,7 @@ spec:
         - name: ETHEROSCOPEMICROSERVICE
           value: "35.246.65.214:80"
         - name: ETHEROSCOPESERVER
-          value: "35.230.140.68:8080"
+          value: "35.246.120.150:8080"
         - name: ETHEROSCOPEFRONTEND
           value: "35.242.161.116:80"
         imagePullPolicy: "Always"

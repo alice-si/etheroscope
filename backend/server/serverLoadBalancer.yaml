@@ -1,10 +1,10 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: etheroscope-serwer-load-balancer-8080
+  name: etheroscope-server-load-balancer-8080
 spec:
   selector:
-    app: etheroscope-serwer
+    app: etheroscope-server
   ports:
   - protocol: TCP
     port: 8080

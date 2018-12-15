@@ -9,7 +9,7 @@ RUN apk update && \
     apk --no-cache add git
 
 # Copy files
-COPY . ./
+COPY ../../backend/server ./
 
 # Install dependencies
 RUN npm install

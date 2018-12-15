@@ -1,7 +1,7 @@
 let axios = require('axios')
 
 module.exports = function (app, db, log, validator) {
-  let ethClient = require('./web3Client')(db, log, validator)
+  let ethClient = require('../common/web3Client')(db, log, validator)
   let Promise = require('bluebird')
 
   function validAddress (address) {

@@ -38,8 +38,8 @@ app.use(morgan('dev'))
 // import other parts of project
 
 log.info('services/index.js: Micro-service started at', socketPort)
-let db = require('./db.js')(log)
-let web3Client = require('./web3Client')(db, log, validator)
+let db = require('../common/db.js')(log)
+let web3Client = require('../common/web3Client')(db, log, validator)
 let ethStorageClient = require('./ethStorageClient')(db, web3Client, log, validator)
 
 function validAddress (address) {

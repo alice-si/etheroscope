@@ -12,9 +12,9 @@ log.setLevel('trace')
 log.enableAll()
 
 console.log('server.js: Starting server.js')
-console.log('server.js: Will require ./db/db.js')
+console.log('server.js: Will require db.js')
 
-var db = require('./db.js')(log)
+var db = require('../common/db.js')(log)
 
 // Set port to 8080
 var port = process.env.PORT || 8080
