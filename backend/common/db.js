@@ -248,9 +248,12 @@ module.exports = function (log) {
           })
           .catch((err) => {
             log.error('db.js: Error in addDataPoints')
-            log.error(err)
-            process.exit(1)
-            return reject(err)
+            log.error(err.toString().slice(50))
+              log.error('db.js probably duplicate entry datapoints')
+
+            // process.exit(1)
+            // return reject(err)
+              return resolve(values)
           })
       }
     })

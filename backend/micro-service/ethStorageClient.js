@@ -10,6 +10,8 @@ const parityUrl = 'http://' + gethHost // api connector
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
 var EthStorage = require('eth-storage/ethStorage/layers/highLevel.js')
+var FORMATTER = require('eth-storage/ethStorage/format/formatter.js')
+
 var errorHandle = require('../common/errorHandlers').errorHandle
 var errorCallbackHandle = require('../common/errorHandlers').errorCallbackHandle
 
@@ -23,8 +25,9 @@ module.exports = function (db, web3Client, log, validator) {
     console.log('Eth-Storage connected')
 
     function decodeValueInBuffer(rawVal) {
-        // TODO: is reading int proper?
-        return (Buffer.isBuffer(rawVal)) ? parseInt(rawVal.toString('hex'), 16) : -1
+    //     TODO: is reading int proper?
+        return (Buffer.isBuffer(rawVal)) ? FORMATTER.bufferToInt(rawVal.toString('hex'), 16) : -1
+        // return (Buffer.isBuffer(rawVal)) ? FORMATTER.bufferToInt(rawVal) : -1
     }
 
     function convert(event) { // [(time, value, blockNum)]
@@ -35,25 +38,30 @@ module.exports = function (db, web3Client, log, validator) {
     ethStorageClient
         .generateDataPoints = async function (contractInfo, contractAddress, method, from, upTo,
                                               totalFrom, totalTo) {
+        console.log('GENERATE DATA POINTS',totalFrom,totalTo)
         // First we obtain the contract.
         let contract = contractInfo.parsedContract
         // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
         // ethStorageClient.getHistory(contractAddress, method, from, upTo - 1)
 
-        var events = await new Promise((resolve, reject) => {
-            return ethStorage.hashSet(contractAddress, 0, from, upTo, function returnResults(err, events) {
-                if (err) return reject(err)
-                console.log('ethStorageClient.getHistory:always returs value at index 0):\n', 'startBlock', from, 'endBlock', upTo, 'querylength', upTo - from, '\nevents found: ', events)
-                resolve(events)
-            }, 8)
-        })
+        var events = await ethStorage.promiseGetRange(contractAddress, 0, from, upTo)
+            .catch(errorCallbackHandle('promiseGetRange', console.log))
         events = await Promise.map(events, convert, {concurrency: 5})
+            .catch(errorCallbackHandle('generateDatapoints:promisemap', console.log))
         events = await db.addDataPoints(contract.address.substr(2), method, events, totalFrom, totalTo)
             .catch(errorCallbackHandle('generateDatapoints', console.log))
 
         if (events.length > 0) {
             log.debug('Added ' + events.length + ' data points for ' + contract.address + ' ' + method)
         }
+
+        return events
+    }
+
+    ethStorageClient.latestFullBlock = function () {
+        return new Promise((resolve,reject)=>{
+            ethStorage.latestHeaderNumber(ethStorage.promiseEnd(resolve,reject))
+        })
     }
 
     return ethStorageClient

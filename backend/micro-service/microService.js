@@ -87,8 +87,10 @@ async function sendHistory(address, method, socket) {
         return
     }
 
-    var latestBlock = await web3Client.getLatestBlock()
-        .catch(errorHandle('sendhistory: get latest block'))
+    // var latestBlock = await web3Client.getLatestBlock()
+    //     .catch(errorHandle('sendhistory: get latest block'))
+    var latestBlock = await ethStorageClient.latestFullBlock()
+        .catch(errorHandle('ethStorageClient: get latest block'))
     var cachedRange = await db.getCachedFromTo(address.substring(2), method)
         .catch(errorHandle('sendhistory'))
 
@@ -173,6 +175,12 @@ async function sendDatapointsFromEthStorage(contractInfo, contractAddress, metho
     var dataPoints = await ethStorageClient.generateDataPoints(contractInfo, contractAddress, method, from, upTo, totalFrom, totalTo)
     console.log('index.js:sendDatapointsFromEthStorage:results\n', dataPoints)
     // if (results.length > 0) throw error;
+    // console.log('SENDDATAPOINTSEMIT',{
+    //     error: false,
+    //     from: from,
+    //     to: upTo,
+    //     results: dataPoints
+    // })
     io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
         error: false,
         from: from,
