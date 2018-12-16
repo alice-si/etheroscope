@@ -87,52 +87,44 @@ async function sendHistory(address, method, socket) {
         return
     }
 
-    // var latestBlock = await web3Client.getLatestBlock()
-    //     .catch(errorHandle('sendhistory: get latest block'))
-    var latestBlock = await ethStorageClient.latestFullBlock()
-        .catch(errorHandle('ethStorageClient: get latest block'))
-    var cachedRange = await db.getCachedFromTo(address.substring(2), method)
-        .catch(errorHandle('sendhistory'))
+    try {
+        console.log("ethstoafgeclient:\n",ethStorageClient)
+        var latestBlock = await ethStorageClient.latestFullBlock()
+        var cachedRange = await db.getCachedFromTo(address.substring(2), method)
+        io.sockets.in(address + method).emit('latestBlock', {latestBlock: latestBlock})
+        latestBlock = parseInt(latestBlock)
+        let to = (cachedRange.cachedUpTo === null || cachedRange.cachedUpTo === null) ? latestBlock : parseInt(cachedRange.cachedUpTo)
+        let from = (cachedRange.cachedFrom === null || cachedRange.cachedUpTo === null) ? latestBlock : parseInt(cachedRange.cachedFrom)
 
-    io.sockets.in(address + method).emit('latestBlock', {latestBlock: latestBlock})
+        sendAllDataPointsFromDB(address, method, from, to, socket)
 
-    latestBlock = parseInt(latestBlock)
-    let to = (cachedRange.cachedUpTo === null || cachedRange.cachedUpTo === null) ? latestBlock : parseInt(cachedRange.cachedUpTo)
-    let from = (cachedRange.cachedFrom === null || cachedRange.cachedUpTo === null) ? latestBlock : parseInt(cachedRange.cachedFrom)
+        await lock.writeLock('setLock', (release) => {
+            // If there is already a caching process, we don't need to set one up
+            if (!methodCachesInProgress.has(address + method)) {
+                methodCachesInProgress.add(address + method)
+            }
+            release()
+        })
 
-    sendAllDataPointsFromDB(address, method, from, to, socket)
-        .catch(errorCallbackHandle('sendhistory',console.log))
+        var contractInfo = await web3Client.getContract(address)
+        cacheMorePoints(contractInfo, address, method, from, to, latestBlock)
 
-    function addCachingInProgress(release) {
-        // If there is already a caching process, we don't need to set one up
-        if (!methodCachesInProgress.has(address + method)) {
-            methodCachesInProgress.add(address + method)
-        }
-        release()
+    } catch(err){
+        console.log('ERROR in send history')
+        console.log(err)
     }
-
-    await lock.writeLock('setLock', addCachingInProgress)
-
-    var contractInfo = await web3Client.getContract(address)
-        .catch(errorHandle('sendhistory'))
-
-    cacheMorePoints(contractInfo, address, method, from, to, latestBlock)
-        .catch(errorHandle('sendhistory'))
-
 }
 
 async function sendAllDataPointsFromDB(address, method, from, to, socket) {
-    function handle(err) {
-        log.error('Error sending datapoints from DD')
+    try {
+        var dataPoints = await db.getDataPoints(address.substr(2), method)
+        dataPoints = await Promise.map(dataPoints, (elem) => [elem.timeStamp, elem.value])
+        dataPoints = await socket.emit('getHistoryResponse', {error: false, from: from, to: to, results: dataPoints})
+    } catch(err){
+        log.error('ERROR in sendAllDataPointsFromDB')
         log.error(err)
         socket.emit('getHistoryResponse', {error: true})
     }
-
-    var dataPoints = await db.getDataPoints(address.substr(2), method)
-        .catch(errorHandle('sendAllDataponitsFromDB'))
-    dataPoints = await Promise.map(dataPoints, (elem) => [elem.timeStamp, elem.value])
-        .catch(errorHandle('sendAllDataponitsFromDB'))
-    dataPoints = await socket.emit('getHistoryResponse', {error: false, from: from, to: to, results: dataPoints})
 }
 
 // We currently have everything from from up to (but no including) upTo.
@@ -141,56 +133,53 @@ async function sendAllDataPointsFromDB(address, method, from, to, socket) {
 async function cacheMorePoints(contractInfo, address, method, from, upTo, latestBlock) {
     // const chunkSize = 1000
     //TODO: assert if working
-    const chunkSize = 10000
-    // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
-    if (from === 1 && upTo === latestBlock + 1) { // end of reccursion
-        log.info('Cached all points for ' + address + ' ' + method)
+    try {
+        const chunkSize = 10000
+        // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
+        if (from === 1 && upTo === latestBlock + 1) { // end of reccursion
+            log.info('Cached all points for ' + address + ' ' + method)
 
-        function deleteChannel(release) {
-            methodCachesInProgress.delete(address + method)
-            release()
-        }
+            function deleteChannel(release) {
+                methodCachesInProgress.delete(address + method)
+                release()
+            }
 
-        lock.writeLock('setLock', deleteChannel)
-    }
-    else {
-        if (upTo === latestBlock + 1) { // get oldest data points
-            let newFrom = Math.max(from - chunkSize, 1)
-            await sendDatapointsFromEthStorage(contractInfo, address, method, newFrom, from, newFrom, upTo)
-            cacheMorePoints(contractInfo, address, method, newFrom, upTo, latestBlock)
-        } else { // newTo is exclusive, so can be at most latestBlock + 1, get newest datapoints
-            let newUpTo = Math.min(upTo + chunkSize, latestBlock + 1)
-            await sendDatapointsFromEthStorage(contractInfo, address, method, upTo, newUpTo, from, newUpTo)
-            cacheMorePoints(contractInfo, address, method, from, newUpTo, latestBlock)
+            lock.writeLock('setLock', deleteChannel)
         }
+        else {
+            if (upTo === latestBlock + 1) { // get oldest data points
+                let newFrom = await Math.max(from - chunkSize, 1)
+                await sendDatapointsFromEthStorage(contractInfo, address, method, newFrom, from, newFrom, upTo)
+                cacheMorePoints(contractInfo, address, method, newFrom, upTo, latestBlock)
+            } else { // newTo is exclusive, so can be at most latestBlock + 1, get newest datapoints
+                let newUpTo = await Math.min(upTo + chunkSize, latestBlock + 1)
+                await sendDatapointsFromEthStorage(contractInfo, address, method, upTo, newUpTo, from, newUpTo)
+                cacheMorePoints(contractInfo, address, method, from, newUpTo, latestBlock)
+            }
+        }
+    }catch (err) {
+        log.error('ERROR in sendDatapointsFromEthStorage')
+        log.error(err)
     }
 }
 
 // Send all points from from up to but not including to
 async function sendDatapointsFromEthStorage(contractInfo, contractAddress, method, from, upTo, totalFrom, totalTo) {
-    // First we obtain the contract.
-    let contract = contractInfo.parsedContract
-    // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
-    // web3Client.getHistory(contractAddress, method, from, upTo - 1)
-    var dataPoints = await ethStorageClient.generateDataPoints(contractInfo, contractAddress, method, from, upTo, totalFrom, totalTo)
-    console.log('index.js:sendDatapointsFromEthStorage:results\n', dataPoints)
-    // if (results.length > 0) throw error;
-    // console.log('SENDDATAPOINTSEMIT',{
-    //     error: false,
-    //     from: from,
-    //     to: upTo,
-    //     results: dataPoints
-    // })
-    io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
-        error: false,
-        from: from,
-        to: upTo,
-        results: dataPoints
-    })
-        // .catch(errorCallbackHandle('sendhistory', (err) => {
-        //     log.error('Error in web3Client sending' + err)
-        //     io.sockets.in(contractAddress + method).emit('getHistoryResponse', {error: true})
-        //         .catch(errorHandle('sendDataPointsFromEthStorage'))
-        // }))
+    try {
+        // First we obtain the contract.
+        let contract = contractInfo.parsedContract
+        // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
+        var dataPoints = await ethStorageClient.generateDataPoints(contractInfo, contractAddress, method, from, upTo, totalFrom, totalTo)
+        log.error('index.js:sendDatapointsFromEthStorage:results\n', dataPoints)
+        io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
+            error: false,
+            from: from,
+            to: upTo,
+            results: dataPoints
+        })
+    }catch (err) {
+        log.error('ERROR in sendDatapointsFromEthStorage')
+        log.error(err)
+    }
 }
 
