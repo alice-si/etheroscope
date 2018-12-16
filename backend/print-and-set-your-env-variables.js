@@ -3,6 +3,7 @@ console.log("process.env.ETHEROSCOPEMARIADB = ",process.env.ETHEROSCOPEMARIADB)
 console.log("process.env.ETHEROSCOPEMICROSERVICE = ",process.env.ETHEROSCOPEMICROSERVICE)
 console.log("process.env.ETHEROSCOPESERVER = ",process.env.ETHEROSCOPESERVER)
 console.log("process.env.ETHEROSCOPEFRONTEND = ",process.env.ETHEROSCOPEFRONTEND)
+console.log("process.env.ETHEROSCOPEBLOCKCHAIN = ",process.env.ETHEROSCOPEBLOCKCHAIN)
 
 process.env.ETHEROSCOPEGETHHOST =  "localhost:8545"
 process.env.ETHEROSCOPEMARIADB =  "192.168.99.100:8083"

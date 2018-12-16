@@ -33,7 +33,9 @@ spec:
           value: "35.246.120.150:8080"
         - name: ETHEROSCOPEFRONTEND
           value: "35.242.161.116:80"
+        - name: ETHEROSCOPEBLOCKCHAIN
+          value: "/blockchain/geth/chaindata"
         imagePullPolicy: "Always"
         volumeMounts:
         - name: rinkeby-geth-volume
-          mountPath: /usr/src/app/etheroscope/geth-blockchains/fullRinkebyBlockchain/
+          mountPath: /blockchain/
