@@ -35,22 +35,16 @@ module.exports = function (db, web3Client, log, validator) {
     }
 
     // Send all points from from up to but not including to
-    ethStorageClient.generateDataPoints = async function (contractInfo, contractAddress, method, from, upTo, totalFrom, totalTo) {
+    ethStorageClient.generateDataPoints = async function (contractInfo, contractAddress, method, from, upTo) {
         let contract = contractInfo.parsedContract
-        var events = await ethStorage.promiseGetRange(contractAddress, 0, from, upTo).catch(errorCallbackHandle('promiseGetRange', console.log))
-        events = await Promise.map(events, convert, {concurrency: 5}).catch(errorCallbackHandle('generateDatapoints:promisemap', console.log))
-        await db.addDataPoints(contract.address.substr(2), method, events, totalFrom, totalTo).catch(errorCallbackHandle('generateDatapoints', console.log))
-        if (events.length > 0) {
-            log.debug('Added ' + events.length + ' data points for ' + contract.address + ' ' + method)
-        }
-        return events
+        var dataPoints = await ethStorage.promiseGetRange(contractAddress, 0, from, upTo).catch(errorCallbackHandle('promiseGetRange', console.log))
+        return await Promise.map(dataPoints, convert, {concurrency: 5}).catch(errorCallbackHandle('generateDatapoints:promisemap', console.log))
     }
 
     ethStorageClient.latestFullBlock = function () {
         return new Promise((resolve, reject) => {
             return ethStorage.latestHeaderNumber(ethStorage.promiseEnd(resolve, reject))
             // .catch(errorCallbackHandle('latest block error',console.log))
-
         })
     }
 
