@@ -1,0 +1,27 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: geth-ethereum
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: geth-ethereum
+  template:
+    metadata:
+      labels:
+        app: geth-ethereum
+    spec:
+      volumes:
+      - name: ethereum-geth-volume
+        gcePersistentDisk:
+          pdName: ethereum-geth-disk
+          fsType: ext4
+      containers:
+      - name: geth-ethereum
+        image: ethereum/client-go
+        command: ["geth", "--rpc", "--rpcaddr",  "0.0.0.0", "--datadir=/ethereum-data", "--gcmode=archive", "--rpcapi=\"db,eth,net,web3,personal,web3\""]
+        volumeMounts:
+          - name: ethereum-geth-volume
+            mountPath: /ethereum-data/
