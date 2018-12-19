@@ -42,10 +42,6 @@ var errorHandle = require('../common/errorHandlers').errorHandle
 var errorCallbackHandle = require('../common/errorHandlers').errorCallbackHandle
 var streamedSet = require('./streamedSet')()
 
-function validAddress(address) {
-    return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
-}
-
 log.info('services/index.js: Micro-service started at', socketPort)
 
 io.on('connection', function (socket) {
@@ -77,6 +73,22 @@ io.on('disconnect', function (socket) {
     console.log('new client request \'disconnect\'')
 })
 
+function validAddress(address) {
+    return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
+}
+
+function setInitCached(cachedRange,latestBlock){
+    var {cachedFrom,cachedUpTo} = cachedRange
+    if (cachedUpTo == null || cachedUpTo === null){
+        cachedFrom = cachedUpTo = latestBlock // double assignment
+    }
+    else {
+        cachedFrom = parseInt(cachedFrom); cachedUpTo = parseInt(cachedUpTo)
+    }
+    return {cachedFrom, cachedUpTo}
+
+}
+
 async function sendHistory(address, method, socket) {
     /* Ignore invalid requests on the socket - the frontend should
      * ensure these are not send, so any invalid addresses
@@ -88,35 +100,34 @@ async function sendHistory(address, method, socket) {
     try {
 
         var latestBlock = await ethStorageClient.latestFullBlock()
-        console.log('WEBSOCKET EMIT:latestBlock',latestBlock)
+
+        console.log('New client: WEBSOCKET EMIT:latestBlock=',latestBlock)
         io.sockets.in(address + method).emit('latestBlock', {latestBlock: latestBlock})
-        var {cachedFrom,cachedUpTo} = await db.getCachedFromTo(address.substring(2), method)
-        if (cachedUpTo == null || cachedUpTo === null){
-            cachedFrom = cachedUpTo = latestBlock // double assignment
-        }
-        else {
-            cachedFrom = parseInt(cachedFrom)
-            cachedUpTo = parseInt(cachedUpTo)
-        }
+
+        var cachedRange = await db.getCachedFromTo(address.substring(2), method)
+        var {cachedFrom,cachedUpTo} = setInitCached(cachedRange,latestBlock)
+
         sendAllDataPointsFromDB(address, method, cachedFrom, cachedUpTo, socket)
+
         await streamedSet.addChannel(address,method)
         var contractInfo = await web3Client.getContract(address)
+
         cacheMorePoints(contractInfo, address, method, cachedFrom, cachedUpTo, latestBlock)
 
     } catch(err){
-        console.log('ERROR in send history')
-        console.log(err)
+        errorHandle("sendHistory")(err)
     }
 }
 
 async function sendAllDataPointsFromDB(address, method, from, to, socket) {
     try {
+
         var dataPoints = await db.getDataPoints(address.substr(2), method)
         dataPoints = await Promise.map(dataPoints, (elem) => [elem.timeStamp, elem.value])
-        dataPoints = await socket.emit('getHistoryResponse', {error: false, from: from, to: to, results: dataPoints})
+        await socket.emit('getHistoryResponse', {error: false, from: from, to: to, results: dataPoints})
+
     } catch(err){
-        log.error('ERROR in sendAllDataPointsFromDB')
-        log.error(err)
+        errorHandle("sendAllDataPointsFromDB")(err)
         socket.emit('getHistoryResponse', {error: true})
     }
 }
@@ -133,13 +144,11 @@ async function cacheMorePoints(contractInfo, address, method, from, upTo, latest
         const chunkSize = 10000
         // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
         while (totalUpTo < latestBlock + 1) {
-            upTo = totalUpTo
-            totalUpTo = await Math.min(upTo + chunkSize, latestBlock + 1)
+            upTo = totalUpTo; totalUpTo = await Math.min(upTo + chunkSize, latestBlock + 1)
             await sendDatapointsFromEthStorage(contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo)
         }
         while(1 < totalFrom) {
-            from = totalFrom
-            totalFrom = await Math.max(from - chunkSize, 1)
+            from = totalFrom; totalFrom = await Math.max(from - chunkSize, 1)
             await sendDatapointsFromEthStorage(contractInfo, address, method, totalFrom, from, totalFrom, totalUpTo)
         }
         if (from === 1 && upTo === latestBlock + 1) { // end of reccursion
@@ -147,8 +156,7 @@ async function cacheMorePoints(contractInfo, address, method, from, upTo, latest
             streamedSet.deleteChannel(address,method)
         }
     }catch (err) {
-        log.error('ERROR in sendDatapointsFromEthStorage')
-        log.error(err)
+        errorHandle("cachedMorePoints")(err)
     }
 }
 
@@ -168,8 +176,7 @@ async function sendDatapointsFromEthStorage(contractInfo, contractAddress, metho
             results: dataPoints
         })
     }catch (err) {
-        log.error('ERROR in sendDatapointsFromEthStorage')
-        log.error(err)
+        errorHandle("sendDatapointsFromEthStorage")(err)
     }
 }
 
