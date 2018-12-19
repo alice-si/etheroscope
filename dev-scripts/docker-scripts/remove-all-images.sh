@@ -1,0 +1,1 @@
+docker rmi -f $(docker images --all | grep -v mariadb | awk 'NR>1{print $3;}' | tr '\n' ' ')

@@ -17,4 +17,15 @@ spec:
       containers:
       - name: etheroscope-tester-container
         image: gcr.io/etheroscope/etheroscope-tester:latest
+        env:
+        - name: ETHEROSCOPEGETHHOST
+          value: "10.3.255.188:8545"
+        - name: ETHEROSCOPEMARIADB
+          value: "10.3.240.97:8083"
+        - name: ETHEROSCOPEMICROSERVICE
+          value: "35.246.65.214:80"
+        - name: ETHEROSCOPESERVER
+          value: "35.246.120.150:8080"
+        - name: ETHEROSCOPEFRONTEND
+          value: "35.242.161.116:80"
         imagePullPolicy: "Always"

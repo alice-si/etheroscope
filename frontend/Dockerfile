@@ -1,13 +1,20 @@
-FROM node:8
+FROM node:8 AS frontendBase
 
 # Create app directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Copy files
-COPY . ./
+COPY package.json ./package.json
+COPY package-lock.json ./package-lock.json
 
 # Install dependencies
 RUN npm install
 
+FROM node:8 AS frontendEtheroscope
+WORKDIR /app
+# Copy files
+COPY --from=frontendBase /app/node_modules ./node_modules
+COPY ./ ./
 # Start frontend
 CMD ./node_modules/@angular/cli/bin/ng serve --host 0.0.0.0 --port 8090
+

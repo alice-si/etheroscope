@@ -1,7 +1,8 @@
 var path = require('path')
 var mysql = require('promise-mysql')
 
-var mysqlConnectionOptions = require('../settings.js').mysqlConnectionOptions
+var settings = require('./settings.js')
+var mysqlConnectionOptions = settings.mysqlConnectionOptions
 
 const pool = mysql.createPool(mysqlConnectionOptions)
 
@@ -104,12 +105,6 @@ module.exports = function (log) {
     })
   }
 
-  // TODO delete pool connect from code
-  db.poolConnect = function () {
-    return new Promise(function (resolve, reject) {
-      resolve()
-    })
-  }
 
   /* This function takes in an array of arrays of the form:
    * values = ['0x0123456789', 'name'], and returns a promise
@@ -200,14 +195,14 @@ module.exports = function (log) {
       var sql = 'select name, abi from contracts where contractHash=\'' + contractHash + '\''
       pool.query(sql)
         .then((results) => {
-          console.log('db.getContract:results:', results)
+          // console.log('db.getContract:results:', results)
           let result = {contractName: null, contract: null}
           if (results.length !== 0) {
             result.contractName = results[0].name
             let abi = results[0].abi
             if (abi) {
               abi = abi.slice(1, abi.length - 1)
-              console.log('sliced rawabi', abi)
+              // console.log('sliced rawabi', abi)
               result.contract = JSON.parse(abi)
             }
           }
@@ -253,9 +248,12 @@ module.exports = function (log) {
           })
           .catch((err) => {
             log.error('db.js: Error in addDataPoints')
-            log.error(err)
-            process.exit(1)
-            return reject(err)
+            log.error(err.toString().slice(50))
+              log.error('db.js probably duplicate entry datapoints')
+
+            // process.exit(1)
+            // return reject(err)
+              return resolve(values)
           })
       }
     })
