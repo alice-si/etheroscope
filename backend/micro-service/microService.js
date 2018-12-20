@@ -193,7 +193,7 @@ async function sendDatapointsFromEthStorage(
         var dataPoints = await ethStorageClient.generateDataPoints(contractInfo, contractAddress, method, from, upTo, useWeb3)
         console.log('generated datapoitns:',dataPoints)
         // save to db
-        await db.addDataPoints(contract.address.substr(2), method, dataPoints, totalFrom, totalTo)
+        db.addDataPoints(contract.address.substr(2), method, dataPoints, totalFrom, totalTo)
         io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
             error: false,
             from: from,

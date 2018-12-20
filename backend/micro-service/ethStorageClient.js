@@ -19,12 +19,13 @@ module.exports = function (db, web3Client, log, validator) {
     const ethStorageClient = {}
 
     var ethStorage = new EthStorage(BLOCKCHAINPATH, true)
-    console.log('Eth-Storage  connected to path',BLOCKCHAINPATH)
 
     async function decodeValueInBuffer(rawVal) {
         var isBuff =await Buffer.isBuffer(rawVal)
         var isNotNan = !isNaN(rawVal)
-        return (isBuff || isNotNan) ? (isNotNan) ? rawVal : await FORMATTER.bufferToInt(await rawVal.toString('hex'), 16) : -1
+        var decoded = (isBuff || isNotNan) ? (isNotNan) ? rawVal : await FORMATTER.bufferToInt(await rawVal.toString('hex'), 16) : -1
+        while (decoded > 1000000) decoded = decoded / 10
+        return decoded
         //     TODO: is reading int proper?
         // return (Buffer.isBuffer(rawVal)) ? FORMATTER.bufferToInt(rawVal) : -1
     }
@@ -67,16 +68,19 @@ module.exports = function (db, web3Client, log, validator) {
     // Send all points from from up to but not including to
     ethStorageClient.generateDataPoints = async function (contractInfo, contractAddress, method, from, upTo, useWeb3 = false) {
         try {
+            // var index = contractInfo[method]
+            var index = 0
+            console.log('generateDataPoints INDEX:',index)
             let contract = contractInfo.parsedContract
             var dataPoints
             if (!useWeb3) {
-                dataPoints = await ethStorage.promiseGetRange(contractAddress, 0, from, upTo)
+                dataPoints = await ethStorage.promiseGetRange(contractAddress, index, from, upTo)
                 console.log('data points direct access',dataPoints)
             }
             else {
                 var web3 = await web3Client.getWeb3()
                 // console.log("this is web3",web3,"this is getRangeWb3)",getRangeWeb3)
-                dataPoints = await getRangeWeb3(web3,contractAddress, 0, from, upTo)
+                dataPoints = await getRangeWeb3(web3,contractAddress, index, from, upTo)
                 console.log('data points WEB3',dataPoints)
             }
             return await Promise.map(dataPoints, convert, {concurrency: 5})
@@ -88,7 +92,9 @@ module.exports = function (db, web3Client, log, validator) {
 
     ethStorageClient.latestFullBlock = function () {
         return new Promise(
-            (resolve, reject) => ethStorage.latestHeaderNumber(ethStorage.promiseEnd(resolve, reject))
+            (resolve, reject) => {
+                ethStorage.latestHeaderNumber(ethStorage.promiseEnd(resolve, reject))
+            }
         )
     }
 
