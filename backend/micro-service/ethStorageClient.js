@@ -4,25 +4,22 @@ var Promise = require('bluebird')
 var ReadWriteLock = require('rwlock')
 var lock = new ReadWriteLock()
 
-var settings = require('../common/settings.js')
-var GETHHOST = settings.ETHEROSCOPEGETHHOST
-const GETHURL = 'http://' + GETHHOST // api connector
-const web3 = new Web3(new Web3.providers.HttpProvider(GETHURL))
 
 var EthStorage = require('eth-storage/ethStorage/layers/highLevel.js')
 var FORMATTER = require('eth-storage/ethStorage/format/formatter.js')
 
 var errorHandle = require('../common/errorHandlers').errorHandle
-var errorCallbackHandle = require('../common/errorHandlers').errorCallbackHandle
+var errorHandleCallback = require('../common/errorHandlers').errorCallbackHandle
 
 // geth database path (must be different then choosen api connector database)
+var settings = require('../common/settings.js')
 var BLOCKCHAINPATH = settings.ETHEROSCOPEBLOCKCHAIN
 
 module.exports = function (db, web3Client, log, validator) {
     const ethStorageClient = {}
 
     var ethStorage = new EthStorage(BLOCKCHAINPATH, true)
-    console.log('Eth-Storage connected to path',BLOCKCHAINPATH)
+    log.info('Eth-Storage connected to path',BLOCKCHAINPATH)
 
     function decodeValueInBuffer(rawVal) {
         return (Buffer.isBuffer(rawVal)) ? FORMATTER.bufferToInt(rawVal.toString('hex'), 16) : -1
@@ -36,16 +33,19 @@ module.exports = function (db, web3Client, log, validator) {
 
     // Send all points from from up to but not including to
     ethStorageClient.generateDataPoints = async function (contractInfo, contractAddress, method, from, upTo) {
-        let contract = contractInfo.parsedContract
-        var dataPoints = await ethStorage.promiseGetRange(contractAddress, 0, from, upTo).catch(errorCallbackHandle('promiseGetRange', console.log))
-        return await Promise.map(dataPoints, convert, {concurrency: 5}).catch(errorCallbackHandle('generateDatapoints:promisemap', console.log))
+        try {
+            let contract = contractInfo.parsedContract
+            var dataPoints = await ethStorage.promiseGetRange(contractAddress, 0, from, upTo)
+            return await Promise.map(dataPoints, convert, {concurrency: 5})
+        } catch (err) {
+            errorHandle("ethStorage.generateDataPoints")(err)
+        }
     }
 
     ethStorageClient.latestFullBlock = function () {
-        return new Promise((resolve, reject) => {
-            return ethStorage.latestHeaderNumber(ethStorage.promiseEnd(resolve, reject))
-            // .catch(errorCallbackHandle('latest block error',console.log))
-        })
+        return new Promise(
+            (resolve, reject) => ethStorage.latestHeaderNumber(ethStorage.promiseEnd(resolve, reject))
+        )
     }
 
     return ethStorageClient

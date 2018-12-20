@@ -1,28 +1,34 @@
 var ReadWriteLock = require('rwlock')
 var lock = new ReadWriteLock()
 
+var methodCachesInProgress = new Set()
 
 module.exports = function () {
+
     const streamedSet = {}
 
-    streamedSet.methodCachesInProgress = new Set()
 
     streamedSet.addChannel = function (address,method) {
-        lock.writeLock('setLock', (release) => {
+        function addChannel(release) {
+            var halo = "kalosze"
+            console.log(halo)
+            var channelName = address + method
+            console.log(halo,channelName)
             // If there is already a caching process, we don't need to set one up
-            if (!streamedSet.methodCachesInProgress.has(address + method)) streamedSet.methodCachesInProgress.add(address + method)
+            if (!methodCachesInProgress.has(channelName)) methodCachesInProgress.add(channelName)
             release()
-        })
+        }
+        return lock.writeLock('setLock', addChannel)
     }
 
     streamedSet.deleteChannel = function (address,method) {
         function deleteChannel(release) {
-            methodCachesInProgress.delete(address + method)
+            var channelName = address + method
+            methodCachesInProgress.delete(channelName)
             release()
         }
-        lock.writeLock('setLock', deleteChannel)
+        return lock.writeLock('setLock', deleteChannel)
     }
-
 
     return streamedSet
 }

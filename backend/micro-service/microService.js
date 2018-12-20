@@ -5,7 +5,6 @@ let log = require('loglevel')
 let validator = require('validator')
 
 console.log('microService.js: Starting microService.js')
-console.log('Extra test log')
 
 let socketPort = 8081
 
@@ -33,13 +32,14 @@ app.use(bodyParser.urlencoded({extended: true}))
 app.use(morgan('dev'))
 
 // import other parts of project
+var errorHandle = require('../common/errorHandlers').errorHandle
+var errorHandleCallback = require('../common/errorHandlers').errorCallbackHandle
 
 log.info('services/index.js: Micro-service started at', socketPort)
 let db = require('../common/db.js')(log)
-let web3Client = require('../common/web3Client')(db, log, validator)
+var Web3Client = require('../common/web3Client')
+var web3Client = new Web3Client(db, log, validator)
 let ethStorageClient = require('./ethStorageClient')(db, web3Client, log, validator)
-var errorHandle = require('../common/errorHandlers').errorHandle
-var errorCallbackHandle = require('../common/errorHandlers').errorCallbackHandle
 var streamedSet = require('./streamedSet')()
 
 log.info('services/index.js: Micro-service started at', socketPort)
@@ -72,6 +72,7 @@ io.on('connection', function (socket) {
 io.on('disconnect', function (socket) {
     console.log('new client request \'disconnect\'')
 })
+
 
 function validAddress(address) {
     return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
@@ -111,8 +112,10 @@ async function sendHistory(address, method, socket) {
 
         await streamedSet.addChannel(address,method)
         var contractInfo = await web3Client.getContract(address)
+        console.log('CONTRACT INFO',await contractInfo)
+        console.log('CONTRACT INFO',await contractInfo)
 
-        cacheMorePoints(contractInfo, address, method, cachedFrom, cachedUpTo, latestBlock)
+        cacheMorePoints(await contractInfo, address, method, cachedFrom, cachedUpTo, latestBlock)
 
     } catch(err){
         errorHandle("sendHistory")(err)
@@ -144,11 +147,13 @@ async function cacheMorePoints(contractInfo, address, method, from, upTo, latest
         const chunkSize = 10000
         // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
         while (totalUpTo < latestBlock + 1) {
-            upTo = totalUpTo; totalUpTo = await Math.min(upTo + chunkSize, latestBlock + 1)
+            upTo = totalUpTo
+            totalUpTo = await Math.min(upTo + chunkSize, latestBlock + 1)
             await sendDatapointsFromEthStorage(contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo)
         }
         while(1 < totalFrom) {
-            from = totalFrom; totalFrom = await Math.max(from - chunkSize, 1)
+            from = totalFrom
+            totalFrom = await Math.max(from - chunkSize, 1)
             await sendDatapointsFromEthStorage(contractInfo, address, method, totalFrom, from, totalFrom, totalUpTo)
         }
         if (from === 1 && upTo === latestBlock + 1) { // end of reccursion
@@ -168,7 +173,7 @@ async function sendDatapointsFromEthStorage(contractInfo, contractAddress, metho
         // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
         var dataPoints = await ethStorageClient.generateDataPoints(contractInfo, contractAddress, method, from, upTo)
         // save to db
-        await db.addDataPoints(contract.address.substr(2), method, dataPoints, totalFrom, totalTo).catch(errorCallbackHandle('generateDatapoints', console.log))
+        await db.addDataPoints(contract.address.substr(2), method, dataPoints, totalFrom, totalTo)
         io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
             error: false,
             from: from,
