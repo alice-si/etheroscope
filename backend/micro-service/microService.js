@@ -39,6 +39,7 @@ let db = require('../common/db.js')(log)
 var Web3Client = require('../common/web3Client')
 var web3Client = new Web3Client(db, log, validator)
 let ethStorageClient = require('./ethStorageClient')(db, web3Client, log, validator)
+console.log('mp halo')
 var streamedSet = require('./streamedSet')()
 
 log.info('services/index.js: Micro-service started at', socketPort)
@@ -104,12 +105,13 @@ async function sendHistory(address, method, socket) {
 
         var latestBlock = await web3Client.getLatestBlock()
         var latestBlockDirectAccess = await ethStorageClient.latestFullBlock()
+        // var latestBlockDirectAccess = 2000000
 
         console.log(
             'New client: WEBSOCKET EMIT:latestBlockDirectAccess=', latestBlockDirectAccess,
             'latestBlock=', latestBlock)
 
-        io.sockets.in(address + method).emit('latestBlock', {latestBlock: latestBlockDirectAccess})
+        io.sockets.in(address + method).emit('latestBlock', {latestBlock: latestBlock})
 
         var cachedRange = await db.getCachedFromTo(address.substring(2), method)
         var {cachedFrom, cachedUpTo} = setInitCached(cachedRange, latestBlockDirectAccess)
@@ -119,9 +121,7 @@ async function sendHistory(address, method, socket) {
         await streamedSet.addChannel(address, method)
         var contractInfo = await web3Client.getContract(address)
 
-        console.log('ejj')
         cacheMorePoints(await contractInfo, address, method, cachedFrom, cachedUpTo, latestBlockDirectAccess,latestBlock)
-        console.log('ejj2')
 
     } catch (err) {
         errorHandle("sendHistory")(err)
@@ -151,21 +151,24 @@ async function cacheMorePoints(
     try {
         var totalFrom = from
         var totalUpTo = upTo
-        const chunkSize = 10000
+        var chunkSize = 10000
         // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
         while (totalUpTo < latestBlockDirectAccess + 1) {
+            chunkSize = 10000
             upTo = totalUpTo
             totalUpTo = await Math.min(upTo + chunkSize, latestBlockDirectAccess + 1)
             await sendDatapointsFromEthStorage(
                 contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo)
         }
         while (totalUpTo < latestBlock + 1) {
+            chunkSize = 10
             upTo = totalUpTo
-            totalUpTo = await Math.min(upTo + chunkSize, latestBlockDirectAccess + 1)
+            totalUpTo = await Math.min(upTo + chunkSize, latestBlock + 1)
             await sendDatapointsFromEthStorage(
                 contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo, true)
         }
         while (1 < totalFrom) {
+             chunkSize = 10000
             from = totalFrom
             totalFrom = await Math.max(from - chunkSize, 1)
             await sendDatapointsFromEthStorage(
@@ -187,8 +190,8 @@ async function sendDatapointsFromEthStorage(
         // First we obtain the contract.
         let contract = contractInfo.parsedContract // TODO Var to index
         // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
-        var dataPoints = await ethStorageClient
-            .generateDataPoints(contractInfo, contractAddress, method, from, upTo, useWeb3)
+        var dataPoints = await ethStorageClient.generateDataPoints(contractInfo, contractAddress, method, from, upTo, useWeb3)
+        console.log('generated datapoitns:',dataPoints)
         // save to db
         await db.addDataPoints(contract.address.substr(2), method, dataPoints, totalFrom, totalTo)
         io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
@@ -199,6 +202,7 @@ async function sendDatapointsFromEthStorage(
         })
     } catch (err) {
         errorHandle("sendDatapointsFromEthStorage")(err)
+        throw err
     }
 }
 

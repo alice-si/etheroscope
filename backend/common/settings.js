@@ -9,6 +9,7 @@ module.exports.ETHEROSCOPEMICROSERVICE=process.env.ETHEROSCOPEMICROSERVICE
 module.exports.ETHEROSCOPESERVER=process.env.ETHEROSCOPESERVER
 module.exports.ETHEROSCOPEFRONTEND=process.env.ETHEROSCOPEFRONTEND
 module.exports.ETHEROSCOPEBLOCKCHAIN=process.env.ETHEROSCOPEBLOCKCHAIN
+// module.exports.ETHEROSCOPEBLOCKCHAIN='C:\\Users\\ja1\\Alice\\dirforrinkeby'
 
 module.exports.mysqlConnectionOptions = {
   connectionLimit: 10,

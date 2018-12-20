@@ -35,6 +35,12 @@ function Web3Client(db, log, validator) {
     }
 }
 
+Web3Client.prototype.getWeb3 = function () {
+    var self = this
+    console.log(self.web3.toString().slice(30))
+    return self.web3
+}
+
 Web3Client.prototype.getLatestBlock = function () {
     var self = this
     return new Promise((resolve,reject)=>{
