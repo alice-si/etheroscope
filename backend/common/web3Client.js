@@ -35,22 +35,15 @@ function Web3Client(db, log, validator) {
     }
 }
 
-Web3Client.prototype.getLatestBlock = async function () {
+Web3Client.prototype.getLatestBlock = function () {
     var self = this
-    try {
-        return await self.web3.eth.getBlockNumber()
-    } catch (error) {
-        return errorHandle("self.web3client.js:getLatestBlock()")(err)
-    }
-}
-
-Web3Client.prototype.getLatestBlock = async function () {
-    var self = this
-    try {
-        return await self.web3.eth.getBlockNumber()
-    } catch (error) {
-        return errorHandle("self.web3client.js:getLatestBlock()")(err)
-    }
+    return new Promise((resolve,reject)=>{
+        return self.web3.eth.getBlockNumber((error,result)=>{
+            console.log("yolo",result,error)
+            if (error) reject(error)
+            return resolve(result)
+        })
+    })
 }
 
 Web3Client.prototype.getContract = async function (address) {

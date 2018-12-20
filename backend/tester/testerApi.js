@@ -8,6 +8,16 @@ module.exports = function (app, db, log, validator) {
         return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
     }
 
+    app.get('/tester/hello', async (req, res) => {
+        try {
+            var result = "Hello world form tester api."
+            return res.status(200).json(result)
+        }
+        catch (err) {
+            return res.status(400).json(err)
+        }
+    })
+
     app.get('/tester/db/:query', async (req, res) => {
         try {
             let query = req.params.query

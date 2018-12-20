@@ -32,10 +32,16 @@ module.exports = function (db, web3Client, log, validator) {
     }
 
     // Send all points from from up to but not including to
-    ethStorageClient.generateDataPoints = async function (contractInfo, contractAddress, method, from, upTo) {
+    ethStorageClient.generateDataPoints = async function (contractInfo, contractAddress, method, from, upTo, useWeb3 = false) {
         try {
             let contract = contractInfo.parsedContract
-            var dataPoints = await ethStorage.promiseGetRange(contractAddress, 0, from, upTo)
+            var dataPoints
+            if (!useWeb3) {
+                dataPoints = await ethStorage.promiseGetRange(contractAddress, 0, from, upTo)
+            }
+            else {
+                dataPoints = await ethStorage.getRangeWeb3(web3Client.web3,contractAddress, 0, from, upTo)
+            }
             return await Promise.map(dataPoints, convert, {concurrency: 5})
         } catch (err) {
             errorHandle("ethStorage.generateDataPoints")(err)

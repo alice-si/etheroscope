@@ -1,4 +1,3 @@
-
 var morgan = require('morgan')
 var Promise = require('bluebird')
 let log = require('loglevel')
@@ -75,16 +74,19 @@ io.on('disconnect', function (socket) {
 
 
 function validAddress(address) {
-    return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
+    return address.length === 42
+        && validator.isHexadecimal(address.substr(2))
+        && address.substr(0, 2) === '0x'
 }
 
-function setInitCached(cachedRange,latestBlock){
-    var {cachedFrom,cachedUpTo} = cachedRange
-    if (cachedUpTo == null || cachedUpTo === null){
+function setInitCached(cachedRange, latestBlock) {
+    var {cachedFrom, cachedUpTo} = cachedRange
+    if (cachedUpTo == null || cachedUpTo === null) {
         cachedFrom = cachedUpTo = latestBlock // double assignment
     }
     else {
-        cachedFrom = parseInt(cachedFrom); cachedUpTo = parseInt(cachedUpTo)
+        cachedFrom = parseInt(cachedFrom);
+        cachedUpTo = parseInt(cachedUpTo)
     }
     return {cachedFrom, cachedUpTo}
 
@@ -100,24 +102,28 @@ async function sendHistory(address, method, socket) {
 
     try {
 
-        var latestBlock = await ethStorageClient.latestFullBlock()
+        var latestBlock = await web3Client.getLatestBlock()
+        var latestBlockDirectAccess = await ethStorageClient.latestFullBlock()
 
-        console.log('New client: WEBSOCKET EMIT:latestBlock=',latestBlock)
-        io.sockets.in(address + method).emit('latestBlock', {latestBlock: latestBlock})
+        console.log(
+            'New client: WEBSOCKET EMIT:latestBlockDirectAccess=', latestBlockDirectAccess,
+            'latestBlock=', latestBlock)
+
+        io.sockets.in(address + method).emit('latestBlock', {latestBlock: latestBlockDirectAccess})
 
         var cachedRange = await db.getCachedFromTo(address.substring(2), method)
-        var {cachedFrom,cachedUpTo} = setInitCached(cachedRange,latestBlock)
+        var {cachedFrom, cachedUpTo} = setInitCached(cachedRange, latestBlockDirectAccess)
 
         sendAllDataPointsFromDB(address, method, cachedFrom, cachedUpTo, socket)
 
-        await streamedSet.addChannel(address,method)
+        await streamedSet.addChannel(address, method)
         var contractInfo = await web3Client.getContract(address)
-        console.log('CONTRACT INFO',await contractInfo)
-        console.log('CONTRACT INFO',await contractInfo)
 
-        cacheMorePoints(await contractInfo, address, method, cachedFrom, cachedUpTo, latestBlock)
+        console.log('ejj')
+        cacheMorePoints(await contractInfo, address, method, cachedFrom, cachedUpTo, latestBlockDirectAccess,latestBlock)
+        console.log('ejj2')
 
-    } catch(err){
+    } catch (err) {
         errorHandle("sendHistory")(err)
     }
 }
@@ -129,7 +135,7 @@ async function sendAllDataPointsFromDB(address, method, from, to, socket) {
         dataPoints = await Promise.map(dataPoints, (elem) => [elem.timeStamp, elem.value])
         await socket.emit('getHistoryResponse', {error: false, from: from, to: to, results: dataPoints})
 
-    } catch(err){
+    } catch (err) {
         errorHandle("sendAllDataPointsFromDB")(err)
         socket.emit('getHistoryResponse', {error: true})
     }
@@ -138,7 +144,8 @@ async function sendAllDataPointsFromDB(address, method, from, to, socket) {
 // We currently have everything from from up to (but no including) upTo.
 // Find more things, firstly at to - end, and later anything before from
 // pre: from, upTo, latestBlock are numbers, not strings
-async function cacheMorePoints(contractInfo, address, method, from, upTo, latestBlock) {
+async function cacheMorePoints(
+    contractInfo, address, method, from, upTo, latestBlockDirectAccess, latestBlock) {
     // const chunkSize = 1000
     //TODO: assert if working
     try {
@@ -146,32 +153,42 @@ async function cacheMorePoints(contractInfo, address, method, from, upTo, latest
         var totalUpTo = upTo
         const chunkSize = 10000
         // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
+        while (totalUpTo < latestBlockDirectAccess + 1) {
+            upTo = totalUpTo
+            totalUpTo = await Math.min(upTo + chunkSize, latestBlockDirectAccess + 1)
+            await sendDatapointsFromEthStorage(
+                contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo)
+        }
         while (totalUpTo < latestBlock + 1) {
             upTo = totalUpTo
-            totalUpTo = await Math.min(upTo + chunkSize, latestBlock + 1)
-            await sendDatapointsFromEthStorage(contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo)
+            totalUpTo = await Math.min(upTo + chunkSize, latestBlockDirectAccess + 1)
+            await sendDatapointsFromEthStorage(
+                contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo, true)
         }
-        while(1 < totalFrom) {
+        while (1 < totalFrom) {
             from = totalFrom
             totalFrom = await Math.max(from - chunkSize, 1)
-            await sendDatapointsFromEthStorage(contractInfo, address, method, totalFrom, from, totalFrom, totalUpTo)
+            await sendDatapointsFromEthStorage(
+                contractInfo, address, method, totalFrom, from, totalFrom, totalUpTo)
         }
-        if (from === 1 && upTo === latestBlock + 1) { // end of reccursion
+        if (from === 1 && upTo === latestBlockDirectAccess + 1) { // end of reccursion
             log.info('Cached all points for ' + address + ' ' + method)
-            streamedSet.deleteChannel(address,method)
+            streamedSet.deleteChannel(address, method)
         }
-    }catch (err) {
+    } catch (err) {
         errorHandle("cachedMorePoints")(err)
     }
 }
 
 // Send all points from from up to but not including to
-async function sendDatapointsFromEthStorage(contractInfo, contractAddress, method, from, upTo, totalFrom, totalTo) {
+async function sendDatapointsFromEthStorage(
+    contractInfo, contractAddress, method, from, upTo, totalFrom, totalTo, useWeb3 = false) {
     try {
         // First we obtain the contract.
         let contract = contractInfo.parsedContract // TODO Var to index
         // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
-        var dataPoints = await ethStorageClient.generateDataPoints(contractInfo, contractAddress, method, from, upTo)
+        var dataPoints = await ethStorageClient
+            .generateDataPoints(contractInfo, contractAddress, method, from, upTo, useWeb3)
         // save to db
         await db.addDataPoints(contract.address.substr(2), method, dataPoints, totalFrom, totalTo)
         io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
@@ -180,7 +197,7 @@ async function sendDatapointsFromEthStorage(contractInfo, contractAddress, metho
             to: upTo,
             results: dataPoints
         })
-    }catch (err) {
+    } catch (err) {
         errorHandle("sendDatapointsFromEthStorage")(err)
     }
 }

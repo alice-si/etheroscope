@@ -45,51 +45,24 @@ try {
     })
     app.use(morgan('dev'))
 
-// Angular compilation directory
-// var staticdir = 'dist'
-// app.use(express.static(path.join(__dirname, '/', staticdir)))
-//     / Angular compilation directory
-//     var staticdir = 'dist'
-//     app.use(express.static(path.join(__dirname, '/', staticdir)))
-
-// Home page endpoint
-// app.get('/', function (req, res) {
-//     console.log('/')
-//     res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
-// })
-//     app.get('/explorer', function (req, res) {
-//         console.log('/explorer')
-//         res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
-//     })
-//     app.get('/explorer/*', function (req, res) {
-//         console.log('/explorer/*')
-//         res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
-//     })
-//     app.get('/popular', function (req, res) {
-//         console.log('/popular')
-//         res.sendFile(path.join(__dirname, '/', staticdir, '/index.html'))
-//     })
-
     process.on('unhandledRejection', (reason, p) => {
         console.log('server.js: Unhandled Rejection at:\n Promise:\n', p, '\nreason:\n', reason)
     })
 
-// require first query handler
+// add query handler API
     require('./api.js')(app, db, log, validator) // configure our routes
 
-// use test query handler
+// add test query handler API
     require('../tester/testerApi.js')(app, db, log, validator) // configure our routes
 
 // Set port to 8080
     var port = settings.ETHEROSCOPESERVER.slice(-4)
-// port = "" + (parseInt(port) + 17)
 
 // Start application
     log.info('server.js: Starting server at: ' + port)    // shoutout to the user
-console.log('server.js: Starting server at: ' + port)    // shoutout to the user
     app.listen(port)
 } catch (err) {
-    errorHandle('could not app.listen on port'+port)(err)
+    errorHandle('could not app.listen on port' + port)(err)
 }
 
 
