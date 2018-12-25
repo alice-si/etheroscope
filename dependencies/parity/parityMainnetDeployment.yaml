@@ -16,4 +16,4 @@ spec:
       containers:
       - name: parity-mainnet
         image: parity/parity:stable
-#        command: ["--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
+        command: ["parity", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]

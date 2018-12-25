@@ -34,13 +34,13 @@ app.use(morgan('dev'))
 var errorHandle = require('../common/errorHandlers').errorHandle
 var errorHandleCallback = require('../common/errorHandlers').errorCallbackHandle
 
-var Parity = require('../transactions-list/parity.js')
-var parityClient = Parity(db, log,validator)
-
 log.info('services/index.js: Micro-service started at', socketPort)
 let db = require('../common/db.js')(log)
 var Web3Client = require('../common/web3Client')
 var web3Client = new Web3Client(db, log, validator)
+var Parity = require('../transactions-list/parity.js')
+var parityClient = Parity(db, log,validator)
+
 let ethStorageClient = require('./ethStorageClient')(db, web3Client, parityClient, log, validator)
 console.log('mp halo')
 var streamedSet = require('./streamedSet')()

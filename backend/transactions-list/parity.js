@@ -4,7 +4,7 @@ var Promise = require('bluebird')
 var ReadWriteLock = require('rwlock')
 var lock = new ReadWriteLock()
 
-var settings = require('./settings.js')
+var settings = require('../common/settings.js')
 const parityUrl = settings.ETHEROSCOPEPARITYMAINNET
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
@@ -12,10 +12,10 @@ module.exports = function (db, log, validator) {
     const parity = {}
 
     if (!web3.isConnected()) {
-        console.log('Please start parity')
+        console.log('Please start parity, have tried:',parityUrl)
         process.exit(1)
     }
-    console.log('Successfully connected to parity')
+    console.log('Successfully connected to parity, tried',parityUrl)
 
     parity.getLatestBlock = function () {
         return new Promise((resolve, reject) => {

@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: parity-mainnet-service
+spec:
+  selector:
+    app: parity-mainnet
+  ports:
+  - protocol: TCP
+    port: 8545
+    targetPort: 8545
