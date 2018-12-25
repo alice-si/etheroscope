@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: parity-mainnet
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parity-mainnet
+  template:
+    metadata:
+      labels:
+        app: parity-mainnet
+    spec:
+      containers:
+      - name: parity-mainnet
+        image: parity/parity:stable
+#        command: ["--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]

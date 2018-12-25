@@ -34,11 +34,14 @@ app.use(morgan('dev'))
 var errorHandle = require('../common/errorHandlers').errorHandle
 var errorHandleCallback = require('../common/errorHandlers').errorCallbackHandle
 
+var Parity = require('../transactions-list/parity.js')
+var parityClient = Parity(db, log,validator)
+
 log.info('services/index.js: Micro-service started at', socketPort)
 let db = require('../common/db.js')(log)
 var Web3Client = require('../common/web3Client')
 var web3Client = new Web3Client(db, log, validator)
-let ethStorageClient = require('./ethStorageClient')(db, web3Client, log, validator)
+let ethStorageClient = require('./ethStorageClient')(db, web3Client, parityClient, log, validator)
 console.log('mp halo')
 var streamedSet = require('./streamedSet')()
 
@@ -103,7 +106,7 @@ async function sendHistory(address, method, socket) {
 
     try {
 
-        var latestBlock = await web3Client.getLatestBlock()
+        var latestBlock = await parityClient.getLatestBlock()
         var latestBlockDirectAccess = await ethStorageClient.latestFullBlock()
         // var latestBlockDirectAccess = 2000000
 
@@ -125,6 +128,7 @@ async function sendHistory(address, method, socket) {
 
     } catch (err) {
         errorHandle("sendHistory")(err)
+        throw err
     }
 }
 
@@ -138,6 +142,7 @@ async function sendAllDataPointsFromDB(address, method, from, to, socket) {
     } catch (err) {
         errorHandle("sendAllDataPointsFromDB")(err)
         socket.emit('getHistoryResponse', {error: true})
+        throw err
     }
 }
 
@@ -180,6 +185,7 @@ async function cacheMorePoints(
         }
     } catch (err) {
         errorHandle("cachedMorePoints")(err)
+        throw err
     }
 }
 
@@ -190,7 +196,8 @@ async function sendDatapointsFromEthStorage(
         // First we obtain the contract.
         let contract = contractInfo.parsedContract // TODO Var to index
         // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
-        var dataPoints = await ethStorageClient.generateDataPoints(contractInfo, contractAddress, method, from, upTo, useWeb3)
+        var dataPoints = await ethStorageClient
+            .generateDataPoints(contractInfo, contractAddress, method, from, upTo, useWeb3)
         console.log('generated datapoitns:',dataPoints)
         // save to db
         db.addDataPoints(contract.address.substr(2), method, dataPoints, totalFrom, totalTo)

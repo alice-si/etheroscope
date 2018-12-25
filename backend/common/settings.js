@@ -3,6 +3,7 @@ module.exports.fullBlockchainPath = '/usr/src/app/etheroscope/geth-blockchains/f
 
 module.exports.gethHost = '10.3.255.188'
 
+module.exports.ETHEROSCOPEPARITYMAINNET=process.env.ETHEROSCOPEPARITYMAINNET
 module.exports.ETHEROSCOPEGETHHOST=process.env.ETHEROSCOPEGETHHOST
 module.exports.ETHEROSCOPEMARIADB=process.env.ETHEROSCOPEMARIADB
 module.exports.ETHEROSCOPEMICROSERVICE=process.env.ETHEROSCOPEMICROSERVICE
