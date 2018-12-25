@@ -36,7 +36,7 @@ var errorHandleCallback = require('../common/errorHandlers').errorCallbackHandle
 
 log.info('services/index.js: Micro-service started at', socketPort)
 let db = require('../common/db.js')(log)
-var Web3Client = require('../common/web3Client')
+var Web3Client = require('../contract-info/web3Client')
 var web3Client = new Web3Client(db, log, validator)
 var Parity = require('../transactions-list/parity.js')
 var parityClient = Parity(db, log,validator)

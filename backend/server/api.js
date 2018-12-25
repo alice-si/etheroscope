@@ -1,5 +1,5 @@
 let axios = require('axios')
-var Web3Client = require('../common/web3Client')
+var Web3Client = require('../contract-info/web3Client')
 
 module.exports = function (app, db, log, validator) {
   let web3Client = new Web3Client(db, log, validator)

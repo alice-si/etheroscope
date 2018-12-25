@@ -7,14 +7,14 @@ var lock = new ReadWriteLock()
 var errorHandle = require('../common/errorHandlers').errorHandle
 var errorCallbackHandle = require('../common/errorHandlers').errorCallbackHandle
 
-var settings = require('./settings.js')
+var settings = require('../common/settings.js')
 var WEB3HOST = settings.ETHEROSCOPEGETHHOST
 const PARITYURL = 'http://' + WEB3HOST // api connector
 
 
 async function getContractInfoFromEtherscan(address) {
     // TODO: choose axiosGET between ethereum and rinkeby // const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
-    const axiosGET = 'https://api-rinkeby.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
+    const axiosGET = 'https://etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
     const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
     return await axios.get(axiosGET + address + axiosAPI)
 }
