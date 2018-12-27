@@ -1,0 +1,43 @@
+<div class="card" *ngIf="transactions.length > 0">
+  <h5 class="transactions-header">Transactions history</h5>
+  <table class="transactions-container">
+    <thead>
+      <tr>
+        <th></th>
+        <th class="card-title">TxHash</th>
+        <th class="card-title">Block</th>
+        <th class="card-title">Age</th>
+        <th></th>
+        <th class="card-title">From</th>
+        <th></th>
+        <th class="card-title">To</th>
+        <th class="card-title">Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let transaction of transactions">
+        <td>
+          <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the transaction hash!" (click)="copyToClipboard(transaction.TxHash)">
+            <clr-icon shape="copy" style="color: #1998a2"></clr-icon>
+          </button>
+        </td>
+        <td>{{truncate(transaction.TxHash)}}</td>
+        <td>{{truncate(transaction.Block)}}</td>
+        <td>{{secondsToDhms(transaction.Age)}} ago</td>
+        <td>
+          <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the 'From' value!" (click)="copyToClipboard(transaction.From)">
+            <clr-icon shape="copy" style="color: #1998a2"></clr-icon>
+          </button>
+        </td>
+        <td><a [routerLink]="'/explorer/0x' + transaction.From">{{truncate(transaction.From)}}</a></td>
+        <td>
+          <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the 'To' value!" (click)="copyToClipboard(transaction.To)">
+            <clr-icon shape="copy" style="color: #1998a2"></clr-icon>
+          </button>
+        </td>
+        <td><a [routerLink]="'/explorer/0x' + transaction.To">{{truncate(transaction.To)}}</a></td>
+        <td>{{transaction.Value}} Ether</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

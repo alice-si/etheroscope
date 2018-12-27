@@ -1,0 +1,31 @@
+.transactions-td {
+  width: 100%;
+  padding: 30px;
+}
+
+.transactions-header {
+  text-align: center;
+  border-bottom: 1px solid #d7d7d7;
+  padding: 5px 0;
+  margin: 0;
+}
+
+.transactions-container {
+  width: 100%;
+
+  tr {
+    text-align: left;
+
+    th {
+      border-bottom: 1px solid #d7d7d7;
+      font-size: .58333rem;
+      background: #1998a2;
+      color: white;
+    }
+
+    td {
+      border-bottom: 1px solid #d7d7d7;
+      font-size: 0.9em;
+    }
+  }
+}
