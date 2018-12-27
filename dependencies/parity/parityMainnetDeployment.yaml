@@ -17,3 +17,10 @@ spec:
       - name: parity-mainnet
         image: parity/parity:stable
         command: ["parity", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
+        ports:
+        - containerPort: 8545
+          name: port1
+        - containerPort: 8546
+          name: port2
+        - containerPort: 30303
+          name: port3

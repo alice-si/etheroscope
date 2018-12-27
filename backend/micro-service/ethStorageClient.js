@@ -14,11 +14,10 @@ var errorHandleCallback = require('../common/errorHandlers').errorCallbackHandle
 // geth database path (must be different then choosen api connector database)
 var settings = require('../common/settings.js')
 var BLOCKCHAINPATH = settings.ETHEROSCOPEBLOCKCHAIN
-var Parity = require('../transactions-list/parity.js')
-var parityClient = Parity(db, log,validator)
 
 
 module.exports = function (db, web3Client, parityClient, log, validator) {
+
     const ethStorageClient = {}
 
     var ethStorage = new EthStorage(BLOCKCHAINPATH, true)

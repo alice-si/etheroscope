@@ -14,8 +14,9 @@ const PARITYURL = 'http://' + WEB3HOST // api connector
 
 async function getContractInfoFromEtherscan(address) {
     // TODO: choose axiosGET between ethereum and rinkeby // const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
-    const axiosGET = 'https://etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
+    const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
     const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
+    console.log('will get from Etherscan ',axiosGET + address + axiosAPI)
     return await axios.get(axiosGET + address + axiosAPI)
 }
 
@@ -52,37 +53,41 @@ Web3Client.prototype.getLatestBlock = function () {
     })
 }
 
-Web3Client.prototype.getContract = async function (address) {
-    var self = this
-    try {
-        var contractFromDB = await self.db.getContract(address.substr(2))
-        var ABI = contractFromDB.contract
-
-        if (ABI === null) { // If we don't have the contract, get it from etherscan
-            var contractFromEtherscan = await getContractInfoFromEtherscan(address)
-            var ABI = contractFromEtherscan.data.result
-            self.db.updateContractWithABI(address.substr(2), ABI)
-        }
-
-        let parsedContract = await self.parseContract(ABI, address)
-        return {contractName: contractFromDB.contractName, parsedContract: parsedContract}
-    } catch (error) {
-        console.log("THIS IS ERR", error)
-        errorHandle("self.web3client.js:getContract(" + address + ")")(error)
-        return null
-    }
-}
-
 // Obtaining Contract information from ABI and address
 Web3Client.prototype.parseContract = async function (desc, address) {
     // console.log('desc', desc)
     var self = this
     try {
-        var contractABI = (typeof desc === 'string') ? await JSON.parse(desc) : desc
+        var contractABI = (typeof desc === 'string') ? await JSON.parse(JSON.stringify(desc)) : desc
         var Contract = await self.web3.eth.contract(contractABI)
         return await Contract.at(address)
     } catch (err) {
         errorHandle("parseContract")(err)
+    }
+}
+
+Web3Client.prototype.getContract = async function (address) {
+    var self = this
+    try {
+        var contractFromDB = await self.db.getContract(address.substr(2))
+        var parsedABI = contractFromDB.contract
+
+        if (parsedABI === null) { // If we don't have the contract, get it from etherscan
+            var contractFromEtherscan = await getContractInfoFromEtherscan(address)
+            var ABI = contractFromEtherscan.data.result
+            self.db.updateContractWithABI(address.substr(2), ABI)
+        }
+
+        // console.log('ABI',parsedABI, 'address',address)
+        var parsedContract = await self.parseContract(parsedABI,address)
+
+        console.log(parsedContract.address)
+
+        return {contractName: contractFromDB.contractName, parsedContract: parsedContract}
+    } catch (error) {
+        console.log("THIS IS ERR", error)
+        errorHandle("self.web3client.js:getContract(" + address + ")")(error)
+        return null
     }
 }
 

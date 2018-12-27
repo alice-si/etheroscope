@@ -15,7 +15,7 @@ spec:
     spec:
       terminationGracePeriodSeconds: 30
       volumes:
-      - name: ethereum-geth-volume2
+      - name: ethereum-geth-volume
         gcePersistentDisk:
           pdName: ethereum-geth-disk2
           fsType: ext4
@@ -24,7 +24,7 @@ spec:
         image: gcr.io/etheroscope/etheroscope-micro-service:latest
         env:
         - name: ETHEROSCOPEPARITYMAINNET
-          value: "10.3.247.195:8545"
+          value: "35.230.140.68:8545"
         - name: ETHEROSCOPEGETHHOST
 #          value: "10.3.255.188:8545" # rinkeby
           value: "10.3.240.197:8545"
@@ -40,5 +40,5 @@ spec:
           value: "/blockchain/geth/chaindata"
         imagePullPolicy: "Always"
         volumeMounts:
-        - name: ethereum-geth-volume2
+        - name: ethereum-geth-volume
           mountPath: /blockchain/

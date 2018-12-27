@@ -136,14 +136,17 @@ module.exports = function (log) {
         })
     }
 
-    db.updateContractWithABI = function (address, ABI) {
-        console.log('db.updateContractsWithABI',JSON.stringify(ABI).length)
+    db.updateContractWithABI = function (address, parsedABI) {
+        console.log('db.updateContractsWithABI',JSON.stringify(parsedABI).length)
         return new Promise(async function (resolve, reject) {
             //TODO: update or insert?
-            // var sql = 'update contracts set abi=\'' + JSON.stringify(parsedContract) + '\' where contractHash=\'' + address + '\''
-            var sql = 'insert into contracts (contractHash, name, abi) values (\''
-            sql = sql + address + '\', \'rinkebycontract\',\'' + await JSON.stringify(ABI) + '\')'
-            // console.log('db.updateCOntractswithAbi:sql', sql)
+            var ABI = await JSON.stringify(parsedABI)
+            var name = "Ethereum contract"
+            var sql = 'insert into contracts (contractHash, name, abi) values (' +
+                '\'' + address + '\', ' +
+                '\''+ name +'\',' +
+                '\'' + ABI + '\'' +
+                ') ON DUPLICATE KEY UPDATE name=\''+name+'\', abi=\''+ABI+'\''
             pool.query(sql)
                 .catch((err) => {
                     log.error('db.js: Error in updateContractWithABI')
@@ -159,10 +162,11 @@ module.exports = function (log) {
             var sql = 'insert into contractLookupHistory (contractHash, date) values (\'' + address + '\', CURDATE())'
             // console.log('addContractLookup:sql', sql)
             pool.query(sql)
+                .then(resolve)
                 .catch((err) => {
                     console.log("takie tam: ", sql)
-                    log.error('db.js: Error in addContractLookup')
-                    log.error('this error is not invasing, probably duplicate entry')
+                    log.error('db.js: Error in addContractLookup, this error is not invasing, probably duplicate entry')
+                    reject(err)
                 })
         })
     }
@@ -202,23 +206,30 @@ module.exports = function (log) {
         return new Promise(function (resolve, reject) {
 
             var sql = 'select name, abi from contracts where contractHash=\'' + contractHash + '\''
+
             pool.query(sql)
                 .then((results) => {
                     // console.log('db.getContract:results:', results)
                     let result = {contractName: null, contract: null}
                     if (results.length !== 0) {
                         result.contractName = results[0].name
-                        let abi = results[0].abi
-                        if (abi) {
-                            abi = abi.slice(1, abi.length - 1)
-                            // console.log('sliced rawabi', abi)
-                            result.contract = JSON.parse(abi)
+                        let ABI = results[0].abi
+                        if (ABI) {
+                            ABI = ABI.slice(1, ABI.length - 1)
+                            try{
+                                let parsedABI = JSON.parse(ABI)
+                                result.contract = parsedABI
+                            }
+                            catch (e) {
+                                console.log("Coudl not parse ABI: \""+ABI.toString()+
+                                    "\"\nprobably bad cached in database"+e)
+                            }
                         }
                     }
                     return resolve(result)
                 })
                 .catch((err) => {
-                    log.error('db.js: Error in getContractName')
+                    log.error('db.js: Error in getContract')
                     log.error(err)
                     return reject(err)
                 })

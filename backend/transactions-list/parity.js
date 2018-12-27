@@ -5,7 +5,8 @@ var ReadWriteLock = require('rwlock')
 var lock = new ReadWriteLock()
 
 var settings = require('../common/settings.js')
-const parityUrl = settings.ETHEROSCOPEPARITYMAINNET
+var parityUrl = settings.ETHEROSCOPEPARITYMAINNET
+parityUrl = "http://" + parityUrl
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
 module.exports = function (db, log, validator) {
