@@ -1,2 +1,2 @@
-node server/server.js & node micro-service/microService.js
+node server/server.js & node data-points-service/dataPointsService.js
 

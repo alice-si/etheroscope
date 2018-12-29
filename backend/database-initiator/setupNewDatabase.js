@@ -1,5 +1,5 @@
 var mysql = require('promise-mysql')
-var mysqlConnectionOptions = require('../../backend/settings.js').mysqlConnectionOptions
+var mysqlConnectionOptions = require('../common/settings.js').mysqlConnectionOptions
 
 var optionsBeforeDBCreation = JSON.parse(JSON.stringify(mysqlConnectionOptions)) // full copy
 delete optionsBeforeDBCreation['database'] // delete database field

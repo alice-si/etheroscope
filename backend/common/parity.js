@@ -4,11 +4,11 @@ var Promise = require('bluebird')
 var ReadWriteLock = require('rwlock')
 var lock = new ReadWriteLock()
 
-var settings = require('../common/settings.js')
+var settings = require('./settings.js')
 var parityUrl = settings.ETHEROSCOPEPARITYMAINNET
 parityUrl = "http://" + parityUrl
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
-var errorHandler = require('../common/errorHandlers')
+var errorHandler = require('./errorHandlers')
 
 module.exports = function (db, log, validator) {
     const parity = {}

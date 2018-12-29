@@ -18,6 +18,8 @@ spec:
       - name: etheroscope-server-container
         image: gcr.io/etheroscope/etheroscope-server:latest
         env:
+        - name: ETHEROSCOPEPARITYMAINNET
+          value: "35.230.140.68:8545"
         - name: ETHEROSCOPEGETHHOST
           #          value: "10.3.255.188:8545" # rinkeby
           value: "10.3.240.197:8545"

@@ -1,7 +1,7 @@
 let axios = require('axios')
 
 module.exports = function (app, db, log, validator) {
-    let ethClient = require('../transactions-list/parity.js')(db, log, validator)
+    let ethClient = require('../common/parity.js')(db, log, validator)
     let Promise = require('bluebird')
 
     function validAddress (address) {

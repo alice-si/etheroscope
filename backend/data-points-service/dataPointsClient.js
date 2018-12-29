@@ -2,7 +2,7 @@ const axios = require('axios')
 var Promise = require('bluebird')
 
 var EthStorage = require('eth-storage/ethStorage/layers/highLevel.js')
-var Parity = require('../transactions-list/parity.js')
+var Parity = require('../common/parity.js')
 var FORMATTER = require('eth-storage/ethStorage/format/formatter.js')
 var errorHandler = require('../common/errorHandlers')
 var settings = require('../common/settings.js')
