@@ -14,10 +14,10 @@ module.exports = function (db, log, validator) {
     const parity = {}
 
     if (!web3.isConnected()) {
-        console.log('Please start parity, have tried:',parityUrl)
+        console.log('Please start parity, have tried:', parityUrl)
         process.exit(1)
     }
-    console.log('Successfully connected to parity, tried',parityUrl)
+    console.log('Successfully connected to parity, tried', parityUrl)
 
     parity.getLatestBlock = function () {
         return new Promise((resolve, reject) => {
@@ -35,30 +35,50 @@ module.exports = function (db, log, validator) {
     //         db.getContract(address.substr(2))
     //             .then((result) => {
     //                 If we don't have the contract, get it from etherscan
-                    // if (result.contract === null) {
-                    //     const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
-                    //     const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
-                    //     return axios.get(axiosGET + address + axiosAPI)
-                    //         .then((res) => {
-                    //             let parsedContract = parity.parseContract(res.data.result, address)
-                    //             Add the contract to the database, assuming it is already in there (with a name)
-                                // db.updateContractWithABI(address.substr(2), res.data.result)
-                                //     .catch((err) => {
-                                //         log.error('parity.js: Error adding contract abi to the db')
-                                //         log.error(err)
-                                //     })
-                                // return resolve({ parsedContract: parsedContract, contractName: result.contractName })
-                            // })
-                            // .catch((err) => {
-                            //     log.error('parity.js: Etherscan.io API error: ' + err)
-                            //     return reject(err)
-                            // })
-                    // }
-                    // let parsedContract = parity.parseContract(result.contract, address)
-                    // return resolve({ contractName: result.contractName, parsedContract: parsedContract })
-                // })
-        // })
+    // if (result.contract === null) {
+    //     const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
+    //     const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
+    //     return axios.get(axiosGET + address + axiosAPI)
+    //         .then((res) => {
+    //             let parsedContract = parity.parseContract(res.data.result, address)
+    //             Add the contract to the database, assuming it is already in there (with a name)
+    // db.updateContractWithABI(address.substr(2), res.data.result)
+    //     .catch((err) => {
+    //         log.error('parity.js: Error adding contract abi to the db')
+    //         log.error(err)
+    //     })
+    // return resolve({ parsedContract: parsedContract, contractName: result.contractName })
+    // })
+    // .catch((err) => {
+    //     log.error('parity.js: Etherscan.io API error: ' + err)
+    //     return reject(err)
+    // })
     // }
+    // let parsedContract = parity.parseContract(result.contract, address)
+    // return resolve({ contractName: result.contractName, parsedContract: parsedContract })
+    // })
+    // })
+    // }
+// Obtaining Contract information from ABI and address
+    parity.parseContract = async function (desc, address) {
+        // console.log('desc', desc)
+        try {
+            var contractABI = (typeof desc === 'string') ? await JSON.parse(JSON.stringify(desc)) : desc
+            var Contract = await web3.eth.contract(contractABI)
+            return await Contract.at(address)
+        } catch (err) {
+            errorHandler.errorHandle("parseContract")(err)
+        }
+    }
+
+    async function getContractInfoFromEtherscan(address) {
+        // TODO: choose axiosGET between ethereum and rinkeby // const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
+        const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
+        const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
+        console.log('will get from Etherscan ',axiosGET + address + axiosAPI)
+        return await axios.get(axiosGET + address + axiosAPI)
+    }
+
     parity.getContract = async function (address) {
         try {
             var contractFromDB = await db.getContract(address.substr(2))
@@ -67,74 +87,50 @@ module.exports = function (db, log, validator) {
             if (parsedABI === null) { // If we don't have the contract, get it from etherscan
                 var contractFromEtherscan = await getContractInfoFromEtherscan(address)
                 parsedABI = contractFromEtherscan.data.result
-                db.updateContractWithABI(address.substr(2), parsedABI)
+                await db.updateContractWithABI(address.substr(2), parsedABI)
             }
 
-            log.debug("Parsed ABI is:",parsedABI)
+            // log.debug("Parsed ABI is:", parsedABI)
 
-            var parsedContract = await parity.parseContract(parsedABI,address)
+            var parsedContract = await parity.parseContract(parsedABI, address)
             return {contractName: contractFromDB.contractName, parsedContract: parsedContract}
         } catch (error) {
-            errorHandler.errorHandleThrow("self.web3client.js:getContract(" + address + ")","could not get ("+address+")")(error)
+            errorHandler.errorHandleThrow("web3client.js:getContract(" + address + ")", "could not get (" + address + ")")(error)
         }
     }
 
-    // Obtaining Contract information from ABI and address
-    parity.parseContract = function (desc, address) {
-        // var contractABI = JSON.parse(desc)
-        var contractABI = desc
-        var Contract = web3.eth.contract(contractABI)
-        return Contract.at(address)
+    function isVariable(item) {
+        return (item.outputs && item.outputs.length === 1 &&
+            item.outputs[0].type.indexOf('uint') === 0 &&
+            item.inputs.length === 0)
     }
 
-    parity.getContractVariables = function (contractInfo) {
-        let parsedContract = contractInfo.parsedContract
-        let contractName = contractInfo.contractName
-        return new Promise((resolve, reject) => {
-            let address = parsedContract.address.substr(2)
-            db.getVariables(address).then((res) => {
-                if (res.recordset.length === 0) {
-                    log.debug('parity.js: Caching variables for contract')
-                    var abi = parsedContract.abi
-                    let variableNames = []
-                    return Promise.each(abi, (item) => {
-                        if (item.outputs && item.outputs.length === 1 &&
-                            item.outputs[0].type.indexOf('uint') === 0 &&
-                            item.inputs.length === 0) {
-                            variableNames.push(item.name)
-                        }
-                    })
-                        .then((results) => {
-                            return db.addVariables(address, variableNames)
-                                .then(() => {
-                                    return results
-                                })
-                                .catch((err) => {
-                                    log.error('parity.js: Error adding variable names to db')
-                                    log.error(err)
-                                    process.exit(1)
-                                })
-                        })
-                        .then((results) => {
-                            db.getVariables(address).then((res) => {
-                                let variableNames = []
-                                Promise.map(res.recordset, (elem) => {
-                                    variableNames.push(elem)
-                                }, {concurrency: 5}).then(() => {
-                                    return resolve({ variables: variableNames, contractName: contractName })
-                                })
-                            })
-                        })
-                } else {
-                    let variableNames = []
-                    Promise.map(res.recordset, (elem) => {
-                        variableNames.push(elem)
-                    }, {concurrency: 5}).then(() => {
-                        return resolve({ variables: variableNames, contractName: contractName })
-                    })
-                }
-            })
+    async function cacheContractVariables(address, parsedAbi) {
+        let variableNames = []
+        await Promise.each(parsedAbi, (item) => {
+            if (isVariable(item)) variableNames.push(item.name)
         })
+        await db.addVariables(address, variableNames)
+    }
+
+    parity.getContractVariables = async function (contractInfo) {
+        let parsedContract = await contractInfo.parsedContract
+        let address = await parsedContract.address.substr(2)
+        let contractName = contractInfo.contractName
+        var parsedAbi = parsedContract.abi
+
+        var variables = await db.getVariables(address)
+
+        if (variables.length === undefined || variables.length === 0) {
+            await cacheContractVariables(address, parsedAbi)
+            variables = await db.getVariables(address)
+        }
+
+        // if (variables.length === 0 ) throw "still only 0 variabels"
+
+        let variableNames = []
+        await Promise.map(variables, (elem) => variableNames.push(elem), {concurrency: 5})
+        return {variables: variableNames, contractName: contractName}
     }
 
     // Query value of variable at certain block
@@ -148,44 +144,33 @@ module.exports = function (db, log, validator) {
         })
     }
 
-    parity.calculateBlockTime = function (blockNumber) {
-        return new Promise((resolve) => {
-            let time = web3.eth.getBlock(blockNumber).timestamp
-            return resolve(time)
-        })
+    parity.calculateBlockTime = async function (blockNumber) {
+        return await web3.eth.getBlock(blockNumber).timestamp
     }
 
-    parity.getBlockTime = function (blockNumber) {
-        return new Promise((resolve) => {
-            db.getBlockTime(blockNumber)
-                .then((result) => {
-                    // Check the database for the blockTimeMapping
-                    if (result.recordset.length !== 0) {
-                        return resolve(result.recordset[0].timeStamp)
-                    }
-                    // If it isn't in the database, we need to calculate it
-                    // acquire a lock so that we don't calculate this value twice
-                    // Using a global lock to protect the creation of locks...
-                    lock.writeLock(blockNumber, (release) => {
-                        // Check again if it is in the db, since it may have been
-                        // added whilst we were waiting for the lock
-                        db.getBlockTime(blockNumber)
-                            .then((result) => {
-                                if (result.recordset.length !== 0) {
-                                    release()
-                                    return resolve(result.recordset[0].timeStamp)
-                                }
-                                // If it still isn't in there, we calcuate it and add it
-                                parity.calculateBlockTime(blockNumber).then((time) => {
-                                    db.addBlockTime([[blockNumber, time, 1]])
-                                        .then(() => {
-                                            release()
-                                            return resolve(time)
-                                        })
-                                })
-                            })
-                    })
-                })
+    parity.getBlockTime = async function (blockNumber) {
+        // Check the database for the blockTimeMapping
+        var result = await db.getBlockTime(blockNumber)
+        if (result.length !== 0) return result[0].timeStamp
+        // If it isn't in the database, we need to calculate it
+        // acquire a lock so that we don't calculate this value twice
+        // Using a global lock to protect the creation of locks...
+
+        return await new Promise((resolve, reject) => {
+            lock.writeLock(blockNumber, async (release) => {
+                // Check again if it is in the db, since it may have been
+                // added whilst we were waiting for the lock
+                var result = await db.getBlockTime(blockNumber)
+                if (result.length !== 0) {
+                    release()
+                    return resolve(result[0].timeStamp)
+                }
+                // If it still isn't in there, we calcuate it and add it
+                var time = await web3.calculateBlockTime(blockNumber)
+                await db.addBlockTime([[blockNumber, time, 1]])
+                release()
+                return resolve(time)
+            })
         })
     }
 
@@ -244,12 +229,11 @@ module.exports = function (db, log, validator) {
         })
     }
 
-    parity.getRange = function (contractAddress, parsedContract, method, from, upTo)
-    {
+    parity.getRange = function (contractAddress, parsedContract, method, from, upTo) {
         return parity.getHistory(contractAddress, method, from, upTo - 1)
             .then(function (events) {
                 return parity.generateDataPoints(events, parsedContract, method,
-                    totalFrom, totalTo)
+                    from, upTo)
             })
     }
 

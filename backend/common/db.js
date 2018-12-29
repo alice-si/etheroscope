@@ -292,6 +292,7 @@ module.exports = function (log) {
                 .catch((err) => {
                     console.log('sql query', variablesTable.sql, 'values [', variablesTable.values, ']')
                     console.log('err', err)
+                    reject()
                 })
         })
     }

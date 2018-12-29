@@ -1,3 +1,4 @@
+var Promise = require('bluebird')
 var assert = require('assert');
 // import other parts of project
 var errorHandler = require('../common/errorHandlers')
@@ -9,7 +10,7 @@ module.exports = function (io, log, validator) {
         var dataPointsSender = {}
 
         let db = require('../common/db.js')(log)
-        var dataPointsClient = DataPointsClient(db,log,validator)
+        var dataPointsClient = DataPointsClient(db, log, validator)
         var streamedSet = require('./streamedSet')()
 
         function validAddress(address) {
@@ -30,17 +31,19 @@ module.exports = function (io, log, validator) {
             return {cachedFrom, cachedUpTo}
         }
 
-        dataPointsSender.sendHistory = async function(address, method, socket) {
+        dataPointsSender.sendHistory = async function (address, method, socket) {
             try {
                 /* Ignore invalid requests on the socket - the frontend should
                  * ensure these are not send, so any invalid addresses
                  * will not have been sent from our front end */
-                assert (validAddress(address))
+                assert(validAddress(address))
 
                 var latestBlock = await dataPointsClient.latestFullBlockParity()
-                var latestBlockDirectAccess = await dataPointsClient.latestFullBlock()
-                // var latestBlockDirectAccess = 2000000
-                assert (!isNaN(latestBlock) && !isNaN(latestBlockDirectAccess))
+                // var latestBlockDirectAccess = await dataPointsClient.latestFullBlockBlockchain()
+                var latestBlockDirectAccess = 1000000
+                await assert(!isNaN(latestBlock) && !isNaN(latestBlockDirectAccess))
+                // await console.log("latestBlock latestBLockDirectAccess",latestBlock,latestBlockDirectAccess)
+
 
                 io.sockets.in(address + method).emit('latestBlock', {latestBlock: latestBlock})
 
@@ -52,9 +55,9 @@ module.exports = function (io, log, validator) {
                 await streamedSet.addChannel(address, method)
                 var contractInfo = await dataPointsClient.getContract(address)
 
-                cacheMorePoints(await contractInfo, address, method, cachedFrom, cachedUpTo, latestBlockDirectAccess,latestBlock)
+                cacheMorePoints(await contractInfo, address, method, cachedFrom, cachedUpTo, latestBlockDirectAccess, latestBlock)
             } catch (err) {
-                errorHandler.errorHandleThrow("sendHistory","in sned History")(err)
+                errorHandler.errorHandleThrow("sendHistory", "in sned History")(err)
             }
         }
 
@@ -67,7 +70,7 @@ module.exports = function (io, log, validator) {
 
             } catch (err) {
                 socket.emit('getHistoryResponse', {error: true})
-                errorHandler.errorHandleThrow("sendAllDataPointsFromDB","cant send data form db")(err)
+                errorHandler.errorHandleThrow("sendAllDataPointsFromDB", "cant send data form db")(err)
             }
         }
 
@@ -83,6 +86,13 @@ module.exports = function (io, log, validator) {
                 var totalUpTo = upTo
                 var chunkSize = 10000
                 // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
+                if (totalFrom === totalUpTo) {
+                    chunkSize = 6
+                    from = totalFrom
+                    totalFrom = await Math.max(from - chunkSize, 1)
+                    await generateAndSendDataPoints(
+                        contractInfo, address, method, totalFrom, from, totalFrom, totalUpTo)
+                }
                 while (totalUpTo < latestBlockDirectAccess + 1) {
                     chunkSize = 10000
                     upTo = totalUpTo
@@ -91,7 +101,7 @@ module.exports = function (io, log, validator) {
                         contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo)
                 }
                 while (totalUpTo < latestBlock + 1) {
-                    chunkSize = 100
+                    chunkSize = 10000
                     upTo = totalUpTo
                     totalUpTo = await Math.min(upTo + chunkSize, latestBlock + 1)
                     await generateAndSendDataPoints(
@@ -109,7 +119,7 @@ module.exports = function (io, log, validator) {
                     streamedSet.deleteChannel(address, method)
                 }
             } catch (err) {
-                errorHandler.errorHandleThrow("cacheMorePoints","cant cache more points")(err)
+                errorHandler.errorHandleThrow("cacheMorePoints", "cant cache more points")(err)
             }
         }
 
@@ -119,9 +129,9 @@ module.exports = function (io, log, validator) {
             try {
                 let parsedContract = contractInfo.parsedContract // TODO method to index
                 // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
-                var dataPoints = await ethStorageClient
+                var dataPoints = await dataPointsClient
                     .generateDataPoints(contractInfo, contractAddress, method, from, upTo, useWeb3)
-                log.info('generated datapoitns:',dataPoints)
+                log.info('generated datapoitns:', dataPoints)
                 // save to db
                 db.addDataPoints(parsedContract.address.substr(2), method, dataPoints, totalFrom, totalTo)
                 io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
@@ -131,14 +141,14 @@ module.exports = function (io, log, validator) {
                     results: dataPoints
                 })
             } catch (err) {
-                errorHandler.errorHandleThrow("generateAndSendDataPoints","")(err)
+                errorHandler.errorHandleThrow("generateAndSendDataPoints", "")(err)
             }
         }
 
         return dataPointsSender
     }
     catch (err) {
-        errorHandler.errorHandleThrow("dataPointsSender constructor","could not start dataPointsClient")(err)
+        errorHandler.errorHandleThrow("dataPointsSender constructor", "could not start dataPointsClient")(err)
     }
 
 }
