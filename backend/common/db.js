@@ -5,7 +5,7 @@ var settings = require('./settings.js')
 var mysqlConnectionOptions = settings.mysqlConnectionOptions
 
 var errorHandle = require('../common/errorHandlers').errorHandle
-var errorHandleCallback = require('../common/errorHandlers').errorCallbackHandle
+var errorHandleCallback = require('../common/errorHandlers').errorHandleCallback
 
 
 var pool = mysql.createPool(mysqlConnectionOptions)

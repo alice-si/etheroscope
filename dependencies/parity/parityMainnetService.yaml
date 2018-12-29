@@ -18,4 +18,5 @@ spec:
     name: halo
     port: 30303
     targetPort: 30303
+#  type: ClusterIP
   type: LoadBalancer

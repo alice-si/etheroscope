@@ -17,7 +17,7 @@ WORKDIR /app
 COPY --from=projectBase /app/node_modules ./node_modules
 COPY ./ ./
 # Start microservice
-CMD echo "CMD start microService\n" && node ./micro-service/microService.js
+CMD echo "CMD start microService\n" && node ./data-points-service/dataPointsService.js
 
 FROM node:8 AS serverEtheroscope
 WORKDIR /app

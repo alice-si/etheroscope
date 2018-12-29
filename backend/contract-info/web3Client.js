@@ -5,7 +5,7 @@ var ReadWriteLock = require('rwlock')
 var lock = new ReadWriteLock()
 
 var errorHandle = require('../common/errorHandlers').errorHandle
-var errorCallbackHandle = require('../common/errorHandlers').errorCallbackHandle
+var errorCallbackHandle = require('../common/errorHandlers').errorHandleCallback
 
 var settings = require('../common/settings.js')
 var WEB3HOST = settings.ETHEROSCOPEGETHHOST
@@ -29,7 +29,7 @@ function Web3Client(db, log, validator) {
     self.validator = validator
     self.web3 = new Web3(new Web3.providers.HttpProvider(PARITYURL))
     if (!self.web3.isConnected()) {
-        console.log('Please start self.web3, have tried: ', PARITYURL)
+        console.log('Web3Client.js Please start self.web3, have tried: ', PARITYURL)
         process.exit(1)
     } else {
         console.log('Successfully connected to self.web3, have tried: ', PARITYURL)

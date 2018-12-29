@@ -8,7 +8,7 @@ var log = require('loglevel')
 var validator = require('validator')
 
 var errorHandle = require('../common/errorHandlers').errorHandle
-var errorCallbackHandle = require('../common/errorHandlers').errorCallbackHandle
+var errorCallbackHandle = require('../common/errorHandlers').errorHandleCallback
 
 var settings = require('../common/settings.js')
 
