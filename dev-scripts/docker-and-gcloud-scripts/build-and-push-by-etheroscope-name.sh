@@ -9,6 +9,9 @@ then
 elif [ $1 == "micro-service" ]
 then
     docker build -t etheroscope-$1 ../../backend/ --target microServiceEtheroscope
+elif [ $1 == "database-initiator" ]
+then
+    docker build -t etheroscope-$1 ../../backend/ --target databaseInitiatorEtheroscope
 else
     echo "docker image unrecognized, got: $1"
     exit 1

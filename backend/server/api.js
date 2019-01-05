@@ -1,7 +1,9 @@
 let axios = require('axios')
+// var Web3Client = require('../contract-info/web3Client')
+var Web3Client = require('../common/parity.js')
 
 module.exports = function (app, db, log, validator) {
-  let ethClient = require('../common/web3Client')(db, log, validator)
+  let web3Client = new Web3Client(db, log, validator)
   let Promise = require('bluebird')
 
   function validAddress (address) {
@@ -27,9 +29,10 @@ module.exports = function (app, db, log, validator) {
       return res.status(400).json(err)
     }
     db.addContractLookup(address.substr(2))
-    return ethClient.getContract(address)
+        .catch((err)=>console.log('could not add contract lookup'))
+    return web3Client.getContract(address)
       .then((contractInfo) => {
-        return ethClient.getContractVariables(contractInfo)
+        return web3Client.getContractVariables(contractInfo)
       })
       .then((contractInfo) => {
         return res.status(200).json(contractInfo)
