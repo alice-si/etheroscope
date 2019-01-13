@@ -1,21 +1,21 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: parity-mainnet
+  name: parity-kovan
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: parity-mainnet
+      app: parity-kovan
   template:
     metadata:
       labels:
-        app: parity-mainnet
+        app: parity-kovan
     spec:
       containers:
-      - name: parity-mainnet
-        image: parity/parity:v1.7.0
+      - name: parity-kovan
+        image: parity/parity:stable
         env:
         - name: PATH
           value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
@@ -23,11 +23,13 @@ spec:
           value: "parity"
         - name: RUST_BACKTRACE
           value: "1"
-        command: ["parity", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
+        command: ["parity", "--chain", "kovan", "--no-warp", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
+#        command: ["parity", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
         ports:
         - containerPort: 8545
-          name: port1mainnet
+          name: port1kovan
         - containerPort: 8546
-          name: port2mainnet
+          name: port2kovan
         - containerPort: 30303
-          name: port3mainnet
+          name: port3kovan
+

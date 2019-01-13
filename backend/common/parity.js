@@ -18,6 +18,7 @@ module.exports = function (db, log, validator) {
         process.exit(1)
     }
     console.log('Successfully connected to parity, tried', parityUrl)
+    // var address = "0xF973dfE8010CFd44070B1990841da192c7b3CeD9"
 
     parity.getLatestBlock = function () {
         return new Promise((resolve, reject) => {
@@ -82,16 +83,18 @@ module.exports = function (db, log, validator) {
     parity.getContract = async function (address) {
         try {
             var contractFromDB = await db.getContract(address.substr(2))
-            var parsedABI = contractFromDB.contract
+            var parsedABI
 
-            if (parsedABI === null) { // If we don't have the contract, get it from etherscan
+            if (contractFromDB.contract === null) { // If we don't have the contract, get it from etherscan
                 var contractFromEtherscan = await getContractInfoFromEtherscan(address)
                 parsedABI = contractFromEtherscan.data.result
                 await db.updateContractWithABI(address.substr(2), parsedABI)
+                contractFromDB = await db.getContract(address.substr(2))
             }
 
             // log.debug("Parsed ABI is:", parsedABI)
 
+            parsedABI = contractFromDB.contract
             var parsedContract = await parity.parseContract(parsedABI, address)
             return {contractName: contractFromDB.contractName, parsedContract: parsedContract}
         } catch (error) {
@@ -174,9 +177,9 @@ module.exports = function (db, log, validator) {
         })
     }
 
-    parity.getHistory = function (address, method, startBlock, endBlock) {
-        let filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
-        return new Promise((resolve, reject) => {
+    parity.getHistory = async function (address, method, startBlock, endBlock) {
+        let filter = await web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
+        var result = await new Promise((resolve, reject) => {
             filter.get((error, result) => {
                 if (!error) {
                     return resolve(result)
@@ -185,6 +188,8 @@ module.exports = function (db, log, validator) {
                 }
             })
         })
+        if (result.length === 0) console.log('getHistoryResult is empty:',result)
+        return result
     }
 
     parity.generateDataPoints = function (eventsA, contract, method,
@@ -230,11 +235,17 @@ module.exports = function (db, log, validator) {
     }
 
     parity.getRange = function (contractAddress, parsedContract, method, from, upTo) {
+        console.log('!!!parity.getRange(',contractAddress, method, from, upTo)
         return parity.getHistory(contractAddress, method, from, upTo - 1)
             .then(function (events) {
+                // console.log('!!!parity.getHistory(result:',events)
                 return parity.generateDataPoints(events, parsedContract, method,
                     from, upTo)
             })
+    }
+
+    parity.getWeb3 = async function () {
+        return await web3
     }
 
     return parity

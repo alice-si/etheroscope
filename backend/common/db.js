@@ -147,11 +147,8 @@ module.exports = function (log) {
                 '\''+ name +'\',' +
                 '\'' + ABI + '\'' +
                 ') ON DUPLICATE KEY UPDATE name=\''+name+'\', abi=\''+ABI+'\''
-            pool.query(sql)
-                .catch((err) => {
-                    log.error('db.js: Error in updateContractWithABI')
-                    log.error(err)
-                })
+            await pool.query(sql).catch(errorHandle('db.js: Error in updateContractWithABI'))
+            return resolve()
         })
     }
 
