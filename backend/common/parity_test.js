@@ -24,8 +24,10 @@ var abi = '[{"constant":false,"inputs":[{"name":"newDepositary_function","type":
 // var address = '0x4C3da77d8BCe020D4128995D7F92C5bD0919fCc3'
 // var address = '0xdf92c7D29b9782685C3a8C628Fe22Ec7F5E39878'
 // var address = '0xDC926b36B7FAAdAa1DaA1C8bFb60B6e7a88faDAe'
-var address = '0x53eccC9246C1e537d79199d0C7231e425a40f896'
-var method = "totalSupply"
+// var address = '0x53eccC9246C1e537d79199d0C7231e425a40f896'
+// var address = '0xecE9Fa304cC965B00afC186f5D0281a00D3dbBFD'
+var address = '0xE6FDF91D942137dB636af7dE0C545834f2429fd0'
+var method = "total"
 var from = "1"
 // var upTo = "400"
 var upTo = parityClient.getLatestBlock()
@@ -42,7 +44,7 @@ async function getRangeTest(address,method,from,upTo){
     return getRangeRes
 }
 
-// getRangeTest(address,method,from,upTo).then(console.log)
+getRangeTest(address,method,from,upTo).then(console.log)
 
 // var MyContract = web3.eth.contract(abi);
 // var myContractInstance = MyContract.at(address);
@@ -61,4 +63,4 @@ async function getContractInfoFromEtherscan(address,network) {
     return await axios.get(axiosGET + address + axiosAPI)
 }
 
-getContractInfoFromEtherscan('0xef1A329402B14253A474d5b9188f1cE30C9c3260',"kovan").then(console.log)
+// getContractInfoFromEtherscan('0xef1A329402B14253A474d5b9188f1cE30C9c3260',"kovan").then(console.log)

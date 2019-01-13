@@ -40,7 +40,7 @@ module.exports = function (io, log, validator) {
 
                 var latestBlock = await dataPointsClient.latestFullBlockParity()
                 // var latestBlockDirectAccess = await dataPointsClient.latestFullBlockBlockchain()
-                var latestBlockDirectAccess = 10
+                var latestBlockDirectAccess = 20
                 await assert(!isNaN(latestBlock) && !isNaN(latestBlockDirectAccess))
                 // await console.log("latestBlock latestBLockDirectAccess",latestBlock,latestBlockDirectAccess)
 
@@ -48,7 +48,8 @@ module.exports = function (io, log, validator) {
                 io.sockets.in(address + method).emit('latestBlock', {latestBlock: latestBlock})
 
                 var cachedRange = await db.getCachedFromTo(address.substring(2), method)
-                var {cachedFrom, cachedUpTo} = setInitCached(cachedRange, latestBlockDirectAccess)
+                // var {cachedFrom, cachedUpTo} = setInitCached(cachedRange, latestBlockDirectAccess)
+                var {cachedFrom, cachedUpTo} = setInitCached(cachedRange, 1000)
 
                 sendAllDataPointsFromDB(address, method, cachedFrom, cachedUpTo, socket)
 
@@ -66,7 +67,11 @@ module.exports = function (io, log, validator) {
 
                 var dataPoints = await db.getDataPoints(address.substr(2), method)
                 dataPoints = await Promise.map(dataPoints, (elem) => [elem.timeStamp, elem.value])
-                await socket.emit('getHistoryResponse', {error: false, from: from, to: to, results: dataPoints})
+                await socket.emit('getHistoryResponse', {
+                    error: false,
+                    from: from,
+                    to: to,
+                    results: dataPoints})
 
             } catch (err) {
                 socket.emit('getHistoryResponse', {error: true})
@@ -87,18 +92,26 @@ module.exports = function (io, log, validator) {
                 var chunkSize = 10000
                 // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
                 if (totalFrom === totalUpTo) {
-                    chunkSize = 6
+                    io.sockets.in(address + method).emit('getHistoryResponse', {
+                        error: false,
+                        from: totalFrom,
+                        to: totalUpTo,
+                        results: [[1496243219,-1,275745]]
+                    })
+                }
+                // while (totalUpTo < latestBlockDirectAccess + 1) {
+                //     chunkSize = 10000
+                //     upTo = totalUpTo
+                //     totalUpTo = await Math.min(upTo + chunkSize, latestBlockDirectAccess + 1)
+                //     await generateAndSendDataPoints(
+                //         contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo)
+                // }
+                while (1 < totalFrom) {
+                    chunkSize = 10000
                     from = totalFrom
                     totalFrom = await Math.max(from - chunkSize, 1)
                     await generateAndSendDataPoints(
-                        contractInfo, address, method, totalFrom, from, totalFrom, totalUpTo)
-                }
-                while (totalUpTo < latestBlockDirectAccess + 1) {
-                    chunkSize = 10000
-                    upTo = totalUpTo
-                    totalUpTo = await Math.min(upTo + chunkSize, latestBlockDirectAccess + 1)
-                    await generateAndSendDataPoints(
-                        contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo)
+                        contractInfo, address, method, totalFrom, from, totalFrom, totalUpTo, true)
                 }
                 while (totalUpTo < latestBlock + 1) {
                     chunkSize = 10000
@@ -107,14 +120,8 @@ module.exports = function (io, log, validator) {
                     await generateAndSendDataPoints(
                         contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo, true)
                 }
-                while (1 < totalFrom) {
-                    chunkSize = 10000
-                    from = totalFrom
-                    totalFrom = await Math.max(from - chunkSize, 1)
-                    await generateAndSendDataPoints(
-                        contractInfo, address, method, totalFrom, from, totalFrom, totalUpTo)
-                }
-                if (from === 1 && upTo === latestBlockDirectAccess + 1) { // end of reccursion
+                // if (from === 1 && upTo === latestBlockDirectAccess + 1) { // end of reccursion
+                if (from === 1 && upTo === latestBlock + 1) { // end of reccursion
                     log.info('Cached all points for ' + address + ' ' + method)
                     streamedSet.deleteChannel(address, method)
                 }
@@ -131,9 +138,10 @@ module.exports = function (io, log, validator) {
                 // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
                 var dataPoints = await dataPointsClient
                     .generateDataPoints(contractInfo, contractAddress, method, from, upTo, useWeb3)
-                log.info('generated datapoitns:', dataPoints)
+                console.log('generated datapoitns:', dataPoints)
                 // save to db
                 db.addDataPoints(parsedContract.address.substr(2), method, dataPoints, totalFrom, totalTo)
+                // dataPoints = await Promise.map(dataPoints, (elem) => {retrun [elem[], elem[1]]})
                 io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
                     error: false,
                     from: from,

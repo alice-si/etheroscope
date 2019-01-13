@@ -34,10 +34,14 @@ module.exports = function (db, log, validator) {
             try {
                 var index = 0
                 log.info('generateDataPoints at index:',index)
-                var dataPoints = (!useWeb3) ?
-                    await ethStorage.promiseGetRange(contractAddress, index, from, upTo) :
-                    await parityClient.getRange(contractAddress, contractInfo.parsedContract, method, from, upTo)
-                return await Promise.map(dataPoints, convert, {concurrency: 5})
+                var dataPoints
+                if(!useWeb3) {
+                    dataPoints = await ethStorage.promiseGetRange(contractAddress, index, from, upTo)
+                    dataPoints = await Promise.map(dataPoints, convert, {concurrency: 5})
+                }
+                else
+                    dataPoints = await parityClient.getRange(contractAddress, contractInfo.parsedContract, method, from, upTo)
+                return dataPoints
             } catch (err) {
                 errorHandler.errorHandleThrow("ethStorage.generateDataPoints","could not generate datapoints")(err)
             }
