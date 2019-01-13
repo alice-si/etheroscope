@@ -96,7 +96,7 @@ module.exports = function (io, log, validator) {
                         error: false,
                         from: totalFrom,
                         to: totalUpTo,
-                        results: [[1496243219,-1,275745]]
+                        results: [[ 1488459400,-1,-1]]
                     })
                 }
                 // while (totalUpTo < latestBlockDirectAccess + 1) {
