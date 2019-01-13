@@ -47,8 +47,8 @@ module.exports = function (db, log, validator) {
             return ethStorage.promiseLatestFullBlock()
         }
 
-        dataPointsClient.latestFullBlockParity = function () {
-            return parityClient.getLatestBlock()
+        dataPointsClient.latestFullBlockParity = async function () {
+            return await parityClient.getLatestBlock()
         }
 
         dataPointsClient.getContract = function (address) {

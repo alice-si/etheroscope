@@ -72,21 +72,27 @@ module.exports = function (db, log, validator) {
         }
     }
 
-    async function getContractInfoFromEtherscan(address) {
+    async function getContractInfoFromEtherscan(address,network) {
         // TODO: choose axiosGET between ethereum and rinkeby // const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
-        const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
+        var axiosGET = 'https://api'
+        if (network) axiosGET = axiosGET + "-" + network
+        axiosGET += '.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
         const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
         console.log('will get from Etherscan ',axiosGET + address + axiosAPI)
         return await axios.get(axiosGET + address + axiosAPI)
     }
 
-    parity.getContract = async function (address) {
+    parity.getContract = async function (address,network) {
+
+
         try {
             var contractFromDB = await db.getContract(address.substr(2))
             var parsedABI
 
+            var network = "kovan"
+
             if (contractFromDB.contract === null) { // If we don't have the contract, get it from etherscan
-                var contractFromEtherscan = await getContractInfoFromEtherscan(address)
+                var contractFromEtherscan = await getContractInfoFromEtherscan(address,network)
                 parsedABI = contractFromEtherscan.data.result
                 await db.updateContractWithABI(address.substr(2), parsedABI)
                 contractFromDB = await db.getContract(address.substr(2))

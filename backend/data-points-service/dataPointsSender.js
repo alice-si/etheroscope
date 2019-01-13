@@ -40,7 +40,7 @@ module.exports = function (io, log, validator) {
 
                 var latestBlock = await dataPointsClient.latestFullBlockParity()
                 // var latestBlockDirectAccess = await dataPointsClient.latestFullBlockBlockchain()
-                var latestBlockDirectAccess = 1000000
+                var latestBlockDirectAccess = 10
                 await assert(!isNaN(latestBlock) && !isNaN(latestBlockDirectAccess))
                 // await console.log("latestBlock latestBLockDirectAccess",latestBlock,latestBlockDirectAccess)
 

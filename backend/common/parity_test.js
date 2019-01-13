@@ -1,7 +1,8 @@
 const Web3 = require('web3')
 var settings = require('./settings.js')
 
-var parityUrl = settings.ETHEROSCOPEPARITYMAINNET
+// var parityUrl = settings.ETHEROSCOPEPARITYMAINNET
+var parityUrl = settings.ETHEROSCOPEPARITYTESTNET
 let log = require('loglevel')
 let validator = require('validator')
 let db = require('../common/db.js')(log)
@@ -22,10 +23,11 @@ var abi = '[{"constant":false,"inputs":[{"name":"newDepositary_function","type":
 // var address = '0x576D318810416FB41cffc06ac507d1bd50101e82'
 // var address = '0x4C3da77d8BCe020D4128995D7F92C5bD0919fCc3'
 // var address = '0xdf92c7D29b9782685C3a8C628Fe22Ec7F5E39878'
-var address = '0xDC926b36B7FAAdAa1DaA1C8bFb60B6e7a88faDAe'
-var method = "GETCMD"
-var from = "100"
-// var upTo = "4000000"
+// var address = '0xDC926b36B7FAAdAa1DaA1C8bFb60B6e7a88faDAe'
+var address = '0x53eccC9246C1e537d79199d0C7231e425a40f896'
+var method = "totalSupply"
+var from = "1"
+// var upTo = "400"
 var upTo = parityClient.getLatestBlock()
 
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
@@ -33,7 +35,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 console.log('Web3 is connected?',web3.isConnected())
 
 async function getRangeTest(address,method,from,upTo){
-    var contractInfo = await parityClient.getContract(address)
+    var contractInfo = await parityClient.getContract(address,"kovan")
     console.log('Address',contractInfo.parsedContract.address)
     var getRangeRes = await parityClient.getRange(address, contractInfo.parsedContract, method, from, await upTo)
     console.log('!!!parity.getRange(result:',getRangeRes)
@@ -45,4 +47,18 @@ async function getRangeTest(address,method,from,upTo){
 // var MyContract = web3.eth.contract(abi);
 // var myContractInstance = MyContract.at(address);
 //
-console.log(web3.eth.getStorageAt(address,1,1500000))
+// console.log(web3.eth.getStorageAt(address,1,30))
+const axios = require('axios')
+
+async function getContractInfoFromEtherscan(address,network) {
+    // TODO: choose axiosGET between ethereum and rinkeby // const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
+    var axiosGET = 'https://api'
+    if (network) axiosGET = axiosGET + "-" + network
+    console.log("!!@@#",axiosGET)
+    axiosGET += '.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
+    const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
+    console.log('will get from Etherscan ',axiosGET + address + axiosAPI)
+    return await axios.get(axiosGET + address + axiosAPI)
+}
+
+getContractInfoFromEtherscan('0xef1A329402B14253A474d5b9188f1cE30C9c3260',"kovan").then(console.log)
