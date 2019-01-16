@@ -20,7 +20,7 @@ spec:
           fsType: ext4
       containers:
       - name: parity-kovan
-        image: parity/parity:stable
+        image: gcr.io/etheroscope/myparity:stable
         env:
         - name: PATH
           value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
@@ -28,7 +28,11 @@ spec:
           value: "parity"
         - name: RUST_BACKTRACE
           value: "1"
-        command: ["parity", "-d", "--base-path=/kovan-data/base", "--db-path=/kovan-data/base/db", "--chain", "kovan", "--no-warp", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
+#        command: ["which"]
+#        args: ["parity"]
+        command: ["/bin/parity"]
+        args: ["-d", "--db-path=/kovan-data/", "--chain", "kovan", "--no-warp", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
+#        command: ["parity", "-d", "--base-path=/kovan-data/base", "--db-path=/kovan-data/base/db", "--chain", "kovan", "--no-warp", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
 #        command: ["parity", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
         ports:
         - containerPort: 8545
