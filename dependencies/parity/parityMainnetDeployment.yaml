@@ -13,6 +13,11 @@ spec:
       labels:
         app: parity-mainnet
     spec:
+      volumes:
+      - name: ethereum-parity-volume
+        gcePersistentDisk:
+          pdName: ethereum-parity-disk
+          fsType: ext4
       containers:
       - name: parity-mainnet
         image: parity/parity:stable
@@ -23,7 +28,9 @@ spec:
           value: "parity"
         - name: RUST_BACKTRACE
           value: "1"
-        command: ["parity", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
+#        command: ["parity", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
+        command: ["/home/parity/bin/parity"]
+        args: ["-d", "--db-path=/ethereum-data/", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
         ports:
         - containerPort: 8545
           name: port1mainnet
@@ -31,3 +38,6 @@ spec:
           name: port2mainnet
         - containerPort: 30303
           name: port3mainnet
+        volumeMounts:
+        - name: ethereum-parity-volume
+          mountPath: /ethereum-data/
