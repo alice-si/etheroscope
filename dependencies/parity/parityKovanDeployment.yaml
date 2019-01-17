@@ -30,7 +30,7 @@ spec:
           value: "1"
 #        command: ["which"]
 #        args: ["parity"]
-        command: ["/bin/parity"]
+        command: ["/home/parity/bin/parity"]
         args: ["-d", "--db-path=/kovan-data/", "--chain", "kovan", "--no-warp", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
 #        command: ["parity", "-d", "--base-path=/kovan-data/base", "--db-path=/kovan-data/base/db", "--chain", "kovan", "--no-warp", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
 #        command: ["parity", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
