@@ -20,7 +20,8 @@ spec:
           fsType: ext4
       containers:
       - name: parity-mainnet
-        image: parity/parity:stable
+        image: gcr.io/etheroscope/myparity:stable
+#        image: parity/parity:stable
         env:
         - name: PATH
           value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
