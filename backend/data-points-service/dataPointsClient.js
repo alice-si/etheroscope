@@ -47,6 +47,14 @@ module.exports = function (db, log, validator) {
             }
         }
 
+        dataPointsClient.generateDataPointsOneBlock = async function (contractInfo, contractAddress, method, blockNumber) {
+            try {
+                return await parityClient.getRangeOneBlock(contractAddress, contractInfo.parsedContract, method, blockNumber)
+            } catch (err) {
+                errorHandler.errorHandleThrow("ethStorage.generateDataPointsOneBlock","could not generate datapoints")(err)
+            }
+        }
+
         dataPointsClient.latestFullBlockBlockchain = function () {
             return ethStorage.promiseLatestFullBlock()
         }

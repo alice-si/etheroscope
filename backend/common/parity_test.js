@@ -64,3 +64,12 @@ async function getContractInfoFromEtherscan(address,network) {
 }
 
 // getContractInfoFromEtherscan('0xef1A329402B14253A474d5b9188f1cE30C9c3260',"kovan").then(console.log)
+
+new Promise((resolve, reject) => {
+    return web3.eth.getBlockNumber((error, block) => {
+        if (error) {
+            log.error('Error getting block number' + error)
+        }
+        return resolve(block)
+    })
+}).then(console.log)

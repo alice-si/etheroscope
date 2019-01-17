@@ -49,7 +49,7 @@ module.exports = function (io, log, validator) {
 
                 var cachedRange = await db.getCachedFromTo(address.substring(2), method)
                 // var {cachedFrom, cachedUpTo} = setInitCached(cachedRange, latestBlockDirectAccess)
-                var {cachedFrom, cachedUpTo} = setInitCached(cachedRange, 1000)
+                var {cachedFrom, cachedUpTo} = setInitCached(cachedRange, latestBlock)
 
                 sendAllDataPointsFromDB(address, method, cachedFrom, cachedUpTo, socket)
 
@@ -91,14 +91,6 @@ module.exports = function (io, log, validator) {
                 var totalUpTo = upTo
                 var chunkSize = 10000
                 // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
-                if (totalFrom === totalUpTo) {
-                    io.sockets.in(address + method).emit('getHistoryResponse', {
-                        error: false,
-                        from: totalFrom,
-                        to: totalUpTo,
-                        results: [[ 1488459400,-1,-1]]
-                    })
-                }
                 // while (totalUpTo < latestBlockDirectAccess + 1) {
                 //     chunkSize = 10000
                 //     upTo = totalUpTo
@@ -106,6 +98,13 @@ module.exports = function (io, log, validator) {
                 //     await generateAndSendDataPoints(
                 //         contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo)
                 // }
+                if (totalFrom === totalUpTo){
+                    chunkSize = 1
+                    upTo = totalUpTo
+                    totalUpTo = await Math.min(upTo + chunkSize, latestBlock + 1)
+                    await generateAndSendDataPointsOneBlock(
+                        contractInfo, address, method, from, totalFrom, totalUpTo, true)
+                }
                 while (1 < totalFrom) {
                     chunkSize = 10000
                     from = totalFrom
@@ -140,9 +139,9 @@ module.exports = function (io, log, validator) {
                     .generateDataPoints(contractInfo, contractAddress, method, from, upTo, useWeb3)
                 console.log('generated datapoitns:', dataPoints)
                 // save to db
-                db.addDataPoints(parsedContract.address.substr(2), method, dataPoints, totalFrom, totalTo)
+                await db.addDataPoints(parsedContract.address.substr(2), method, dataPoints, totalFrom, totalTo)
                 // dataPoints = await Promise.map(dataPoints, (elem) => {retrun [elem[], elem[1]]})
-                io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
+                await io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
                     error: false,
                     from: from,
                     to: upTo,
@@ -150,6 +149,28 @@ module.exports = function (io, log, validator) {
                 })
             } catch (err) {
                 errorHandler.errorHandleThrow("generateAndSendDataPoints", "")(err)
+            }
+        }
+
+        async function generateAndSendDataPointsOneBlock(
+            contractInfo, contractAddress, method, blockNumber, totalFrom, totalTo, useWeb3 = false) {
+            try {
+                let parsedContract = contractInfo.parsedContract // TODO method to index
+                // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
+                var dataPoints = await dataPointsClient
+                    .generateDataPointsOneBlock(contractInfo, contractAddress, method, blockNumber)
+                console.log('generated datapoitns:', dataPoints)
+                // save to db
+                db.addDataPoints(parsedContract.address.substr(2), method, dataPoints, totalFrom, totalTo)
+                // dataPoints = await Promise.map(dataPoints, (elem) => {retrun [elem[], elem[1]]})
+                io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
+                    error: false,
+                    from: totalFrom,
+                    to: totalTo,
+                    results: dataPoints
+                })
+            } catch (err) {
+                errorHandler.errorHandleThrow("generateAndSendDataPointsOneblock", "")(err)
             }
         }
 

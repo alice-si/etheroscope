@@ -31,35 +31,6 @@ module.exports = function (db, log, validator) {
         })
     }
 
-    // parity.getContract = function (address) {
-    //     return new Promise((resolve, reject) => {
-    //         db.getContract(address.substr(2))
-    //             .then((result) => {
-    //                 If we don't have the contract, get it from etherscan
-    // if (result.contract === null) {
-    //     const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
-    //     const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
-    //     return axios.get(axiosGET + address + axiosAPI)
-    //         .then((res) => {
-    //             let parsedContract = parity.parseContract(res.data.result, address)
-    //             Add the contract to the database, assuming it is already in there (with a name)
-    // db.updateContractWithABI(address.substr(2), res.data.result)
-    //     .catch((err) => {
-    //         log.error('parity.js: Error adding contract abi to the db')
-    //         log.error(err)
-    //     })
-    // return resolve({ parsedContract: parsedContract, contractName: result.contractName })
-    // })
-    // .catch((err) => {
-    //     log.error('parity.js: Etherscan.io API error: ' + err)
-    //     return reject(err)
-    // })
-    // }
-    // let parsedContract = parity.parseContract(result.contract, address)
-    // return resolve({ contractName: result.contractName, parsedContract: parsedContract })
-    // })
-    // })
-    // }
 // Obtaining Contract information from ABI and address
     parity.parseContract = async function (desc, address) {
         // console.log('desc', desc)
@@ -72,17 +43,17 @@ module.exports = function (db, log, validator) {
         }
     }
 
-    async function getContractInfoFromEtherscan(address,network) {
+    async function getContractInfoFromEtherscan(address, network) {
         // TODO: choose axiosGET between ethereum and rinkeby // const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
         var axiosGET = 'https://api'
         if (network) axiosGET = axiosGET + "-" + network
         axiosGET += '.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
         const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
-        console.log('will get from Etherscan ',axiosGET + address + axiosAPI)
+        console.log('will get from Etherscan ', axiosGET + address + axiosAPI)
         return await axios.get(axiosGET + address + axiosAPI)
     }
 
-    parity.getContract = async function (address,network) {
+    parity.getContract = async function (address, network) {
 
 
         try {
@@ -92,7 +63,7 @@ module.exports = function (db, log, validator) {
             var network = "kovan"
 
             if (contractFromDB.contract === null) { // If we don't have the contract, get it from etherscan
-                var contractFromEtherscan = await getContractInfoFromEtherscan(address,network)
+                var contractFromEtherscan = await getContractInfoFromEtherscan(address, network)
                 parsedABI = contractFromEtherscan.data.result
                 await db.updateContractWithABI(address.substr(2), parsedABI)
                 contractFromDB = await db.getContract(address.substr(2))
@@ -175,7 +146,9 @@ module.exports = function (db, log, validator) {
                     return resolve(result[0].timeStamp)
                 }
                 // If it still isn't in there, we calcuate it and add it
-                var time = await web3.calculateBlockTime(blockNumber)
+                var timesStampOfFirstBlock = 1492107044
+                var time = timesStampOfFirstBlock + (blockNumber * 15)
+                // var time = await web3.calculateBlockTime(blockNumber)
                 await db.addBlockTime([[blockNumber, time, 1]])
                 release()
                 return resolve(time)
@@ -194,7 +167,7 @@ module.exports = function (db, log, validator) {
                 }
             })
         })
-        if (result.length === 0) console.log('getHistoryResult is empty:',result)
+        if (result.length === 0) console.log('getHistoryResult is empty:', result)
         return result
     }
 
@@ -204,8 +177,9 @@ module.exports = function (db, log, validator) {
             // log.debug('Generating data points')
             Promise.map(eventsA, (event) => {
                 // [(time, value, blockNum)]
-                return Promise.all([parity.getBlockTime(event.blockNumber.valueOf()),
-                    parity.queryAtBlock(contract[method], event.blockNumber.valueOf()), event.blockNumber.valueOf()])
+                var blockNumber = event.blockNumber.valueOf()
+                return Promise.all([parity.getBlockTime(blockNumber),
+                    parity.queryAtBlock(contract[method], blockNumber), blockNumber])
             }, {concurrency: 5})
             // Sort the events by time
                 .then((events) => {
@@ -225,6 +199,7 @@ module.exports = function (db, log, validator) {
                     return results
                 })
                 .then((events) => {
+                    if (totalFrom === undefined) return resolve(events)
                     return db.addDataPoints(contract.address.substr(2), method, events, totalFrom, totalTo)
                         .then(() => {
                             if (events.length > 0) {
@@ -241,13 +216,17 @@ module.exports = function (db, log, validator) {
     }
 
     parity.getRange = function (contractAddress, parsedContract, method, from, upTo) {
-        console.log('!!!parity.getRange(',contractAddress, method, from, upTo)
+        console.log('!!!parity.getRange(', contractAddress, method, from, upTo)
         return parity.getHistory(contractAddress, method, from, upTo - 1)
             .then(function (events) {
-                // console.log('!!!parity.getHistory(result:',events)
+                console.log('!!!parity.getHistory(result:', events)
                 return parity.generateDataPoints(events, parsedContract, method,
                     from, upTo)
             })
+    }
+
+    parity.getRangeOneBlock = function (contractAddress, parsedContract, method, blockNumber) {
+        return parity.generateDataPoints([{blockNumber: blockNumber}], parsedContract, method)
     }
 
     parity.getWeb3 = async function () {
