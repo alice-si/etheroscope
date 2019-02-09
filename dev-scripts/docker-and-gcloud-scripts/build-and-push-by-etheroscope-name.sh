@@ -3,13 +3,13 @@ echo "Will build and push to gcr.io repo docker with name: etheroscope-"first co
 if [ $1 = "frontend" ]
 then
     docker build -t etheroscope-$1 ../../$1
-elif [ $1 == "server" ]
+elif [ "$1" = "server" ]
 then
     docker build -t etheroscope-$1 ../../backend/ --target serverEtheroscope
-elif [ $1 == "micro-service" ]
+elif [ $1 = "micro-service" ]
 then
     docker build -t etheroscope-$1 ../../backend/ --target microServiceEtheroscope
-elif [ $1 == "database-initiator" ]
+elif [ $1 = "database-initiator" ]
 then
     docker build -t etheroscope-$1 ../../backend/ --target databaseInitiatorEtheroscope
 else
