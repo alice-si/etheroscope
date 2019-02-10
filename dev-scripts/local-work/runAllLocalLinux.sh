@@ -13,7 +13,7 @@ export ETHEROSCOPEFRONTEND="localhost:1234"
 export ETHEROSCOPEBLOCKCHAIN=$1
 export ETHEROSCOPEPARITYMAINNET="35.230.140.68:8545"
 
-docker-compose -f ../../dependencies/mariadb/docker-compose.yml up -d &\
+sudo docker-compose -f ../../dependencies/mariadb/docker-compose.yml up -d &\
 
 cd ../../frontend &&\
 ./startFrontend.sh &\

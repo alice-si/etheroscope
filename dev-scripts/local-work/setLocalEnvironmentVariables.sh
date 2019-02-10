@@ -20,4 +20,11 @@ echo "        - name: ETHEROSCOPEPARITYMAINNET
         - name: ETHEROSCOPEBLOCKCHAIN
           value: \"/blockchain/geth/chaindata\"
           "
+export ETHEROSCOPEGETHHOST="localhost:8545"
+export ETHEROSCOPEMARIADB="localhost:8083"
+export ETHEROSCOPEMICROSERVICE="localhost:8081"
+export ETHEROSCOPESERVER="localhost:8082"
+export ETHEROSCOPEFRONTEND="localhost:1234"
+export ETHEROSCOPEBLOCKCHAIN="/home/marcin/WebstormProjects/etheroscope/geth-blockchains/fastRinkebyBlockchain"
+export ETHEROSCOPEPARITYMAINNET="35.230.140.68:8545"
 
