@@ -60,8 +60,6 @@ module.exports = function (db, log, validator) {
             var contractFromDB = await db.getContract(address.substr(2))
             var parsedABI
 
-            var network = "kovan"
-
             if (contractFromDB.contract === null) { // If we don't have the contract, get it from etherscan
                 var contractFromEtherscan = await getContractInfoFromEtherscan(address, network)
                 parsedABI = contractFromEtherscan.data.result
