@@ -13,7 +13,6 @@ const config: SocketIoConfig = { url: 'http://35.246.65.214', options: {} };
 
 @NgModule({
     declarations: [
-        AppComponent
     ],
     imports: [
         BrowserModule,

@@ -1,1 +1,0 @@
-node ../backend/tester.js

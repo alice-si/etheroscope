@@ -17,7 +17,7 @@ WORKDIR /app
 COPY --from=projectBase /app/node_modules ./node_modules
 COPY ./ ./
 # Start microservice
-CMD echo "CMD start microService\n" && node ./micro-service/microService.js
+CMD echo "CMD start microService\n" && node ./data-points-service/dataPointsService.js
 
 FROM node:8 AS serverEtheroscope
 WORKDIR /app
@@ -26,6 +26,14 @@ COPY --from=projectBase /app/node_modules ./node_modules
 COPY ./ ./
 # Start server
 CMD echo "CMD start serwer\n" && node ./server/server.js
+
+FROM node:8 AS databasInitiatorEtheroscope
+WORKDIR /app
+# Copy files
+COPY --from=projectBase /app/node_modules ./node_modules
+COPY ./ ./
+# Start microservice
+CMD echo "CMD start database initiator\n" && node ./database-initiator/setupNewDatabase.js
 
 # case node:alpine
 # Download add source

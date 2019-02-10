@@ -1,0 +1,44 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: parity-mainnet
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parity-mainnet
+  template:
+    metadata:
+      labels:
+        app: parity-mainnet
+    spec:
+      volumes:
+      - name: ethereum-parity-volume
+        gcePersistentDisk:
+          pdName: ethereum-parity-disk
+          fsType: ext4
+      containers:
+      - name: parity-mainnet
+        image: gcr.io/etheroscope/myparity:stable
+#        image: parity/parity:stable
+        env:
+        - name: PATH
+          value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        - name: TARGET
+          value: "parity"
+        - name: RUST_BACKTRACE
+          value: "1"
+#        command: ["parity", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
+        command: ["/home/parity/bin/parity"]
+        args: ["-d", "--db-path=/ethereum-data/", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
+        ports:
+        - containerPort: 8545
+          name: port1mainnet
+        - containerPort: 8546
+          name: port2mainnet
+        - containerPort: 30303
+          name: port3mainnet
+        volumeMounts:
+        - name: ethereum-parity-volume
+          mountPath: /ethereum-data/
