@@ -42,46 +42,29 @@ function getNewVariablesTable(contractAddress, variables) {
     }
 }
 
-/* DataPoints Table takes in a contract address, method and
-   * array of arrays of the form: [[time, 'value', blockNum]]
-   * time is currently ignored
+/**
+ * Function responsible for preparing string for sql query
+ *
+ * Iterates over all elements of valuesArray and puts them together.
+ *
+ * @param {Array} valuesArray
+ *
+ * @return {string}
  */
-function getNewDataPointsTable(contractAddress, method, values) {
-    // console.log('getNewDataPointsTable')
-    var sqlFormatValues = []
-    values.forEach((elem) => {
-        sqlFormatValues.push([contractAddress, method, elem[1], elem[2]])
-    })
+function buildValueString(valuesArray) {
+    let result = ''
 
-    return {
-        sql: 'insert into dataPoints (contractHash, variableName, value, blockNumber) values ?',
-        values: sqlFormatValues
-    }
-}
-
-/* A function to build a set of values
- * to be inserted in an sql statement.
- * Each record is represented as an array of
- * values. This function takes in an array of
- * such arrays, to facilitate inserting
- * multiple records.
- */
-function buildValueString(valuesArray, nonapostrofindex = undefined) {
-    console.log('buildValueString')
-    var result = ''
-    for (var i = 0; i < valuesArray.length; i++) {
+    for (let i = 0; i < valuesArray.length; i++) {
         result += '('
-        for (var j = 0; j < valuesArray[i].length; j++) {
-            if (j !== nonapostrofindex) result += '\''
-            result += valuesArray[i][j]
-            if (j !== nonapostrofindex) result += '\''
-            result += ', '
+
+        for (let j = 0; j < valuesArray[i].length; j++) {
+            result += `\'${valuesArray[i][j]}\', `
         }
-        // Remove the last two characters ', ' from the string
+
         result = result.slice(0, -2)
         result += '), '
     }
-    // Remove the last two characters ', ' from the string
+
     return result.slice(0, -2)
 }
 
@@ -195,83 +178,70 @@ module.exports = function (log) {
         })
     }
 
-    /* This function takes in a contract hash
-     * and returns a promise
+    /**
+     * Function responsible for retrieving information about contract from database.
+     *
+     * Returns {contractName: null, contract: null}, where there is no data in database.
+     * Otherwise, returns contractName and contract info stored in database.
+     *
+     * @param contractHash
+     * @return {Promise} Promise object represents object {contractName: {string}, contract: {Object}}
      */
     db.getContract = function (contractHash) {
-        console.log('db.getContract')
         return new Promise(function (resolve, reject) {
-
-            var sql = 'select name, abi from contracts where contractHash=\'' + contractHash + '\''
+            let sql = `SELECT name, abi FROM contracts WHERE contractHash=\'${contractHash}\'`
 
             pool.query(sql)
                 .then((results) => {
-                    // console.log('db.getContract:results:', results)
                     let result = {contractName: null, contract: null}
                     if (results.length !== 0) {
                         result.contractName = results[0].name
-                        let ABI = results[0].abi
-                        if (ABI) {
-                            ABI = ABI.slice(1, ABI.length - 1)
-                            try{
-                                let parsedABI = JSON.parse(ABI)
-                                result.contract = parsedABI
-                            }
-                            catch (e) {
-                                console.log("Coudl not parse ABI: \""+ABI.toString()+
-                                    "\"\nprobably bad cached in database"+e)
-                            }
-                        }
+                        result.contract = JSON.parse(results[0].abi)
                     }
                     return resolve(result)
                 })
                 .catch((err) => {
-                    log.error('db.js: Error in getContract')
-                    log.error(err)
                     return reject(err)
                 })
         })
     }
 
-    /* This function takes in a contract address, method and
-     * array of arrays of the form: [[time, 'value', blockNum]]
-     * time is currently ignored
+    /**
+     * Caches information about value of a given variable in a given block.
+     * Ranged of cached blocks for the variable is [cachedFrom, cachedUpTo].
+     * Timestamps are currently ignored.
+     *
+     * @param {string}   contractAddress
+     * @param {string}   variableName
+     * @param {Object[]} values          elements are [timestamp, value, blockNumber
+     * @param {Number}   cachedFrom      beginning of range of cached blocks
+     * @param {Number}   cachedUpTo      end of range of cached blocks
      */
-    db.addDataPoints = function (contractAddress, method, values, from, to) {
-        console.log('db.addDataPoints')
+    db.addDataPoints = function (contractAddress, variableName, values, cachedFrom, cachedUpTo) {
         return new Promise(function (resolve, reject) {
-            if (values.length === 0) {
-                console.log('db.addDataPoints empty values', values)
-                return resolve(values)
-            }
-            else {
-                let dataPointsTable = getNewDataPointsTable(contractAddress, method, values)
+            let sql = `UPDATE variables SET cachedFrom=\'${cachedFrom}\', cachedUpTo=\'${cachedUpTo}\'` +
+                `WHERE contractHash=\'${contractAddress}\' and variableName=\'${variableName}\'`
 
-                console.log('db.addDataPoints dataPOintsTable', dataPointsTable)
+            if (values.length === 0) {
+                return pool.query(sql)
+                    .then(values => resolve(values))
+                    .catch(err => reject(err))
+            } else {
+                let sqlFormatValues = []
+
+                values.forEach((elem) => {
+                    sqlFormatValues.push([contractAddress, variableName, elem[1], elem[2]])
+                })
+
+                let dataPointsTable = {
+                    sql: 'INSERT INTO dataPoints (contractHash, variableName, value, blockNumber) values ?',
+                    values: sqlFormatValues
+                }
 
                 return pool.query(dataPointsTable.sql, [dataPointsTable.values])
-                    .then(() => {
-
-                        console.log('just added datapoints values:\n', dataPointsTable.values, 'and sql', dataPointsTable.sql)
-
-                        var sql =
-                            'update variables set cachedFrom=\'' + from + '\', cachedUpTo=\'' + to + '\' where contractHash=\'' + contractAddress +
-                            '\' and variableName=\'' + method + '\''
-                        console.log('\nsql', sql)
-                        return pool.query(sql)
-                    })
-                    .then(() => {
-                        return resolve(values)
-                    })
-                    .catch((err) => {
-                        log.error('db.js: Error in addDataPoints')
-                        log.error(err.toString().slice(50))
-                        log.error('db.js probably duplicate entry datapoints')
-
-                        // process.exit(1)
-                        // return reject(err)
-                        return resolve(values)
-                    })
+                    .then(() => pool.query(sql))
+                    .then(values => resolve(values))
+                    .catch(err => reject(err))
             }
         })
     }
@@ -294,23 +264,25 @@ module.exports = function (log) {
         })
     }
 
-    /* This function returns *all* the variables in a given date range
-     * for a given contract hash
+    /**
+     * Returns all timeStamps and values for a given contract and variable.
+     *
+     * @param {string} contractHash
+     * @param {string} variableName
+     *
+     * @returns {Promise} result of Promise is array of Objects {timeStamp, value}
      */
-    db.getDataPoints = function (contractHash, method) {
-        console.log('db.getDataPoints')
+    db.getDataPoints = function (contractHash, variableName) {
         return new Promise(function (resolve, reject) {
-            var sql =
-                'select timeStamp, value from (dataPoints inner join blocks on dataPoints.blockNumber = blocks.blockNumber) ' +
-                'where dataPoints.contractHash=\'' + contractHash +
-                '\' and (dataPoints.variableName=\'' + method + '\')'
+            let sql = `SELECT timeStamp, value FROM dataPoints NATURAL JOIN blocks ` +
+                `WHERE contractHash=\'${contractHash}\' AND variableName=\'${variableName}\'`
+
             pool.query(sql)
                 .then((results) => {
                     return resolve(results)
                 })
                 .catch((err) => {
-                    log.error('db.js: Error in getDataPoints')
-                    log.error(err)
+                    log.error('db.js: Error in getDataPoints', err)
                     return reject(err)
                 })
         })
@@ -333,43 +305,45 @@ module.exports = function (log) {
         })
     }
 
+    /**
+     * Function responsible for returning timestamp of a given block.
+     *
+     * @param blockNumber
+     * @return {Promise} timestamp
+     */
     db.getBlockTime = function (blockNumber) {
-        console.log('db.getBlockTime')
         return new Promise(function (resolve, reject) {
 
-            var sql = 'select * from blocks where blockNumber=\'' + blockNumber + '\''
+            let sql = 'SELECT timeStamp FROM blocks WHERE blockNumber=\'' + blockNumber + '\''
             pool.query(sql)
                 .then((results) => {
                     return resolve(results)
                 })
                 .catch((err) => {
-                    log.error('db.js: Error in getBlockTime')
-                    log.error(err)
-                    process.exit(1)
                     return reject(err)
                 })
         })
     }
 
+    /**
+     * Function responsible for adding block's timestamp into database.
+     *
+     * @param {Array} values array of [blockNumber, timeStamp]
+     */
     db.addBlockTime = function (values) {
-        console.log('db.addBlockTime:values\n', values)
         return new Promise(function (resolve, reject) {
+            let valueString = buildValueString(values)
 
-            var valueString = buildValueString(values, 2)
-            var sql = 'insert into blocks (blockNumber, timeStamp, userLog) values ' + valueString +
-                ' on duplicate key update timeStamp = \'' + values[0][1] + '\', userLog=b\'' + values[0][2] + '\''
+            let sql = `INSERT INTO blocks (blockNumber, timeStamp) VALUES ${valueString}`
+
             pool.query(sql)
                 .then(() => {
                     return resolve()
                 })
                 .catch((err) => {
-                    log.error('db.js: Error in addBlocKTime, you are most likely adding duplicates\n' + sql + ', err:', err)
                     return reject(err)
                 })
         })
-            .catch((err) => {
-                log.error('db.js: Error 2 in addBlocKTime, you are most likely adding duplicates')
-            })
     }
 
     /* This function returns *all* the variables in a given date range
@@ -396,13 +370,19 @@ module.exports = function (log) {
         })
     }
 
-    db.getCachedFromTo = function (contractHash, method) {
-        console.log('db.getCachedFromTo')
+    /**
+     * Returns range of cached data in database for a given contract and variable.
+     *
+     * @param {string} contractHash
+     * @param {string} variableName
+     *
+     * @returns {Promise} result of Promise is Object {cachedFrom, cachedUpTo}
+     */
+    db.getCachedFromTo = function (contractHash, variableName) {
         return new Promise(function (resolve, reject) {
+            let sql = `SELECT cachedFrom, cachedUpTo FROM variables WHERE contractHash='${contractHash}'` +
+                `AND variableName='${variableName}'`
 
-            var sql = 'select cachedFrom, cachedUpTo from variables ' +
-                'where contractHash=\'' + contractHash + '\' ' +
-                'and variableName=\'' + method + '\''
             pool.query(sql)
                 .then((results) => {
                     return resolve({
@@ -411,8 +391,7 @@ module.exports = function (log) {
                     })
                 })
                 .catch((err) => {
-                    log.error('db.js: Error in getCachedFromTo')
-                    log.error(err)
+                    log.error('db.js: Error in getCachedFromTo', err)
                     return reject(err)
                 })
         })
