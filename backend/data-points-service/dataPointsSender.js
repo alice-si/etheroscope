@@ -1,183 +1,172 @@
-var Promise = require('bluebird')
-var assert = require('assert');
-// import other parts of project
-var errorHandler = require('../common/errorHandlers')
-let DataPointsClient = require('./dataPointsClient')
+const Promise = require('bluebird')
 
-module.exports = function (io, log, validator) {
+const errorHandler = require('../common/errorHandlers')
+const Parity = require('../common/parity')
+const streamedSet = require('./streamedSet')()
+const settings = require('../common/settings.js')
+
+module.exports = function (io, log) {
     try {
+        let dataPointsSender = {}
 
-        var dataPointsSender = {}
+        const db = require('../common/db.js')(log)
 
-        let db = require('../common/db.js')(log)
-        var dataPointsClient = DataPointsClient(db, log, validator)
-        var streamedSet = require('./streamedSet')()
+        const parityClient = Parity(db)
 
-        function validAddress(address) {
-            return address.length === 42
-                && validator.isHexadecimal(address.substr(2))
-                && address.substr(0, 2) === '0x'
+        /**
+         * Initialises values of cachedRange.
+         *
+         * If any of them is null, that means that database has no data about variable.
+         * In this situation they are set to their starting values.
+         *
+         * @param {Object} cachedRange
+         * @param {String} cachedRange.cachedFrom beginning of cached range in database
+         * @param {String} cachedRange.cachedUpTo end of cached range in database
+         *
+         * @returns {{cachedFrom: number, cachedUpTo: number}}
+         */
+        function setInitCached(cachedRange) {
+            let {cachedFrom, cachedUpTo} = cachedRange
+
+            if (cachedUpTo == null || cachedUpTo === null)
+                return {
+                    cachedFrom: 1,
+                    cachedUpTo: 0
+                }
+            else
+                return {
+                    cachedFrom: parseInt(cachedFrom),
+                    cachedUpTo: parseInt(cachedUpTo)
+                }
         }
 
-        function setInitCached(cachedRange, latestBlock) {
-            var {cachedFrom, cachedUpTo} = cachedRange
-            if (cachedUpTo == null || cachedUpTo === null) {
-                cachedFrom = cachedUpTo = latestBlock // double assignment
-            }
-            else {
-                cachedFrom = parseInt(cachedFrom);
-                cachedUpTo = parseInt(cachedUpTo)
-            }
-            return {cachedFrom, cachedUpTo}
-        }
-
-        dataPointsSender.sendHistory = async function (address, method, socket) {
+        /**
+         * Main function responsible for sending data through socket.
+         *
+         * First step is sending all the data stored in database.
+         * Next, all data that is not stored in our database is retrieved from ethereum.
+         * Information gained in that process is saved in database for future use.
+         * Currently address and variableName sent from are not validated in any way.
+         *
+         * @param {string} address
+         * @param {string} variableName
+         */
+        dataPointsSender.sendHistory = async function (address, variableName) {
             try {
-                /* Ignore invalid requests on the socket - the frontend should
-                 * ensure these are not send, so any invalid addresses
-                 * will not have been sent from our front end */
-                assert(validAddress(address))
+                let latestBlock = await parityClient.getLatestBlock()
+                let curLatestBlock = await streamedSet.addChannel(address, variableName, latestBlock)
 
-                var latestBlock = await dataPointsClient.latestFullBlockParity()
-                // var latestBlockDirectAccess = await dataPointsClient.latestFullBlockBlockchain()
-                var latestBlockDirectAccess = 20
-                await assert(!isNaN(latestBlock) && !isNaN(latestBlockDirectAccess))
-                // await console.log("latestBlock latestBLockDirectAccess",latestBlock,latestBlockDirectAccess)
+                let cachedRange = await db.getCachedFromTo(address.substring(2), variableName)
+                let { cachedFrom, cachedUpTo } = setInitCached(cachedRange)
 
+                if (curLatestBlock) {
+                    io.sockets.in(address + variableName).emit('latestBlock', {latestBlock: curLatestBlock})
 
-                io.sockets.in(address + method).emit('latestBlock', {latestBlock: latestBlock})
+                    await sendAllDataPointsFromDB(address, variableName, cachedFrom, cachedUpTo)
+                } else {
+                    io.sockets.in(address + variableName).emit('latestBlock', {latestBlock: latestBlock})
 
-                var cachedRange = await db.getCachedFromTo(address.substring(2), method)
-                // var {cachedFrom, cachedUpTo} = setInitCached(cachedRange, latestBlockDirectAccess)
-                var {cachedFrom, cachedUpTo} = setInitCached(cachedRange, latestBlock)
+                    await sendAllDataPointsFromDB(address, variableName, cachedFrom, cachedUpTo)
 
-                sendAllDataPointsFromDB(address, method, cachedFrom, cachedUpTo, socket)
+                    let contractInfo = await parityClient.getContract(address)
 
-                await streamedSet.addChannel(address, method)
-                var contractInfo = await dataPointsClient.getContract(address)
+                    await cacheMorePoints(contractInfo, variableName, cachedFrom, cachedUpTo, latestBlock)
 
-                cacheMorePoints(await contractInfo, address, method, cachedFrom, cachedUpTo, latestBlockDirectAccess, latestBlock)
+                    streamedSet.deleteChannel(address, variableName)
+                }
+
             } catch (err) {
-                errorHandler.errorHandleThrow("sendHistory", "in sned History")(err)
+                // TODO log.error
+                console.log(`dataPointsSender sendHistory ${address} ${variableName}`, err)
+                io.sockets.in(address + variableName).emit('getHistoryResponse', { error: true })
             }
         }
 
-        async function sendAllDataPointsFromDB(address, method, from, to, socket) {
+        /**
+         * Function responsible for sending already cached data through socket.
+         *
+         * @param {string} address
+         * @param {string} variableName
+         * @param {Number} from
+         * @param {Number} to
+         */
+        async function sendAllDataPointsFromDB(address, variableName, from, to) {
             try {
-
-                var dataPoints = await db.getDataPoints(address.substr(2), method)
-                dataPoints = await Promise.map(dataPoints, (elem) => [elem.timeStamp, elem.value])
-                await socket.emit('getHistoryResponse', {
+                let dataPoints = await db.getDataPoints(address.substr(2), variableName)
+                dataPoints = await Promise.map(dataPoints, dataPoint => [dataPoint.timeStamp, dataPoint.value])
+                console.log('datapoints', dataPoints)
+                io.sockets.in(address + variableName).emit('getHistoryResponse', {
                     error: false,
                     from: from,
                     to: to,
-                    results: dataPoints})
-
+                    results: dataPoints
+                })
             } catch (err) {
-                socket.emit('getHistoryResponse', {error: true})
-                errorHandler.errorHandleThrow("sendAllDataPointsFromDB", "cant send data form db")(err)
+                errorHandler.errorHandleThrow("dataPoints sendAllDataPointsFromDB", "")(err)
             }
         }
 
-// We currently have everything from from up to (but no including) upTo.
-// Find more things, firstly at to - end, and later anything before from
-// pre: from, upTo, latestBlock are numbers, not strings
-        async function cacheMorePoints(
-            contractInfo, address, method, from, upTo, latestBlockDirectAccess, latestBlock) {
-            // const chunkSize = 1000
-            //TODO: assert if working
+        /**
+         * Function responsible for caching all the blocks that have not been cached yet.
+         *
+         * Generates all points in range (upTo, latestBlock].
+         *
+         * @param {Object} contractInfo
+         * @param {string} variableName
+         * @param {Number} from         beginning of range currently cached in database
+         * @param {Number} upTo         end of range currently cached in database
+         * @param {Number} latestBlock  latest block number in ethereum
+         */
+        async function cacheMorePoints(contractInfo, variableName, from, upTo, latestBlock) {
             try {
-                var totalFrom = from
-                var totalUpTo = upTo
-                var chunkSize = 10000
-                // upTo is exclusive - add 1 to latest block to check if upTo has gotten it
-                // while (totalUpTo < latestBlockDirectAccess + 1) {
-                //     chunkSize = 10000
-                //     upTo = totalUpTo
-                //     totalUpTo = await Math.min(upTo + chunkSize, latestBlockDirectAccess + 1)
-                //     await generateAndSendDataPoints(
-                //         contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo)
-                // }
-                if (totalFrom === totalUpTo){
-                    chunkSize = 1
-                    upTo = totalUpTo
-                    totalUpTo = await Math.min(upTo + chunkSize, latestBlock + 1)
-                    await generateAndSendDataPointsOneBlock(
-                        contractInfo, address, method, from, totalFrom, totalUpTo, true)
-                }
-                while (1 < totalFrom) {
-                    chunkSize = 10000
-                    from = totalFrom
-                    totalFrom = await Math.max(from - chunkSize, 1)
-                    await generateAndSendDataPoints(
-                        contractInfo, address, method, totalFrom, from, totalFrom, totalUpTo, true)
-                }
-                while (totalUpTo < latestBlock + 1) {
-                    chunkSize = 10000
-                    upTo = totalUpTo
-                    totalUpTo = await Math.min(upTo + chunkSize, latestBlock + 1)
-                    await generateAndSendDataPoints(
-                        contractInfo, address, method, upTo, totalUpTo, totalFrom, totalUpTo, true)
-                }
-                // if (from === 1 && upTo === latestBlockDirectAccess + 1) { // end of reccursion
-                if (from === 1 && upTo === latestBlock + 1) { // end of reccursion
-                    log.info('Cached all points for ' + address + ' ' + method)
-                    streamedSet.deleteChannel(address, method)
+                let totalUpTo = upTo, totalFrom = from
+                let chunkSize = settings.dataPointsService.cacheChunkSize
+
+                while (totalUpTo < latestBlock) {
+                    [from, totalUpTo] = [totalUpTo + 1, Math.min(totalUpTo + chunkSize, latestBlock)]
+                    await generateAndSendDataPoints(contractInfo, variableName, from, totalUpTo, totalFrom, totalUpTo)
                 }
             } catch (err) {
-                errorHandler.errorHandleThrow("cacheMorePoints", "cant cache more points")(err)
+                errorHandler.errorHandleThrow("dataPointsSender cacheMorePoints", "")(err)
             }
         }
 
-// Send all points from from up to but not including to
-        async function generateAndSendDataPoints(
-            contractInfo, contractAddress, method, from, upTo, totalFrom, totalTo, useWeb3 = false) {
+        /**
+         * Function responsible for generating and caching blocks in range [from, upTo].
+         * Additionally it updates information about cached range for this variable.
+         *
+         * @param {Object} contractInfo
+         * @param {string} variableName
+         * @param {Number} from         beginning of range to be cached
+         * @param {Number} upTo         end of range to be cached
+         * @param {Number} totalFrom    beginning of range of totally cached data for this variable
+         * @param {Number} totalUpTo    end of range of totally cached data for this variable
+         */
+        async function generateAndSendDataPoints(contractInfo, variableName, from, upTo, totalFrom, totalUpTo) {
             try {
-                let parsedContract = contractInfo.parsedContract // TODO method to index
-                // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
-                var dataPoints = await dataPointsClient
-                    .generateDataPoints(contractInfo, contractAddress, method, from, upTo, useWeb3)
-                console.log('generated datapoitns:', dataPoints)
-                // save to db
-                await db.addDataPoints(parsedContract.address.substr(2), method, dataPoints, totalFrom, totalTo)
-                // dataPoints = await Promise.map(dataPoints, (elem) => {retrun [elem[], elem[1]]})
-                await io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
+                // TODO method to index
+                let parsedContract = contractInfo.parsedContract, address = parsedContract.address
+
+                let dataPoints =
+                    await parityClient.generateDataPoints(parsedContract, variableName, from, upTo)
+
+                await db.addDataPoints(address.substr(2), variableName, dataPoints, totalFrom, totalUpTo)
+
+                io.sockets.in(address + variableName).emit('getHistoryResponse', {
                     error: false,
                     from: from,
                     to: upTo,
                     results: dataPoints
                 })
             } catch (err) {
-                errorHandler.errorHandleThrow("generateAndSendDataPoints", "")(err)
-            }
-        }
-
-        async function generateAndSendDataPointsOneBlock(
-            contractInfo, contractAddress, method, blockNumber, totalFrom, totalTo, useWeb3 = false) {
-            try {
-                let parsedContract = contractInfo.parsedContract // TODO method to index
-                // Subtract 1 from to, because to is exclusive, and getHistory is inclusive
-                var dataPoints = await dataPointsClient
-                    .generateDataPointsOneBlock(contractInfo, contractAddress, method, blockNumber)
-                console.log('generated datapoitns:', dataPoints)
-                // save to db
-                db.addDataPoints(parsedContract.address.substr(2), method, dataPoints, totalFrom, totalTo)
-                // dataPoints = await Promise.map(dataPoints, (elem) => {retrun [elem[], elem[1]]})
-                io.sockets.in(contractAddress + method).emit('getHistoryResponse', {
-                    error: false,
-                    from: totalFrom,
-                    to: totalTo,
-                    results: dataPoints
-                })
-            } catch (err) {
-                errorHandler.errorHandleThrow("generateAndSendDataPointsOneblock", "")(err)
+                errorHandler.errorHandleThrow("dataPointsSender generateAndSendDataPoints", "")(err)
             }
         }
 
         return dataPointsSender
     }
     catch (err) {
-        errorHandler.errorHandleThrow("dataPointsSender constructor", "could not start dataPointsClient")(err)
+        errorHandler.errorHandleThrow("dataPointsSender constructor", "could not start")(err)
     }
 
 }
