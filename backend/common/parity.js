@@ -1,80 +1,87 @@
 const axios = require('axios')
 const Web3 = require('web3')
-var Promise = require('bluebird')
-var ReadWriteLock = require('rwlock')
-var lock = new ReadWriteLock()
+const Promise = require('bluebird')
+const ReadWriteLock = require('rwlock')
 
-var settings = require('./settings.js')
-var parityUrl = settings.ETHEROSCOPEPARITYMAINNET
-parityUrl = "http://" + parityUrl
+const settings = require('./settings.js')
+
+
+const lock = new ReadWriteLock()
+const parityUrl = "http://" + settings.ETHEROSCOPEPARITYMAINNET
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
-var errorHandler = require('./errorHandlers')
 
-module.exports = function (db, log, validator) {
-    const parity = {}
+module.exports = function (db) {
+    let parity = {}
 
     if (!web3.isConnected()) {
         console.log('Please start parity, have tried:', parityUrl)
         process.exit(1)
     }
     console.log('Successfully connected to parity, tried', parityUrl)
-    // var address = "0xF973dfE8010CFd44070B1990841da192c7b3CeD9"
 
-    parity.getLatestBlock = function () {
+    /**
+     *
+     * Function responsible for sending number of latest block in ethereum.
+     *
+     * @return {Bluebird} number of latest block
+     */
+    parity.getLatestBlock = function() {
         return new Promise((resolve, reject) => {
             return web3.eth.getBlockNumber((error, block) => {
-                if (error) {
-                    log.error('Error getting block number' + error)
-                }
+                if (error)
+                    return reject(error)
                 return resolve(block)
             })
         })
     }
 
-// Obtaining Contract information from ABI and address
-    parity.parseContract = async function (desc, address) {
-        // console.log('desc', desc)
-        try {
-            var contractABI = (typeof desc === 'string') ? await JSON.parse(JSON.stringify(desc)) : desc
-            var Contract = await web3.eth.contract(contractABI)
-            return await Contract.at(address)
-        } catch (err) {
-            errorHandler.errorHandle("parseContract")(err)
-        }
-    }
-
+    /**
+     * Function responsible for fetching contract's information from etherscan API.
+     *
+     * @param address
+     * @param network specifies ethereum's network we currently use
+     *
+     * @return {Promise<any>} contract's instance
+     */
     async function getContractInfoFromEtherscan(address, network) {
-        // TODO: choose axiosGET between ethereum and rinkeby // const axiosGET = 'https://api.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
-        var axiosGET = 'https://api'
-        if (network) axiosGET = axiosGET + "-" + network
-        axiosGET += '.etherscan.io/api?module=contract&action=getabi&address=' // Get ABI
-        const axiosAPI = '&apikey=RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23'
-        console.log('will get from Etherscan ', axiosGET + address + axiosAPI)
-        return await axios.get(axiosGET + address + axiosAPI)
+        // TODO - store apiKey in settings
+        let etherscanAPIKey = "RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23"
+
+        let axiosGET = network === "mainnet" ? 'https://api' : `https://api-${network}`
+        axiosGET += `.etherscan.io/api?module=contract&action=getabi&address=${address}&apikey=${etherscanAPIKey}`
+
+        let response = await axios.get(axiosGET)
+
+        return JSON.parse(response.data.result)
     }
 
-    parity.getContract = async function (address, network) {
+    /**
+     * Function responsible for generating contract's information and caching it in database.
+     *
+     * If information is already stored in database we simply take it from there.
+     * Otherwise, we retrieve data from etherscan and cache it in database for future use.
+     *
+     * @param {string} address
+     * @param {string} [network=mainnet] specifies ethereum's network we currently use
+     *
+     * @return {Promise<{parsedContract: Object, contractName: string}>}
+     */
+    parity.getContract = async function (address, network="mainnet") {
+        let contractFromDB = await db.getContract(address.substr(2))
+        let parsedABI = contractFromDB.contract
 
-
-        try {
-            var contractFromDB = await db.getContract(address.substr(2))
-            var parsedABI
-
-            if (contractFromDB.contract === null) { // If we don't have the contract, get it from etherscan
-                var contractFromEtherscan = await getContractInfoFromEtherscan(address, network)
-                parsedABI = contractFromEtherscan.data.result
-                await db.updateContractWithABI(address.substr(2), parsedABI)
-                contractFromDB = await db.getContract(address.substr(2))
-            }
-
-            // log.debug("Parsed ABI is:", parsedABI)
-
+        // this scenario happens "in" the main server
+        if (parsedABI === null) {
+            parsedABI =  await getContractInfoFromEtherscan(address, network)
+            await db.updateContractWithABI(address.substr(2), parsedABI)
+            contractFromDB = await db.getContract(address.substr(2))
             parsedABI = contractFromDB.contract
-            var parsedContract = await parity.parseContract(parsedABI, address)
-            return {contractName: contractFromDB.contractName, parsedContract: parsedContract}
-        } catch (error) {
-            errorHandler.errorHandleThrow("web3client.js:getContract(" + address + ")", "could not get (" + address + ")")(error)
         }
+
+        let contract = web3.eth.contract(parsedABI)
+        let parsedContract = contract.at(address)
+
+        return { contractName: contractFromDB.contractName, parsedContract: parsedContract }
     }
 
     function isVariable(item) {
@@ -111,54 +118,84 @@ module.exports = function (db, log, validator) {
         return {variables: variableNames, contractName: contractName}
     }
 
-    // Query value of variable at certain block
-    parity.queryAtBlock = function (query, block) {
-        let hex = '0x' + block.toString(16)
+    /**
+     * Function that computes value of given variable in a given block.
+     *
+     * @param {function} variableFunction
+     * @param {number}   blockNumber
+     * @return {Bluebird | Bluebird<any>} value of variable
+     */
+    function valueAtBlock(variableFunction, blockNumber) {
+        let hex = '0x' + blockNumber.toString(16)
         web3.eth.defaultBlock = hex
         return new Promise((resolve, reject) => {
-            return query((err, result) => {
+            return variableFunction((err, result) => {
                 return (err ? reject(err) : resolve(parseInt(result.valueOf())))
             })
         })
     }
 
-    parity.getBlockTime = async function (blockNumber) {
-        // Check the database for the blockTimeMapping
-        var result = await db.getBlockTime(blockNumber)
-        if (result.length !== 0) return result[0].timeStamp
-        // If it isn't in the database, we need to calculate it
-        // acquire a lock so that we don't calculate this value twice
-        // Using a global lock to protect the creation of locks...
-
-        return await new Promise((resolve, reject) => {
-            lock.writeLock(blockNumber, async (release) => {
-                // Check again if it is in the db, since it may have been
-                // added whilst we were waiting for the lock
-                var result = await db.getBlockTime(blockNumber)
-                if (result.length !== 0) {
-                    release()
-                    return resolve(result[0].timeStamp)
+    /**
+     * Function responsible for retrieving block's timestamp from ethereum
+     *
+     * @param {number} blockNumber
+     *
+     * @return {Promise<number>}
+     */
+    function calculateBlockTime(blockNumber) {
+        return new Promise(function (resolve, reject) {
+            web3.eth.getBlock(blockNumber, function (err, res) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res);
                 }
-                // If it still isn't in there, we calcuate it and add it
-                var timesStampOfFirstBlock = 1492107044
-                var time = timesStampOfFirstBlock + (blockNumber * 15)
-                // var time = await web3.calculateBlockTime(blockNumber)
-                await db.addBlockTime([[blockNumber, time, 1]])
-                release()
-                return resolve(time)
-            })
-        })
+            });
+        });
     }
 
-    parity.calculateBlockTime = async function (blockNumber) {
-        return new Promise((resolve, reject) => {
-            web3.eth.getBlock(blockNumber, (err, res) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(res.timestamp)
-                }
-            })
+
+    /**
+     * Function responsible for generating timestamp of given block.
+     *
+     * First step is checking if timestamp is already in database, in this case we return stored timestamp.
+     * Otherwise, we lock (in case of simultaneous action that put data in database just after we checked)
+     * and check again, if it is in database. If not, we compute timestamp of block and put it into database.
+     *
+     * @param {Number} blockNumber
+     *
+     * @return {Promise} timestamp of block
+     */
+    async function getBlockTime(blockNumber) {
+        let result = await db.getBlockTime(blockNumber)
+        if (result.length !== 0)
+            return result[0].timeStamp
+
+        return await new Promise((resolve, reject) => {
+            try {
+                lock.writeLock(blockNumber, async (release) => {
+                    let result = await db.getBlockTime(blockNumber)
+
+                    if (result.length !== 0) {
+                        release()
+                        return resolve(result[0].timeStamp)
+                    }
+
+                    console.log('before')
+                    let block = await calculateBlockTime(blockNumber), time = block.timestamp
+                    console.log('after')
+                    // var timesStampOfFirstBlock = 1492107044
+                    // var time = timesStampOfFirstBlock + (blockNumber * 15)
+                    await db.addBlockTime([[blockNumber, time]])
+
+                    release()
+
+                    return resolve(time)
+                })
+            }
+            catch (err) {
+                reject(err)
+            }
         })
     }
 
@@ -208,68 +245,80 @@ module.exports = function (db, log, validator) {
               }
             })
         })
-    }
+=======
+    /**
+     * Function responsible for generating contract's events that occured in a given block range [startBlock, endBlock].
+     *
+     * @param {string} address
+     * @param {Number} startBlock beginning od block frame
+     * @param {Number} endBlock   end of block frame
+     *
+     * @return {Promise<any>} array of events
+     */
+    async function getHistory(address, startBlock, endBlock) {
+        let filter = await web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
 
-    parity.generateDataPoints = function (eventsA, contract, method,
-                                          totalFrom, totalTo) {
-        return new Promise((resolve, reject) => {
-            // log.debug('Generating data points')
-            Promise.map(eventsA, (event) => {
-                // [(time, value, blockNum)]
-                var blockNumber = event.blockNumber.valueOf()
-                return Promise.all([parity.getBlockTime(blockNumber),
-                    parity.queryAtBlock(contract[method], blockNumber), blockNumber])
-            }, {concurrency: 5})
-            // Sort the events by time
-                .then((events) => {
-                    return (events.sort((a, b) => {
-                        return a[0] - b[0]
-                    }))
-                })
-                .then((events) => {
-                    let prevBlock = 0
-                    let results = []
-                    events.forEach((elem, index) => {
-                        if (elem[2] !== prevBlock) {
-                            prevBlock = elem[2]
-                            results.push(elem)
-                        }
-                    })
-                    return results
-                })
-                .then((events) => {
-                    if (totalFrom === undefined) return resolve(events)
-                    return db.addDataPoints(contract.address.substr(2), method, events, totalFrom, totalTo)
-                        .then(() => {
-                            if (events.length > 0) {
-                                log.debug('Added ' + events.length + ' data points for ' + contract.address + ' ' + method)
-                            }
-                            return resolve(events)
-                        })
-                })
-                .catch((err) => {
-                    log.error('Data set generation error: ' + err)
+        return await new Promise((resolve, reject) => {
+            filter.get((err, res) => {
+                if (!err) {
+                    return resolve(res)
+                } else {
                     return reject(err)
-                })
-        })
-    }
-
-    parity.getRange = function (contractAddress, parsedContract, method, from, upTo) {
-        console.log('!!!parity.getRange(', contractAddress, method, from, upTo)
-        return parity.getHistory(contractAddress, method, from, upTo - 1)
-            .then(function (events) {
-                console.log('!!!parity.getHistory(result:', events)
-                return parity.generateDataPoints(events, parsedContract, method,
-                    from, upTo)
+                }
             })
+        })
+>>>>>>> parityv1 - TODO final check
     }
 
-    parity.getRangeOneBlock = function (contractAddress, parsedContract, method, blockNumber) {
-        return parity.generateDataPoints([{blockNumber: blockNumber}], parsedContract, method)
-    }
+    /**
+     * Main function responsible for generating data points for variable in block range [from, upTo]
+     *
+     * Consists of 3 steps:
+     * Step 1 - generating all events in given range (getHistory call)
+     * Step 2 - converting event to tuple [timestamp, value, blockNumber]
+     * Step 3 - sorting elements (ascending by timestamp) and discarding consecutive elements with
+     *          the same blockNumber (????) or value as predecessor
+     *
+     * @param {Object} parsedContract contract's instance
+     * @param {string} variableName
+     * @param {Number} from           beginning of block frame
+     * @param {Number} upTo           end of block frame
+     *
+     * @return {Promise<Array>} array of tuples [timeStamp, value, blockNumber]
+     */
+    parity.generateDataPoints = async function (parsedContract, variableName, from, upTo) {
+        let address = parsedContract.address
+        let events = await getHistory(address, from, upTo)
 
-    parity.getWeb3 = async function () {
-        return await web3
+        events = await Promise.map(events, event => {
+            let blockNumber = event.blockNumber.valueOf()
+
+            return Promise.all([getBlockTime(blockNumber),
+                valueAtBlock(parsedContract[variableName], blockNumber), blockNumber])
+        })
+
+        events = events.sort((a, b) => a[0] - b[0])
+
+        let prevElem = []
+        let results = []
+
+        events.forEach((elem, index) => {
+            if (index === 0 || (elem[1] !== prevElem[1] && elem[2] !== prevElem[2])) {
+                prevElem = elem
+                results.push(elem)
+            }
+        })
+
+        if (results.length > 0) {
+            if (results[0][1] === this.curLastValue)
+                results.shift()
+            if (results.length > 0) {
+                this.curLastValue = results[results.length - 1][1]
+                console.log('newVal', this.curLastValue)
+            }
+        }
+
+        return results
     }
 
     return parity
