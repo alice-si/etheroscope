@@ -10,7 +10,4 @@ module.exports.errorHandleThrow = (msg,throwMsg) => (error) => {
     throw throwMsg
 }
 
-module.exports.log = (msg) => console.log("[ETH_LOG]: ", msg)
-
-
 
