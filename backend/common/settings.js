@@ -24,3 +24,6 @@ module.exports.mysqlConnectionOptions = {
   database: 'etheroscope'
 }
 
+module.exports.dataPointsService = {
+  cacheChunkSize: 10000
+}
