@@ -25,5 +25,6 @@ module.exports.mysqlConnectionOptions = {
 }
 
 module.exports.dataPointsService = {
-  cacheChunkSize: 10000
+  cacheChunkSize: 10000,
+  socketPort: 8081
 }
