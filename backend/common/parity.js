@@ -142,16 +142,11 @@ module.exports = function (db) {
      *
      * @return {Promise<number>}
      */
-    function calculateBlockTime(blockNumber) {
-        return new Promise(function (resolve, reject) {
-            web3.eth.getBlock(blockNumber, function (err, res) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(res);
-                }
-            });
-        });
+    async function calculateBlockTime(blockNumber) {
+        console.log('before')
+        let block = await web3.eth.getBlock(blockNumber)
+        console.log('after')
+        return block.timestamp
     }
 
 
@@ -182,7 +177,7 @@ module.exports = function (db) {
                     }
 
                     console.log('before')
-                    let block = await calculateBlockTime(blockNumber), time = block.timestamp
+                    let time = await calculateBlockTime(blockNumber)
                     console.log('after')
                     // var timesStampOfFirstBlock = 1492107044
                     // var time = timesStampOfFirstBlock + (blockNumber * 15)
