@@ -1,16 +1,13 @@
-var path = require('path')
-var mysql = require('promise-mysql')
+const mysql = require('promise-mysql')
 
-var settings = require('./settings.js')
-var mysqlConnectionOptions = settings.mysqlConnectionOptions
+const settings = require('./settings.js')
+const mysqlConnectionOptions = settings.mysqlConnectionOptions
 
-var errorHandle = require('../common/errorHandlers').errorHandle
-var errorHandleCallback = require('../common/errorHandlers').errorHandleCallback
+const errorHandle = require('../common/errorHandlers').errorHandle
 
+const pool = mysql.createPool(mysqlConnectionOptions)
 
-var pool = mysql.createPool(mysqlConnectionOptions)
-
-async function test() {
+async function connect() {
     try {
         var results = await pool.query('SELECT 1 + 1 AS solution')
         console.log('MYSQL connection test "1+1" the solution is: ', results[0].solution)
@@ -20,7 +17,7 @@ async function test() {
     }
 }
 
-test()
+connect()
 
 /* DEFINE TABLES FOR BULK INSERT
  * Here we define the table schema
@@ -69,34 +66,7 @@ function buildValueString(valuesArray) {
 }
 
 module.exports = function (log) {
-    var db = {}
-    var isLoadSchema = false
-
-
-    db.anyQuery = async function (sql) {
-        return pool.query(sql)
-    }
-
-    db.loadSchema = function () {
-        console.log('loadSchema')
-        var fs = require('fs')
-        //TODO probably string from schema needs "\;" not ";"
-        fs.readFile(path.join(__dirname, './mysql-dbschema.ddl'), function (err, data) {
-            if (err) {
-                throw err
-            }
-
-            pool.query(data.toString(), (err, result) => {
-                if (err) {
-                    log.error('db.js: Error creating tables - perhaps they already exist')
-                }
-                else {
-                    console.log('successefuly loaded schema, result is:\n', result)
-                }
-            })
-        })
-    }
-
+    let db = {}
 
     /* This function takes in an array of arrays of the form:
      * values = ['0x0123456789', 'name'], and returns a promise
@@ -185,65 +155,58 @@ module.exports = function (log) {
      * Otherwise, returns contractName and contract info stored in database.
      *
      * @param contractHash
-     * @return {Promise} Promise object represents object {contractName: {string}, contract: {Object}}
+     * @return {Promise<Object>} returns object {contractName: {string}, contract: {Object}}
      */
-    db.getContract = function (contractHash) {
-        return new Promise(function (resolve, reject) {
-            let sql = `SELECT name, abi FROM contracts WHERE contractHash=\'${contractHash}\'`
+    db.getContract = async function (contractHash) {
+        log.debug(`db.getContract ${contractHash}`)
 
-            pool.query(sql)
-                .then((results) => {
-                    let result = {contractName: null, contract: null}
-                    if (results.length !== 0) {
-                        result.contractName = results[0].name
-                        result.contract = JSON.parse(results[0].abi)
-                    }
-                    return resolve(result)
-                })
-                .catch((err) => {
-                    return reject(err)
-                })
-        })
+        let sql = `SELECT name, abi FROM contracts WHERE contractHash=\'${contractHash}\'`
+
+        let results = await pool.query(sql)
+
+        if (results.length !== 0)
+            return { contractName: results[0].name, contract: JSON.parse(results[0].abi) }
+        else
+            return { contractName: null,  contract: null }
     }
 
     /**
      * Caches information about value of a given variable in a given block.
-     * Ranged of cached blocks for the variable is [cachedFrom, cachedUpTo].
      * Timestamps are currently ignored.
+     *
+     * Consists of 2 steps:
+     * Step 1 adds values into database.
+     * Step 2 updates  cached range for this variable.
      *
      * @param {string}   contractAddress
      * @param {string}   variableName
-     * @param {Object[]} values          elements are [timestamp, value, blockNumber
+     * @param {Object[]} values          elements are [timestamp, value, blockNumber]
      * @param {Number}   cachedFrom      beginning of range of cached blocks
      * @param {Number}   cachedUpTo      end of range of cached blocks
      */
-    db.addDataPoints = function (contractAddress, variableName, values, cachedFrom, cachedUpTo) {
-        return new Promise(function (resolve, reject) {
-            let sql = `UPDATE variables SET cachedFrom=\'${cachedFrom}\', cachedUpTo=\'${cachedUpTo}\'` +
-                `WHERE contractHash=\'${contractAddress}\' and variableName=\'${variableName}\'`
+    db.addDataPoints = async function (contractAddress, variableName, values, cachedFrom, cachedUpTo) {
+        log.debug(`db.addDataPoints ${contractAddress} ${variableName} ${values} ${cachedFrom} ${cachedUpTo}`)
 
-            if (values.length === 0) {
-                return pool.query(sql)
-                    .then(values => resolve(values))
-                    .catch(err => reject(err))
-            } else {
-                let sqlFormatValues = []
+        if (values.length !== 0) {
+            let sqlFormatValues = []
 
-                values.forEach((elem) => {
-                    sqlFormatValues.push([contractAddress, variableName, elem[1], elem[2]])
-                })
+            values.forEach((elem) => {
+                sqlFormatValues.push([contractAddress, variableName, elem[1], elem[2]])
+            })
 
-                let dataPointsTable = {
-                    sql: 'INSERT INTO dataPoints (contractHash, variableName, value, blockNumber) values ?',
-                    values: sqlFormatValues
-                }
-
-                return pool.query(dataPointsTable.sql, [dataPointsTable.values])
-                    .then(() => pool.query(sql))
-                    .then(values => resolve(values))
-                    .catch(err => reject(err))
+            let dataPointsTable = {
+                sql: 'INSERT INTO dataPoints (contractHash, variableName, value, blockNumber) values ?',
+                values: sqlFormatValues
             }
-        })
+
+            await pool.query(dataPointsTable.sql, [dataPointsTable.values])
+        }
+
+        let sql = `UPDATE variables SET cachedFrom=\'${cachedFrom}\', cachedUpTo=\'${cachedUpTo}\'` +
+            `WHERE contractHash=\'${contractAddress}\' and variableName=\'${variableName}\'`
+
+        await pool.query(sql)
+
     }
 
     /* This function takes a variable */
@@ -265,27 +228,20 @@ module.exports = function (log) {
     }
 
     /**
-     * Returns all timeStamps and values for a given contract and variable.
+     * Returns all timestamps and values for a given contract and variable.
      *
      * @param {string} contractHash
      * @param {string} variableName
      *
-     * @returns {Promise} result of Promise is array of Objects {timeStamp, value}
+     * @returns {Promise<Array>} promise representing array of Objects {timeStamp, value}
      */
-    db.getDataPoints = function (contractHash, variableName) {
-        return new Promise(function (resolve, reject) {
-            let sql = `SELECT timeStamp, value FROM dataPoints NATURAL JOIN blocks ` +
-                `WHERE contractHash=\'${contractHash}\' AND variableName=\'${variableName}\'`
+    db.getDataPoints = async function (contractHash, variableName) {
+        log.debug(`db.getDataPoints ${contractHash} ${variableName}`)
 
-            pool.query(sql)
-                .then((results) => {
-                    return resolve(results)
-                })
-                .catch((err) => {
-                    log.error('db.js: Error in getDataPoints', err)
-                    return reject(err)
-                })
-        })
+        let sql = `SELECT timeStamp, value FROM dataPoints NATURAL JOIN blocks ` +
+            `WHERE contractHash=\'${contractHash}\' AND variableName=\'${variableName}\'`
+
+        return await pool.query(sql)
     }
 
     db.getVariables = function (contractHash) {
@@ -309,20 +265,14 @@ module.exports = function (log) {
      * Function responsible for returning timestamp of a given block.
      *
      * @param blockNumber
-     * @return {Promise} timestamp
+     *
+     * @return {Promise<Array>} array of object {timestamp}
      */
-    db.getBlockTime = function (blockNumber) {
-        return new Promise(function (resolve, reject) {
+    db.getBlockTime = async function (blockNumber) {
+        log.debug(`db.getBlockTime ${blockNumber}`)
 
-            let sql = 'SELECT timeStamp FROM blocks WHERE blockNumber=\'' + blockNumber + '\''
-            pool.query(sql)
-                .then((results) => {
-                    return resolve(results)
-                })
-                .catch((err) => {
-                    return reject(err)
-                })
-        })
+        let sql = 'SELECT timeStamp FROM blocks WHERE blockNumber=\'' + blockNumber + '\''
+        return await pool.query(sql)
     }
 
     /**
@@ -330,20 +280,13 @@ module.exports = function (log) {
      *
      * @param {Array} values array of [blockNumber, timeStamp]
      */
-    db.addBlockTime = function (values) {
-        return new Promise(function (resolve, reject) {
-            let valueString = buildValueString(values)
+    db.addBlockTime = async function (values) {
+        log.debug(`db.addBlockTime ${values}`)
 
-            let sql = `INSERT INTO blocks (blockNumber, timeStamp) VALUES ${valueString}`
+        let valueString = buildValueString(values)
 
-            pool.query(sql)
-                .then(() => {
-                    return resolve()
-                })
-                .catch((err) => {
-                    return reject(err)
-                })
-        })
+        let sql = `INSERT INTO blocks (blockNumber, timeStamp) VALUES ${valueString}`
+        await pool.query(sql)
     }
 
     /* This function returns *all* the variables in a given date range
@@ -376,25 +319,19 @@ module.exports = function (log) {
      * @param {string} contractHash
      * @param {string} variableName
      *
-     * @returns {Promise} result of Promise is Object {cachedFrom, cachedUpTo}
+     * @returns {Promise<Object>} returns Object {cachedFrom, cachedUpTo}
      */
-    db.getCachedFromTo = function (contractHash, variableName) {
-        return new Promise(function (resolve, reject) {
-            let sql = `SELECT cachedFrom, cachedUpTo FROM variables WHERE contractHash='${contractHash}'` +
-                `AND variableName='${variableName}'`
+    db.getCachedFromTo = async function (contractHash, variableName) {
+        log.debug(`db.getCachedFromTo ${contractHash} ${variableName}`)
 
-            pool.query(sql)
-                .then((results) => {
-                    return resolve({
-                        cachedFrom: results[0].cachedFrom,
-                        cachedUpTo: results[0].cachedUpTo
-                    })
-                })
-                .catch((err) => {
-                    log.error('db.js: Error in getCachedFromTo', err)
-                    return reject(err)
-                })
-        })
+        let sql = `SELECT cachedFrom, cachedUpTo FROM variables WHERE contractHash='${contractHash}'` +
+            `AND variableName='${variableName}'`
+
+        let results = await pool.query(sql)
+        return {
+            cachedFrom: results[0].cachedFrom,
+            cachedUpTo: results[0].cachedUpTo
+        }
     }
 
     db.getLatestCachedBlockTime = function () {
