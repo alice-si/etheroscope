@@ -283,7 +283,7 @@ module.exports = function (db, log) {
         return new Promise((resolve, reject) => {
             return filter.get((err, res) => {
                 if (err) {
-                    log.error(`ERROR - getHistory ${address} ${startBlock} ${endBlock}`)
+                    log.error(`ERROR - parity.getHistory ${address} ${startBlock} ${endBlock}`)
                     return reject(err)
                 }
                 return resolve(res)
