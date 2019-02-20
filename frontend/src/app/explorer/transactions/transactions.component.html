@@ -1,12 +1,25 @@
-<div class="card" *ngIf="transactions.length > 0">
-  <h5 class="transactions-header">Transactions history</h5>
+<div class="card transactions" *ngIf="transactions && transactions[page] && transactions[page].length">
+
+  <div class="transactions-header">
+    <button [hidden]="!transactions[page - 1] || !transactions[page - 1].length" class="btn btn-link" (click)="changePage(page - 1)">
+      <clr-icon shape="arrow left"></clr-icon>
+    </button>
+    <h5>Transactions history</h5>
+    <button [hidden]="!transactions[page + 1] || !transactions[page + 1].length" class="btn btn-link" (click)="changePage(page + 1)">
+      <clr-icon shape="arrow right"></clr-icon>
+    </button>
+    <span [hidden]="transactions[page + 1]" class="btn btn-link loading">
+    </span>
+  </div>
+
   <table class="transactions-container">
     <thead>
       <tr>
+        <th class="card-title">No</th>
         <th></th>
         <th class="card-title">TxHash</th>
         <th class="card-title">Block</th>
-        <th class="card-title">Age</th>
+        <th class="card-title">Date (UTC)</th>
         <th></th>
         <th class="card-title">From</th>
         <th></th>
@@ -15,28 +28,29 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let transaction of transactions">
+      <tr *ngFor="let transaction of transactions[page]; let i = index">
+        <td>{{ (page - 1) * TRANSACTIONS_PER_PAGE + i}}</td>
         <td>
-          <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the transaction hash!" (click)="copyToClipboard(transaction.TxHash)">
+          <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the transaction hash!" (click)="copyToClipboard(transaction.transactionHash)">
             <clr-icon shape="copy" style="color: #1998a2"></clr-icon>
           </button>
         </td>
-        <td>{{truncate(transaction.TxHash)}}</td>
-        <td>{{truncate(transaction.Block)}}</td>
-        <td>{{secondsToDhms(transaction.Age)}} ago</td>
+        <td>{{truncate(transaction.transactionHash)}}</td>
+        <td>{{truncate(transaction.blockNumber)}}</td>
+        <td>{{toDate(1000 * transaction.timestamp)}}</td>
         <td>
-          <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the 'From' value!" (click)="copyToClipboard(transaction.From)">
+          <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the 'From' value!" (click)="copyToClipboard(transaction.transaction.from)">
             <clr-icon shape="copy" style="color: #1998a2"></clr-icon>
           </button>
         </td>
-        <td><a [routerLink]="'/explorer/0x' + transaction.From">{{truncate(transaction.From)}}</a></td>
+        <td><a [routerLink]="'/explorer/' + transaction.transaction.from">{{truncate(transaction.transaction.from)}}</a></td>
         <td>
-          <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the 'To' value!" (click)="copyToClipboard(transaction.To)">
+          <button class="btn btn-icon btn-link" style="margin:0;" title="Click to copy the 'To' value!" (click)="copyToClipboard(transaction.transaction.to)">
             <clr-icon shape="copy" style="color: #1998a2"></clr-icon>
           </button>
         </td>
-        <td><a [routerLink]="'/explorer/0x' + transaction.To">{{truncate(transaction.To)}}</a></td>
-        <td>{{transaction.Value}} Ether</td>
+        <td><a [routerLink]="'/explorer/' + transaction.transaction.to">{{truncate(transaction.transaction.to)}}</a></td>
+        <td>{{transaction.value}} Ether</td>
       </tr>
     </tbody>
   </table>

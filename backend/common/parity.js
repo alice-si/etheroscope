@@ -122,10 +122,6 @@ module.exports = function (db, log, validator) {
         })
     }
 
-    parity.calculateBlockTime = async function (blockNumber) {
-        return await web3.eth.getBlock(blockNumber).timestamp
-    }
-
     parity.getBlockTime = async function (blockNumber) {
         // Check the database for the blockTimeMapping
         var result = await db.getBlockTime(blockNumber)
@@ -154,7 +150,47 @@ module.exports = function (db, log, validator) {
         })
     }
 
-    parity.getHistory = async function (address, method, startBlock, endBlock) {
+    parity.calculateBlockTime = async function (blockNumber) {
+        let block = await web3.eth.getBlock(blockNumber)
+        return block.timestamp;
+    }
+
+    /**
+     * Function responsible for retrieving basic transaction information
+     *
+     * @param {String} transactionHash hash of contract transaction
+     *
+     * @return {Promise} transaction object
+     */
+    parity.getTransaction = async function (transactionHash) {
+        return new Promise(function (resolve, reject) {
+            web3.eth.getTransaction(transactionHash, function (err, res) {
+              if (err) {
+                reject(err)
+              } else {
+                resolve(res)
+              }
+            })
+        })
+    }
+
+    /**
+     * Function responsible for converting value of transaction to another unit.
+     *
+     * @param {number|BigNumber|string} value wei value of transaction
+     * @param {string} unit one of the following: https://github.com/ethereum/wiki/wiki/JavaScript-API#web3fromwei
+     *
+     * @return {string|BigNumber} converted value
+     */
+    parity.convertValue = function (value, unit) {
+        try {
+            return web3.fromWei(value, unit)
+        } catch (err) {
+            errorHandler.errorHandleThrow('ParityClient', 'Problem with converting transaction value')(err)
+        }
+    }
+
+    parity.getHistory = async function (address, startBlock, endBlock) {
         let filter = await web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
         var result = await new Promise((resolve, reject) => {
             filter.get((error, result) => {
