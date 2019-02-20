@@ -24,18 +24,22 @@ module.exports = function (db, log) {
      *
      * @return {Promise<number>} number of latest block
      */
-    parity.getLatestBlock = function() {
-        log.debug('parityGetLatestBlock')
+    parity.getLatestBlock = async function() {
+        try {
+            log.debug('parity.getLatestBlock')
 
-        return new Promise((resolve, reject) => {
-            return web3.eth.getBlockNumber((err, block) => {
-                if (err) {
-                    log.error('ERROR - parityGetLatestBlock', err)
-                    return reject(err)
-                }
-                return resolve(block)
+            return await new Promise((resolve, reject) => {
+                return web3.eth.getBlockNumber((err, block) => {
+                    if (err) {
+                        log.error('ERROR - parityGetLatestBlock', err)
+                        return reject(err)
+                    }
+                    return resolve(block)
+                })
             })
-        })
+        } catch(err) {
+            errorHandler.errorHandleThrow('parity.getLatestBlock', '')(err)
+        }
     }
 
     /**
@@ -333,10 +337,8 @@ module.exports = function (db, log) {
             if (results.length > 0) {
                 if (this.curLastValue && results[0][1].valueOf() === this.curLastValue.valueOf())
                     results.shift()
-                if (results.length > 0) {
+                if (results.length > 0)
                     this.curLastValue = results[results.length - 1][1]
-                    console.log('newVal', this.curLastValue)
-                }
             }
 
             return results
