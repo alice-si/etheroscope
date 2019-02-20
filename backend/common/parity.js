@@ -277,11 +277,9 @@ module.exports = function (db, log) {
      */
     async function getHistory(address, startBlock, endBlock) {
         log.debug(`parity.getHistory ${address} ${startBlock} ${endBlock}`)
-
-        let filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
-
+        
         return new Promise((resolve, reject) => {
-            return filter.get((err, res) => {
+            return web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address}).get((err, res) => {
                 if (err) {
                     log.error(`ERROR - parity.getHistory ${address} ${startBlock} ${endBlock}`)
                     return reject(err)
