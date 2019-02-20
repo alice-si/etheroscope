@@ -4,28 +4,29 @@ const Promise = require('bluebird')
 const ReadWriteLock = require('rwlock')
 
 const settings = require('./settings.js')
-
+const errorHandler = require('../common/errorHandlers')
 
 const lock = new ReadWriteLock()
 const parityUrl = "http://" + settings.ETHEROSCOPEPARITYMAINNET
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
-module.exports = function (db) {
+module.exports = function (db, log) {
     let parity = {}
 
     if (!web3.isConnected()) {
-        console.log('Please start parity, have tried:', parityUrl)
+        log.error('Please start parity, have tried:', parityUrl)
         process.exit(1)
     }
-    console.log('Successfully connected to parity, tried', parityUrl)
+    log.info('Successfully connected to parity, tried', parityUrl)
 
     /**
-     *
      * Function responsible for sending number of latest block in ethereum.
      *
-     * @return {Bluebird} number of latest block
+     * @return {Promise<number>} number of latest block
      */
     parity.getLatestBlock = function() {
+        log.debug('parityGetLatestBlock')
+
         return new Promise((resolve, reject) => {
             return web3.eth.getBlockNumber((error, block) => {
                 if (error)
@@ -38,12 +39,12 @@ module.exports = function (db) {
     /**
      * Function responsible for fetching contract's information from etherscan API.
      *
-     * @param address
-     * @param network specifies ethereum's network we currently use
+     * @param {string} address
+     * @param {string} [network=mainnet] specifies ethereum's network we currently use
      *
      * @return {Promise<any>} contract's instance
      */
-    async function getContractInfoFromEtherscan(address, network) {
+    async function getContractInfoFromEtherscan(address, network="mainnet") {
         // TODO - store apiKey in settings
         let etherscanAPIKey = "RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23"
 
@@ -62,26 +63,31 @@ module.exports = function (db) {
      * Otherwise, we retrieve data from etherscan and cache it in database for future use.
      *
      * @param {string} address
-     * @param {string} [network=mainnet] specifies ethereum's network we currently use
      *
      * @return {Promise<{parsedContract: Object, contractName: string}>}
      */
-    parity.getContract = async function (address, network="mainnet") {
-        let contractFromDB = await db.getContract(address.substr(2))
-        let parsedABI = contractFromDB.contract
+    parity.getContract = async function (address) {
+        try {
+            log.debug(`parity.getContract ${address}`)
 
-        // this scenario happens "in" the main server
-        if (parsedABI === null) {
-            parsedABI =  await getContractInfoFromEtherscan(address, network)
-            await db.updateContractWithABI(address.substr(2), parsedABI)
-            contractFromDB = await db.getContract(address.substr(2))
-            parsedABI = contractFromDB.contract
+            let contractFromDB = await db.getContract(address.substr(2))
+            let parsedABI = contractFromDB.contract
+
+            // this scenario happens "in" the main server
+            if (parsedABI === null) {
+                parsedABI = await getContractInfoFromEtherscan(address)
+                await db.updateContractWithABI(address.substr(2), parsedABI)
+                contractFromDB = await db.getContract(address.substr(2))
+                parsedABI = contractFromDB.contract
+            }
+
+            let contract = web3.eth.contract(parsedABI)
+            let parsedContract = contract.at(address)
+
+            return {contractName: contractFromDB.contractName, parsedContract: parsedContract}
+        } catch (err) {
+            errorHandler.errorHandleThrow(`parity.getContract ${address}`, '')(err)
         }
-
-        let contract = web3.eth.contract(parsedABI)
-        let parsedContract = contract.at(address)
-
-        return { contractName: contractFromDB.contractName, parsedContract: parsedContract }
     }
 
     function isVariable(item) {
@@ -123,9 +129,11 @@ module.exports = function (db) {
      *
      * @param {function} variableFunction
      * @param {number}   blockNumber
-     * @return {Bluebird | Bluebird<any>} value of variable
+     * @return {Promise<number>} value of variable
      */
     function valueAtBlock(variableFunction, blockNumber) {
+        log.debug(`parity.valueAtBlock ${blockNumber}`)
+
         let hex = '0x' + blockNumber.toString(16)
         web3.eth.defaultBlock = hex
         return new Promise((resolve, reject) => {
@@ -142,11 +150,16 @@ module.exports = function (db) {
      *
      * @return {Promise<number>}
      */
-    async function calculateBlockTime(blockNumber) {
-        console.log('before')
-        let block = await web3.eth.getBlock(blockNumber)
-        console.log('after')
-        return block.timestamp
+    function calculateBlockTime(blockNumber) {
+        log.debug(`parity.calculateBlockTime ${blockNumber}`)
+
+        return new Promise((resolve, reject) => {
+            return web3.eth.getBlock(blockNumber, (err, result) => {
+                if (err)
+                    return reject(err)
+                return resolve(result.timestamp)
+            })
+        })
     }
 
 
@@ -159,14 +172,16 @@ module.exports = function (db) {
      *
      * @param {Number} blockNumber
      *
-     * @return {Promise} timestamp of block
+     * @return {Promise<number>} timestamp of block
      */
     async function getBlockTime(blockNumber) {
+        log.debug(`parity.getBlockTime ${blockNumber}`)
+
         let result = await db.getBlockTime(blockNumber)
         if (result.length !== 0)
             return result[0].timeStamp
 
-        return await new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             try {
                 lock.writeLock(blockNumber, async (release) => {
                     let result = await db.getBlockTime(blockNumber)
@@ -176,9 +191,8 @@ module.exports = function (db) {
                         return resolve(result[0].timeStamp)
                     }
 
-                    console.log('before')
                     let time = await calculateBlockTime(blockNumber)
-                    console.log('after')
+
                     // var timesStampOfFirstBlock = 1492107044
                     // var time = timesStampOfFirstBlock + (blockNumber * 15)
                     await db.addBlockTime([[blockNumber, time]])
@@ -251,10 +265,12 @@ module.exports = function (db) {
      * @return {Promise<any>} array of events
      */
     async function getHistory(address, startBlock, endBlock) {
-        let filter = await web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
+        log.debug(`parity.getHistory ${address} ${startBlock} ${endBlock}`)
 
-        return await new Promise((resolve, reject) => {
-            filter.get((err, res) => {
+        let filter = web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
+
+        return new Promise((resolve, reject) => {
+            return filter.get((err, res) => {
                 if (!err) {
                     return resolve(res)
                 } else {
@@ -282,38 +298,46 @@ module.exports = function (db) {
      * @return {Promise<Array>} array of tuples [timeStamp, value, blockNumber]
      */
     parity.generateDataPoints = async function (parsedContract, variableName, from, upTo) {
-        let address = parsedContract.address
-        let events = await getHistory(address, from, upTo)
+        try {
+            log.debug(`parity.generateDataPoints ${parsedContract.contract} ${variableName} ${from} ${upTo}`)
 
-        events = await Promise.map(events, event => {
-            let blockNumber = event.blockNumber.valueOf()
+            let address = parsedContract.address
+            let events = await getHistory(address, from, upTo)
 
-            return Promise.all([getBlockTime(blockNumber),
-                valueAtBlock(parsedContract[variableName], blockNumber), blockNumber])
-        })
+            events = await Promise.map(events, event => {
+                let blockNumber = event.blockNumber.valueOf()
 
-        events = events.sort((a, b) => a[0] - b[0])
+                return Promise.all([getBlockTime(blockNumber),
+                    valueAtBlock(parsedContract[variableName], blockNumber), blockNumber])
+            })
 
-        let prevElem = []
-        let results = []
+            events = events.sort((a, b) => a[0] - b[0])
 
-        events.forEach((elem, index) => {
-            if (index === 0 || (elem[1] !== prevElem[1] && elem[2] !== prevElem[2])) {
-                prevElem = elem
-                results.push(elem)
-            }
-        })
+            let prevElem = []
+            let results = []
 
-        if (results.length > 0) {
-            if (results[0][1] === this.curLastValue)
-                results.shift()
+            events.forEach((elem, index) => {
+                if (index === 0 || (elem[1] !== prevElem[1] && elem[2] !== prevElem[2])) {
+                    prevElem = elem
+                    results.push(elem)
+                }
+            })
+
             if (results.length > 0) {
-                this.curLastValue = results[results.length - 1][1]
-                console.log('newVal', this.curLastValue)
+                if (results[0][1] === this.curLastValue)
+                    results.shift()
+                if (results.length > 0) {
+                    this.curLastValue = results[results.length - 1][1]
+                    console.log('newVal', this.curLastValue)
+                }
             }
-        }
 
-        return results
+            return results
+        } catch (err) {
+            errorHandler.errorHandleThrow(
+                `parity.generateDataPoints ${parsedContract.contract} ${variableName} ${from} ${upTo}`
+                , '')(err)
+        }
     }
 
     return parity
