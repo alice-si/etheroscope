@@ -144,7 +144,7 @@ module.exports = function (db, log) {
                     log.error(`ERROR - parity.valueAtBlock ${blockNumber}`, err)
                     return reject(err)
                 }
-                return resolve(result)
+                return resolve(parseInt(result.valueOf()))
             })
         })
     }
@@ -306,7 +306,7 @@ module.exports = function (db, log) {
      */
     parity.generateDataPoints = async function (parsedContract, variableName, from, upTo) {
         try {
-            log.debug(`parity.generateDataPoints ${parsedContract.contract} ${variableName} ${from} ${upTo}`)
+            log.debug(`parity.generateDataPoints ${parsedContract.address} ${variableName} ${from} ${upTo}`)
 
             let address = parsedContract.address
             let events = await getHistory(address, from, upTo)
@@ -324,14 +324,14 @@ module.exports = function (db, log) {
             let results = []
 
             events.forEach((elem, index) => {
-                if (index === 0 || (elem[1] !== prevElem[1] && elem[2] !== prevElem[2])) {
+                if (index === 0 || (elem[1].valueOf() !== prevElem[1].valueOf() && elem[2] !== prevElem[2])) {
                     prevElem = elem
                     results.push(elem)
                 }
             })
 
             if (results.length > 0) {
-                if (results[0][1] === this.curLastValue)
+                if (this.curLastValue && results[0][1].valueOf() === this.curLastValue.valueOf())
                     results.shift()
                 if (results.length > 0) {
                     this.curLastValue = results[results.length - 1][1]
@@ -342,7 +342,7 @@ module.exports = function (db, log) {
             return results
         } catch (err) {
             errorHandler.errorHandleThrow(
-                `parity.generateDataPoints ${parsedContract.contract} ${variableName} ${from} ${upTo}`
+                `parity.generateDataPoints ${parsedContract.address} ${variableName} ${from} ${upTo}`
                 , '')(err)
         }
     }
