@@ -28,9 +28,11 @@ module.exports = function (db, log) {
         log.debug('parityGetLatestBlock')
 
         return new Promise((resolve, reject) => {
-            return web3.eth.getBlockNumber((error, block) => {
-                if (error)
-                    return reject(error)
+            return web3.eth.getBlockNumber((err, block) => {
+                if (err) {
+                    log.error('ERROR - parityGetLatestBlock', err)
+                    return reject(err)
+                }
                 return resolve(block)
             })
         })
@@ -138,7 +140,11 @@ module.exports = function (db, log) {
         web3.eth.defaultBlock = hex
         return new Promise((resolve, reject) => {
             return variableFunction((err, result) => {
-                return (err ? reject(err) : resolve(parseInt(result.valueOf())))
+                if (err) {
+                    log.error(`ERROR - parity.valueAtBlock ${blockNumber}`, err)
+                    return reject(err)
+                }
+                return resolve(result)
             })
         })
     }
@@ -155,8 +161,10 @@ module.exports = function (db, log) {
 
         return new Promise((resolve, reject) => {
             return web3.eth.getBlock(blockNumber, (err, result) => {
-                if (err)
+                if (err) {
+                    log.error(`ERROR - parity.calculateBlockTime ${blockNumber}`, err)
                     return reject(err)
+                }
                 return resolve(result.timestamp)
             })
         })
@@ -193,8 +201,6 @@ module.exports = function (db, log) {
 
                     let time = await calculateBlockTime(blockNumber)
 
-                    // var timesStampOfFirstBlock = 1492107044
-                    // var time = timesStampOfFirstBlock + (blockNumber * 15)
                     await db.addBlockTime([[blockNumber, time]])
 
                     release()
@@ -203,6 +209,7 @@ module.exports = function (db, log) {
                 })
             }
             catch (err) {
+                log.error(`ERROR - parity.getBlockTime ${blockNumber}`, err)
                 reject(err)
             }
         })
@@ -271,11 +278,11 @@ module.exports = function (db, log) {
 
         return new Promise((resolve, reject) => {
             return filter.get((err, res) => {
-                if (!err) {
-                    return resolve(res)
-                } else {
+                if (err) {
+                    log.error(`ERROR - getHistory ${address} ${startBlock} ${endBlock}`)
                     return reject(err)
                 }
+                return resolve(res)
             })
         })
 >>>>>>> parityv1 - TODO final check
