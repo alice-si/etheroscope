@@ -21,8 +21,13 @@ module.exports = function (db, log, validator) {
   contractInfoService.getTransactions = async function (contractAddress, fromBlock, toBlock, startIndex, endIndex) {
     try {
       let transactionsList = await parityClient.getHistory(contractAddress, fromBlock, toBlock)
-      let transactionsHistory = transactionsList.slice(startIndex, endIndex)
+      transactionsList = transactionsList.filter((transaction, index, self) =>
+        index === self.findIndex(t => t.transactionHash === transaction.transactionHash)
+      )
+      let transactionsHistory = transactionsList.slice(Math.max(transactionsList.length - endIndex, 0),
+                                                       Math.max(transactionsList.length - startIndex, 0)).reverse()
 
+      console.log(transactionsHistory.map(x => x.transactionHash))
       return Promise.all(transactionsHistory.map(async (transaction) => {
         transaction.timestamp = await parityClient.calculateBlockTime(transaction.blockNumber)
         transaction.transaction = await parityClient.getTransaction(transaction.transactionHash)

@@ -151,8 +151,15 @@ module.exports = function (db, log, validator) {
     }
 
     parity.calculateBlockTime = async function (blockNumber) {
-        let block = await web3.eth.getBlock(blockNumber)
-        return block.timestamp;
+        return new Promise((resolve, reject) => {
+            web3.eth.getBlock(blockNumber, (err, res) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(res.timestamp)
+                }
+            })
+        })
     }
 
     /**
@@ -163,8 +170,8 @@ module.exports = function (db, log, validator) {
      * @return {Promise} transaction object
      */
     parity.getTransaction = async function (transactionHash) {
-        return new Promise(function (resolve, reject) {
-            web3.eth.getTransaction(transactionHash, function (err, res) {
+        return new Promise((resolve, reject) => {
+            web3.eth.getTransaction(transactionHash, (err, res) => {
               if (err) {
                 reject(err)
               } else {
@@ -191,18 +198,16 @@ module.exports = function (db, log, validator) {
     }
 
     parity.getHistory = async function (address, startBlock, endBlock) {
-        let filter = await web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address})
-        var result = await new Promise((resolve, reject) => {
-            filter.get((error, result) => {
-                if (!error) {
-                    return resolve(result)
-                } else {
-                    return reject(error)
-                }
+       return new Promise((resolve, reject) => {
+            web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address}).get((err, res) => {
+              if (err) {
+                reject(err)
+              } else {
+                if (res.length === 0) console.log('getHistoryResult is empty:', res)
+                resolve(res)
+              }
             })
         })
-        if (result.length === 0) console.log('getHistoryResult is empty:', result)
-        return result
     }
 
     parity.generateDataPoints = function (eventsA, contract, method,
