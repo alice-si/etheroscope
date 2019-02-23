@@ -254,18 +254,6 @@ module.exports = function (db, log) {
         }
     }
 
-    parity.getHistory = async function (address, startBlock, endBlock) {
-       return new Promise((resolve, reject) => {
-            web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address}).get((err, res) => {
-              if (err) {
-                reject(err)
-              } else {
-                if (res.length === 0) console.log('getHistoryResult is empty:', res)
-                resolve(res)
-              }
-            })
-        })
-=======
     /**
      * Function responsible for generating contract's events that occured in a given block range [startBlock, endBlock].
      *
@@ -287,7 +275,6 @@ module.exports = function (db, log) {
                 return resolve(res)
             })
         })
->>>>>>> parityv1 - TODO final check
     }
 
     /**
