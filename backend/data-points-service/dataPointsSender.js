@@ -74,13 +74,13 @@ module.exports = function (io, log) {
                     let parsedContract = contractInfo.parsedContract
 
                     await cacheMorePoints(parsedContract, variableName, cachedFrom, cachedUpTo, latestBlock)
-
-                    streamedSet.deleteChannel(address, variableName)
                 }
 
             } catch (err) {
                 errorHandler.errorHandle(`dataPointsSender.sendHistory ${address} ${variableName}`)(err)
                 io.sockets.in(address + variableName).emit('getHistoryResponse', { error: true })
+            } finally {
+                streamedSet.deleteChannel(address, variableName)
             }
         }
 
