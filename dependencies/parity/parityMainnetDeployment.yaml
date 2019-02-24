@@ -18,10 +18,11 @@ spec:
         gcePersistentDisk:
           pdName: ethereum-parity-disk
           fsType: ext4
+      securityContext:
+        fsGroup: 1000
       containers:
       - name: parity-mainnet
         image: gcr.io/etheroscope/myparity:stable
-#        image: parity/parity:stable
         env:
         - name: PATH
           value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
@@ -29,9 +30,9 @@ spec:
           value: "parity"
         - name: RUST_BACKTRACE
           value: "1"
-#        command: ["parity", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
         command: ["/home/parity/bin/parity"]
-        args: ["-d", "--db-path=/ethereum-data/", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
+        args: ["-d", "/ethereum-data", "--no-warp", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all",
+               "--jsonrpc-interface", "all", "--allow-ips=public", "--no-discovery"]
         ports:
         - containerPort: 8545
           name: port1mainnet

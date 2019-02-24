@@ -18,6 +18,8 @@ spec:
         gcePersistentDisk:
           pdName: kovan-parity-disk
           fsType: ext4
+      securityContext:
+        fsGroup: 1000
       containers:
       - name: parity-kovan
         image: gcr.io/etheroscope/myparity:stable
@@ -28,12 +30,9 @@ spec:
           value: "parity"
         - name: RUST_BACKTRACE
           value: "1"
-#        command: ["which"]
-#        args: ["parity"]
         command: ["/home/parity/bin/parity"]
-        args: ["-d", "--db-path=/kovan-data/", "--chain", "kovan", "--no-warp", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
-#        command: ["parity", "-d", "--base-path=/kovan-data/base", "--db-path=/kovan-data/base/db", "--chain", "kovan", "--no-warp", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
-#        command: ["parity", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all", "--jsonrpc-interface", "all"]
+        args: ["-d", "/kovan-data", "--chain", "kovan", "--no-warp", "--tracing", "on", "--pruning", "archive",
+               "--jsonrpc-hosts", "all", "--jsonrpc-interface", "all", "--allow-ips=public", "--no-discovery"]
         ports:
         - containerPort: 8545
           name: port1kovan

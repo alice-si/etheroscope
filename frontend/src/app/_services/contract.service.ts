@@ -1,11 +1,10 @@
 import {Injectable, NgModule} from '@angular/core';
-import {Http, Headers, Response, RequestOptions} from '@angular/http';
-import {Observable} from "rxjs/Observable";
+import {Http, Response, URLSearchParams } from '@angular/http';
 import 'rxjs/add/operator/map';
 import {SocketIoModule, SocketIoConfig, Socket} from 'ng-socket-io';
 
 import {environment} from '../../environments/environment';
-import {Location, LocationStrategy, PathLocationStrategy} from '@angular/common';
+import {Location} from '@angular/common';
 import {AppComponent} from "../app.component";
 import {BrowserModule} from "@angular/platform-browser";
 
@@ -43,6 +42,13 @@ export class ContractService {
         console.log("Sending Request...");
         this.locate.go('/explorer/' + contract);
         return this.http.get(this.apiUrl + 'api/explore/' + contract).map(this.extractData);
+    }
+
+    getTransactionsHistory(contract: string, start: number, end: number) {
+        let params = new URLSearchParams()
+        params.append("start", start.toString())
+        params.append("end", end.toString())
+        return this.http.get(this.apiUrl + 'api/transactions/' + contract, { params: params }).map(this.extractData);
     }
 
     searchContracts(pattern: string, advancedConstraints: { variables: any, transactions: any }) {

@@ -18,6 +18,7 @@ import { PopularComponent } from "./popular/popular.component";
 import { SearchBarComponent } from "./explorer/search/search.component";
 import { GraphComponent } from "./explorer/graph/graph.component";
 import { CardsComponent } from "./explorer/cards/cards.component";
+import { TransactionsComponent } from './explorer/transactions/transactions.component';
 
 // Services
 import { ContractService } from "./_services/contract.service";
@@ -33,7 +34,8 @@ const config: SocketIoConfig = { url: environment.socketURL, options: { transpor
     PopularComponent,
     SearchBarComponent,
     GraphComponent,
-    CardsComponent
+    CardsComponent,
+    TransactionsComponent
   ],
   imports: [
     BrowserAnimationsModule,
