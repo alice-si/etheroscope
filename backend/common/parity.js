@@ -160,7 +160,7 @@ module.exports = function (db, log) {
      *
      * @return {Promise<number>}
      */
-    function calculateBlockTime(blockNumber) {
+    parity.calculateBlockTime = function (blockNumber) {
         log.debug(`parity.calculateBlockTime ${blockNumber}`)
 
         return new Promise((resolve, reject) => {
@@ -203,7 +203,7 @@ module.exports = function (db, log) {
                         return resolve(result[0].timeStamp)
                     }
 
-                    let time = await calculateBlockTime(blockNumber)
+                    let time = await parity.calculateBlockTime(blockNumber)
 
                     await db.addBlockTime([[blockNumber, time]])
 
@@ -263,7 +263,7 @@ module.exports = function (db, log) {
      *
      * @return {Promise<any>} array of events
      */
-    async function getHistory(address, startBlock, endBlock) {
+    parity.getHistory = async function (address, startBlock, endBlock) {
         log.debug(`parity.getHistory ${address} ${startBlock} ${endBlock}`)
         
         return new Promise((resolve, reject) => {
@@ -298,7 +298,7 @@ module.exports = function (db, log) {
             log.debug(`parity.generateDataPoints ${parsedContract.address} ${variableName} ${from} ${upTo}`)
 
             let address = parsedContract.address
-            let events = await getHistory(address, from, upTo)
+            let events = await parity.getHistory(address, from, upTo)
 
             events = await Promise.map(events, event => {
                 let blockNumber = event.blockNumber.valueOf()
