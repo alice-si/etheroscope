@@ -34,7 +34,6 @@ var sqlContractLookupHistory = 'create table if not exists contractLookupHistory
 var sqlBlocks = 'create table if not exists blocks(\n' +
   '    blockNumber BIGINT   not null,\n' +
   '    timeStamp   BIGINT   not null,\n' +
-  '    userLog     BIT      not null,\n' +
   '    primary key (blockNumber)\n' +
   ');\n'
 var sqlVariables = 'create table if not exists variables(\n' +
@@ -90,38 +89,7 @@ function createTables () {
 
 }
 
-async function addBlocksWithTimestamps () {
-
-  var step = 10000          // size of inserted block pack
-  var startBlock = 0
-  // var endBlock = 1000000
-  var endBlock = 4500000
-
-  var timesStampOfFirstBlock = 1492107044
-
-  var i = startBlock // second for iterator
-  var sql
-  for (var curEndBlock = startBlock + step; curEndBlock < endBlock; curEndBlock += step) {
-
-    var array = []
-
-    for (; i < curEndBlock; i++) {
-      var blockNumber = i
-      await array.push([blockNumber, timesStampOfFirstBlock + (blockNumber * 15), 0])
-
-    }
-    console.log('pushed to array block', blockNumber, 'percent completed (+/-', parseInt(step / endBlock), '):', 100 * (blockNumber / endBlock), '%')
-
-    sql = 'insert into blocks (blockNumber, timeStamp, userLog) values ?'
-    pool.query(sql, [array], console.log).catch(error => {
-      console.log('Pushing blocks to db Error')
-      console.log(error)
-    })
-  }
-  console.log('[setupNewDatabase.js]: Pushing blocks completed, turn off this script.\n')
-}
 
 setTimeout(createDatabase, 500)
 setTimeout(createTables, 3500)
 setTimeout(createTables, 5500) // datapoints table doesnt create first time
-setTimeout(addBlocksWithTimestamps, 7500)

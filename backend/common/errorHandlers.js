@@ -6,8 +6,8 @@ module.exports.errorHandleCallback = (msg, cb) => (error) => {
 }
 
 module.exports.errorHandleThrow = (msg,throwMsg) => (error) => {
-    console.error("ERROR message:",msg,"\nERROR is:\n",error)
-    throw throwMsg
+    console.error("ERROR message:",msg)
+    throw error
 }
 
 

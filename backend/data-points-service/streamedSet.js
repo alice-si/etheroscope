@@ -1,33 +1,59 @@
-var ReadWriteLock = require('rwlock')
-var lock = new ReadWriteLock()
+const ReadWriteLock = require('rwlock')
+const lock = new ReadWriteLock()
 
-var methodCachesInProgress = new Set()
+let methodCachesInProgress = new Map()
 
 module.exports = function () {
 
     const streamedSet = {}
 
+    /**
+     * Function responsible for adding address + method to set containing currently processed data.
+     *
+     * Additionally it returns if pair (address, method) is already being processed.
+     *
+     * @param {string} address
+     * @param {string} method
+     * @param {number} latestBlock
+     *
+     * @return {Promise<number>} latestBlock from actual processing or
+     *                           null if this pair is not being processed right now
+     */
+    streamedSet.addChannel = async function (address, method, latestBlock) {
+        return await new Promise((resolve, reject) => {
+            try {
+                function addChannel(release) {
+                    let channelName = address + method
 
-    streamedSet.addChannel = function (address,method) {
-        function addChannel(release) {
-            var halo = "kalosze"
-            console.log(halo)
-            var channelName = address + method
-            console.log(halo,channelName)
-            // If there is already a caching process, we don't need to set one up
-            if (!methodCachesInProgress.has(channelName)) methodCachesInProgress.add(channelName)
-            release()
-        }
-        return lock.writeLock('setLock', addChannel)
+                    if (methodCachesInProgress.has(channelName)) {
+                        release()
+                        return resolve(methodCachesInProgress.get(channelName))
+                    }
+
+                    methodCachesInProgress.set(channelName, latestBlock)
+                    release()
+                    return resolve(null)
+                }
+                lock.writeLock('setLock', addChannel)
+            } catch (err) {
+                reject(err)
+            }
+        })
     }
 
-    streamedSet.deleteChannel = function (address,method) {
+    /**
+     * Function responsible for deleting addres + method from set
+     *
+     * @param address
+     * @param method
+     */
+    streamedSet.deleteChannel = function (address, method) {
         function deleteChannel(release) {
-            var channelName = address + method
+            let channelName = address + method
             methodCachesInProgress.delete(channelName)
             release()
         }
-        return lock.writeLock('setLock', deleteChannel)
+        lock.writeLock('setLock', deleteChannel)
     }
 
     return streamedSet

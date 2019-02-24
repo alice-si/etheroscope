@@ -1,12 +1,18 @@
-var morgan = require('morgan')
-let log = require('loglevel')
-let validator = require('validator')
-var assert = require('assert');
+const morgan = require('morgan')
+const log = require('loglevel')
+const http = require('http')
+const express = require('express')
+const bodyParser = require('body-parser')
+const socketIO = require('socket.io')
 
-// Initialise the server
-let express = require('express')
-let bodyParser = require('body-parser')
-let app = express()
+const settings = require('../common/settings')
+const DataPointsSender = require('./dataPointsSender')
+
+const socketPort = settings.dataPointsService.socketPort
+
+log.enableAll()
+
+const app = express()
 
 // set CORS
 app.use(function (req, res, next) {
@@ -14,51 +20,44 @@ app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
     next()
 })
+
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(morgan('dev'))
 
-var http = require('http')
-let socketPort = 8081
-let server = http.createServer(app)
+const server = http.createServer(app)
 server.listen(socketPort)
-log.info('dataPointsApi started at port:', socketPort)
 
-let io = require('socket.io')(server, {
+log.info(`dataPointsApi started at port: ${socketPort}`)
+
+const io = socketIO(server, {
     transports: ['websocket', 'xhr-polling']
 })
 
-// import other parts of project
-var errorHandler = require('../common/errorHandlers')
-var DataPointsSender = require('./dataPointsSender')
-var dataPointsSender = DataPointsSender(io,log,validator)
+const dataPointsSender = DataPointsSender(io,log)
 
 io.on('connection', function (socket) {
-    log.info('new client request \'connection\'')
-
-    socket.on('getHistory', ([address, method]) => {
-        log.info('new client request \'connection\' \'getHistory\'')
-        let room = address + method
-        socket.join(room)
-        log.debug('Joined room:', room)
-        dataPointsSender.sendHistory(address, method, socket)
-    })
-
-    socket.on('unsubscribe', ([address, method]) => {
-        log.info('new client request \'connection\' \'unsubscribe\'')
-        if (address !== null && method !== null) {
-            log.debug('Unsubbing')
-            socket.leave(address + method, (err) => {
-                log.debug('unsubbed!!')
-                socket.emit('unsubscribed', {error: err})
-            })
-        } else {
-            socket.emit('unsubscribed', {error: null})
+    socket.on('getHistory', ([address, varableName]) => {
+        try {
+            let room = address + varableName
+            log.debug(`Joining room ${room}`)
+            socket.join(room)
+            dataPointsSender.sendHistory(address, varableName)
+        } catch (err) {
+            log.error('dataPointsService connection', err)
         }
     })
-})
 
-io.on('disconnect', function (socket) {
-    log.info('new client request \'disconnect\'')
+    socket.on('unsubscribe', ([address, variableName]) => {
+        try {
+            if (address !== null && variableName !== null) {
+                let room = address + variableName
+                log.debug(`Leaving room ${room}`)
+                socket.leave(room)
+            }
+        } catch (err) {
+            log.error('dataPoints service unsubscribe', err)
+        }
+    })
 })
 
