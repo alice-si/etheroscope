@@ -1,6 +1,6 @@
 console.log("process.env.ETHEROSCOPEGETHHOST = ",process.env.ETHEROSCOPEGETHHOST)
 console.log("process.env.ETHEROSCOPEMARIADB = ",process.env.ETHEROSCOPEMARIADB)
-console.log("process.env.ETHEROSCOPEMICROSERVICE = ",process.env.ETHEROSCOPEMICROSERVICE)
+console.log("process.env.ETHEROSCOPEDATAPOINTSSERVICE = ",process.env.ETHEROSCOPEMICROSERVICE)
 console.log("process.env.ETHEROSCOPESERVER = ",process.env.ETHEROSCOPESERVER)
 console.log("process.env.ETHEROSCOPEFRONTEND = ",process.env.ETHEROSCOPEFRONTEND)
 console.log("process.env.ETHEROSCOPEBLOCKCHAIN = ",process.env.ETHEROSCOPEBLOCKCHAIN)
@@ -13,6 +13,6 @@ process.env.ETHEROSCOPEFRONTEND =  "localhost:1234"
 
 // module.exports.ETHEROSCOPEGETHHOST=process.env.ETHEROSCOPEGETHHOST
 // module.exports.ETHEROSCOPEMARIADB=process.env.ETHEROSCOPEMARIADB
-// module.exports.ETHEROSCOPEMICROSERVICE=process.env.ETHEROSCOPEMICROSERVICE
+// module.exports.ETHEROSCOPEDATAPOINTSSERVICE=process.env.ETHEROSCOPEDATAPOINTSSERVICE
 // module.exports.ETHEROSCOPESERVER=process.env.ETHEROSCOPESERVER
 // module.exports.ETHEROSCOPEFRONTEND=process.env.ETHEROSCOPEFRONTEND

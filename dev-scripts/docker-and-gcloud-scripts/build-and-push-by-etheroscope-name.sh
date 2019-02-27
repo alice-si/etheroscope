@@ -9,6 +9,15 @@ then
 elif [ $1 = "micro-service" ]
 then
     docker build -t etheroscope-$1 ../../backend/ --target microServiceEtheroscope
+elif [ $1 = "contract-info-service" ]
+then
+    docker build -t etheroscope-$1 ../../backend/ --target contractInfoServiceEtheroscope
+elif [ $1 = "block-timestamp-service" ]
+then
+    docker build -t etheroscope-$1 ../../backend/ --target blockTimestampServiceEtheroscope
+elif [ $1 = "transaction-list-service" ]
+then
+    docker build -t etheroscope-$1 ../../backend/ --target transactionListServiceEtheroscope
 elif [ $1 = "database-initiator" ]
 then
     docker build -t etheroscope-$1 ../../backend/ --target databaseInitiatorEtheroscope

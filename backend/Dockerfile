@@ -25,7 +25,7 @@ WORKDIR /app
 COPY --from=projectBase /app/node_modules ./node_modules
 COPY ./ ./
 # Start server
-CMD echo "CMD start serwer\n" && node ./server/server.js
+CMD echo "CMD start serwer\n" && node ./server/service.js
 
 FROM node:8 AS databaseInitiatorEtheroscope
 WORKDIR /app
@@ -35,6 +35,29 @@ COPY ./ ./
 # Start microservice
 CMD echo "CMD start database initiator\n" && node ./database-initiator/setupNewDatabase.js
 
+FROM node:8 AS contractInfoServiceEtheroscope
+WORKDIR /app
+# Copy files
+COPY --from=projectBase /app/node_modules ./node_modules
+COPY ./ ./
+# Start server
+CMD echo "CMD start contract info service\n" && node ./contract-info-service/service.js
+
+FROM node:8 AS blockTimestampServiceEtheroscope
+WORKDIR /app
+# Copy files
+COPY --from=projectBase /app/node_modules ./node_modules
+COPY ./ ./
+# Start server
+CMD echo "CMD start block timestamp service\n" && node ./block-timestamp-service/service.js
+
+FROM node:8 AS transactionListServiceEtheroscope
+WORKDIR /app
+# Copy files
+COPY --from=projectBase /app/node_modules ./node_modules
+COPY ./ ./
+# Start server
+CMD echo "CMD start transaction list service\n" && node ./transaction-list-service/service.js
 # case node:alpine
 # Download add source
 #RUN apk add --no-cache --virtual .build-deps alpine-sdk python && \

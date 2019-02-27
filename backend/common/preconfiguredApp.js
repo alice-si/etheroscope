@@ -7,10 +7,10 @@ var path = require('path')
 var log = require('loglevel')
 var validator = require('validator')
 
-var errorHandle = require('../common/errorHandlers').errorHandle
-var errorCallbackHandle = require('../common/errorHandlers').errorHandleCallback
+var errorHandle = require('./errorHandlers').errorHandle
+var errorCallbackHandle = require('./errorHandlers').errorHandleCallback
 
-var settings = require('../common/settings.js')
+var settings = require('./settings.js')
 
 // Change this to alter how much information is printed out
 log.setLevel('trace')
@@ -20,7 +20,7 @@ console.log('server.js: Starting server.js')
 console.log('server.js: Will require db.js')
 
 try {
-    var db = require('../common/db.js')(log)
+    var db = require('./db.js')(log)
 
     var Promise = require('bluebird')
     Promise.config({
@@ -49,18 +49,6 @@ try {
         console.log('server.js: Unhandled Rejection at:\n Promise:\n', p, '\nreason:\n', reason)
     })
 
-// add query handler API
-    require('./api.js')(app, db, log, validator) // configure our routes
-
-// add test query handler API
-    require('../tester/testerApi.js')(app, db, log, validator) // configure our routes
-
-// Set port to 8080
-    var port = settings.ETHEROSCOPESERVER.slice(-4)
-
-// Start application
-    log.info('server.js: Starting server at: ' + port)    // shoutout to the user
-    app.listen(port)
 } catch (err) {
     errorHandle('could not app.listen on port' + port)(err)
 }

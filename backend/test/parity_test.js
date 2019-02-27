@@ -1,5 +1,5 @@
 const Web3 = require('web3')
-var settings = require('./settings.js')
+var settings = require('../common/settings.js')
 
 // var parityUrl = settings.ETHEROSCOPEPARITYMAINNET
 var parityUrl = settings.ETHEROSCOPEPARITYTESTNET

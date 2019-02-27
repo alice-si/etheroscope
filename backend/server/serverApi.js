@@ -1,7 +1,7 @@
 let axios = require('axios')
 // var Web3Client = require('../contract-info/web3Client')
 var Web3Client = require('../common/parity.js')
-var ContractInfoService = require('../contract-info-service/contractInfoService')
+var ContractInfoService = require('../transaction-list-service/transactionListService')
 module.exports = function (app, db, log, validator) {
   let web3Client = new Web3Client(db, log, validator)
   let contractInfoService = new ContractInfoService(db, log, validator)
