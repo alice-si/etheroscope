@@ -27,7 +27,7 @@ COPY ./ ./
 # Start server
 CMD echo "CMD start serwer\n" && node ./server/server.js
 
-FROM node:8 AS databasInitiatorEtheroscope
+FROM node:8 AS databaseInitiatorEtheroscope
 WORKDIR /app
 # Copy files
 COPY --from=projectBase /app/node_modules ./node_modules
