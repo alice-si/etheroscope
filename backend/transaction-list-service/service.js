@@ -1,34 +1,38 @@
-var log = require('loglevel')
 var validator = require('validator')
+var log = require('loglevel')
 
-var errorHandlers = require('../common/errorHandlers')
-var settings = require('../common/settings.js')
+var Web3Client = require('../common/parity')
+var RabbitMq = require('../common/rabbitMq')
+var db = require('../common/db.js')(log)
+const errorHandler = require('../common/errorHandlers')
+const Parity = require('../common/parity.js')
+let parityClient = new Parity(db, log, validator)
 
-// Change this to alter how much information is printed out
-log.setLevel('trace')
-log.enableAll()
+var getTransactions = async (contractAddress, fromBlock, toBlock, startIndex, endIndex) => {
+    try {
+        let transactionsList = await parityClient.getHistory(contractAddress, fromBlock, toBlock)
+        transactionsList = transactionsList.filter((transaction, index, self) =>
+            index === self.findIndex(t => t.transactionHash === transaction.transactionHash)
+        )
+        let transactionsHistory = transactionsList.slice(Math.max(transactionsList.length - endIndex, 0),
+            Math.max(transactionsList.length - startIndex, 0)).reverse()
 
-console.log('server.js: Starting server.js')
-console.log('server.js: Will require db.js')
-
-try {
-    var app = require('../common/microService.js')
-    var db = require('../common/db.js')(log)
-
-
-// add test query handler API
-    require('./transactionListApi.js')(app, db, log, validator) // configure our routes
-
-// Set port to 8080
-    var port = settings.ETHEROSCOPETRANSACTIONLISTSERVICE.slice(-4)
-
-// Start application
-    log.info('server.js: Starting server at: ' + port)    // shoutout to the user
-    app.listen(port)
-
-    exports = module.exports = app                        // expose app
-} catch (err) {
-    errorHandlers.errorHandle('could not app.listen on port' + port)(err)
+        console.log(transactionsHistory.map(x => x.transactionHash))
+        return Promise.all(transactionsHistory.map(async (transaction) => {
+            transaction.timestamp = await parityClient.calculateBlockTime(transaction.blockNumber)
+            transaction.transaction = await parityClient.getTransaction(transaction.transactionHash)
+            transaction.value = parityClient.convertValue(transaction.transaction.value, 'ether')
+            return transaction
+        }))
+    } catch (err) {
+        errorHandler.errorHandleThrow('ContractInfoService', 'Problem with obtaining transactions')(err)
+    }
 }
 
-
+RabbitMq.serveContractRaw((contractAddress, fromBLock, toBlock, startIndex, endIndex) => {
+    db.addContractLookup(contractAddress.substr(2)).catch((err) => console.log('could not add contract lookup'))
+    return getTransactions(contractAddress, fromBLock, toBlock, startIndex, endIndex)
+        .then(async (transactions) => {
+            return await JSON.stringify(await transactions)
+        })
+})

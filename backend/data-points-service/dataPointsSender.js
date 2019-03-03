@@ -2,6 +2,7 @@ const Promise = require('bluebird')
 
 const errorHandler = require('../common/errorHandlers')
 const Parity = require('../common/parity')
+var RabbitMq = require('../common/rabbitMq')
 const streamedSet = require('./streamedSet')()
 const settings = require('../common/settings.js')
 
@@ -70,7 +71,8 @@ module.exports = function (io, log) {
 
                     await sendAllDataPointsFromDB(address, variableName, cachedFrom, cachedUpTo)
 
-                    let contractInfo = await parityClient.getContract(address)
+                    var contractRaw = await RabbitMq.getContractRaw(address)
+                    let contractInfo = await parityClient.parseContract(await JSON.parse(contractRaw))
                     let parsedContract = contractInfo.parsedContract
 
                     await cacheMorePoints(parsedContract, variableName, cachedFrom, cachedUpTo, latestBlock)

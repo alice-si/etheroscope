@@ -5,7 +5,9 @@ var settings = require('../common/settings')
 
 // channel names
 const blockTimestampsChannelName = 'timestamps'
-const contractInfoChannelName = 'contractinfo'
+const contractRawChannelName = 'contractraw'
+const contractVariablesChannelName = 'contractvariables'
+const transactionsChannelName = 'transactions'
 
 /**
  *
@@ -107,11 +109,11 @@ module.exports.serveBlockTimestamps = (answerer) => {
  *
  * @param contractHash
  */
-module.exports.getContractInfo = (contractHash) => new Promise((resolve, reject) => {
+module.exports.getContractRaw = (contractHash) => new Promise((resolve, reject) => {
     try {
         contractHash = contractHash.toString()
-        sendToQueue(requestChannel(blockTimestampsChannelName), contractHash)
-        subscribeQueue(responseChannel(blockTimestampsChannelName, contractHash), resolve, true)
+        sendToQueue(requestChannel(contractRawChannelName), contractHash)
+        subscribeQueue(responseChannel(contractRawChannelName, contractHash), resolve, true)
     }
     catch (err) {
         reject(err)
@@ -122,10 +124,66 @@ module.exports.getContractInfo = (contractHash) => new Promise((resolve, reject)
  *
  * @param answerer(blockNumber) - function wich returns block timestamp
  */
-module.exports.serveContractInfo = (answerer) => {
-    subscribeQueue(requestChannel(blockTimestampsChannelName), async (contractHash) => {
-        var contractInfo = await answerer(contractHash)
-        sendToQueue(await responseChannel(blockTimestampsChannelName, contractHash), contractInfo)
+module.exports.serveContractRaw = (answerer) => {
+    subscribeQueue(requestChannel(contractRawChannelName), async (contractHash) => {
+        var contractRaw = await answerer(contractHash)
+        sendToQueue(await responseChannel(contractRawChannelName, contractHash), contractRaw)
     })
 }
 
+/**
+ *
+ * @param contractHash
+ */
+module.exports.getContractVariables = (contractHash) => new Promise((resolve, reject) => {
+    try {
+        contractHash = contractHash.toString()
+        sendToQueue(requestChannel(contractVariablesChannelName), contractHash)
+        subscribeQueue(responseChannel(contractVariablesChannelName, contractHash), resolve, true)
+    }
+    catch (err) {
+        reject(err)
+    }
+})
+
+/**
+ *
+ * @param answerer(blockNumber) - function wich returns block timestamp
+ */
+module.exports.serveContractVariables = (answerer) => {
+    subscribeQueue(requestChannel(contractVariablesChannelName), async (contractHash) => {
+        var contractVariables = await answerer(contractHash)
+        sendToQueue(await responseChannel(contractVariablesChannelName, contractHash), contractVariables)
+    })
+}
+
+/**
+ *
+ * @param contractAddress
+ * @param fromBlock
+ * @param toBlock
+ * @param startIndex
+ * @param endIndex
+ */
+module.exports.getTransactions = (contractAddress, fromBlock, toBlock, startIndex, endIndex) => new Promise((resolve, reject) => {
+    try {
+        var args = {contractAddress, fromBlock, toBlock, startIndex, endIndex}
+        sendToQueue(requestChannel(transactionsChannelName), JSON.stringify(args))
+        subscribeQueue(responseChannel(transactionsChannelName, contractHash), resolve, true)
+    }
+    catch (err) {
+        reject(err)
+    }
+})
+
+/**
+ *
+ * @param answerer(contractAddress, fromBlock, toBlock, startIndex, endIndex) - function wich returns block timestamp
+ */
+module.exports.serveTransactions = (answerer) => {
+    subscribeQueue(requestChannel(transactionsChannelName), async (args) => {
+        var {contractAddress, fromBlock, toBlock, startIndex, endIndex} = JSON.parse(args)
+        var transactions = await answerer(contractAddress, fromBlock, toBlock, startIndex, endIndex)
+        sendToQueue(await responseChannel(transactionsChannelName, args), transactions)
+    })
+}
