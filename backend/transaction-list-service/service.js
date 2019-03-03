@@ -12,7 +12,7 @@ console.log('server.js: Starting server.js')
 console.log('server.js: Will require db.js')
 
 try {
-    var app = require('../common/preconfiguredApp.js')
+    var app = require('../common/microService.js')
     var db = require('../common/db.js')(log)
 
 

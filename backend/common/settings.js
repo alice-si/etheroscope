@@ -11,8 +11,8 @@ module.exports.ETHEROSCOPECONTRACTINFOSERVICE="localhost:8085"
 module.exports.ETHEROSCOPEBLOCKTIMESTAMPSERVICE="localhost:8086"
 module.exports.ETHEROSCOPETRANSACTIONLISTSERVICE="localhost:8087"
 
-// module.exports.RABBITMQHOST='192.168.99.100'
-module.exports.RABBITMQHOST='35.189.85.243'
+module.exports.RABBITMQHOST='192.168.99.100'
+// module.exports.RABBITMQHOST='35.189.85.243'
 
 module.exports.mysqlConnectionOptions = {
   connectionLimit: 10,

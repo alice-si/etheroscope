@@ -9,6 +9,7 @@ const errorHandler = require('../common/errorHandlers')
 const lock = new ReadWriteLock()
 const parityUrl = "http://" + settings.ETHEROSCOPEPARITYMAINNET
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
+var RabbitMq = require('../common/rabbitMq')
 
 module.exports = function (db, log) {
     let parity = {}
@@ -24,7 +25,7 @@ module.exports = function (db, log) {
      *
      * @return {Promise<number>} number of latest block
      */
-    parity.getLatestBlock = async function() {
+    parity.getLatestBlock = async function () {
         try {
             log.debug('parity.getLatestBlock')
 
@@ -37,7 +38,7 @@ module.exports = function (db, log) {
                     return resolve(block)
                 })
             })
-        } catch(err) {
+        } catch (err) {
             errorHandler.errorHandleThrow('parity.getLatestBlock', '')(err)
         }
     }
@@ -50,7 +51,7 @@ module.exports = function (db, log) {
      *
      * @return {Promise<any>} contract's instance
      */
-    async function getContractInfoFromEtherscan(address, network="mainnet") {
+    async function getContractInfoFromEtherscan(address, network = "mainnet") {
         // TODO - store apiKey in settings
         let etherscanAPIKey = "RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23"
 
@@ -96,6 +97,39 @@ module.exports = function (db, log) {
         }
     }
 
+    parity.getContractRaw = async function (address) {
+        try {
+            log.debug(`parity.getContract ${address}`)
+
+            let contractFromDB = await db.getContract(address.substr(2))
+            let parsedABI = contractFromDB.contract
+
+            // this scenario happens "in" the main server
+            if (parsedABI === null) {
+                parsedABI = await getContractInfoFromEtherscan(address)
+                await db.updateContractWithABI(address.substr(2), parsedABI)
+                contractFromDB = await db.getContract(address.substr(2))
+                parsedABI = contractFromDB.contract
+            }
+
+            return {contractName: contractFromDB.contractName, parsedABI: parsedABI}
+        } catch (err) {
+            errorHandler.errorHandleThrow(`parity.getContract ${address}`, '')(err)
+        }
+    }
+
+    parity.parseContract = async function (contractRaw) {
+        try {
+            log.debug(`parity.getContract ${address}`)
+            var {contractName, parsedABI} = contractRaw
+            let contract = web3.eth.contract(parsedABI)
+            let parsedContract = contract.at(address)
+            return {contractName: contractName, parsedContract: parsedContract}
+        } catch (err) {
+            errorHandler.errorHandleThrow(`parity.getContract ${address}`, '')(err)
+        }
+    }
+
     function isVariable(item) {
         return (item.outputs && item.outputs.length === 1 &&
             item.outputs[0].type.indexOf('uint') === 0 &&
@@ -129,6 +163,7 @@ module.exports = function (db, log) {
         await Promise.map(variables, (elem) => variableNames.push(elem), {concurrency: 5})
         return {variables: variableNames, contractName: contractName}
     }
+
 
     /**
      * Function that computes value of given variable in a given block.
@@ -186,7 +221,7 @@ module.exports = function (db, log) {
      *
      * @return {Promise<number>} timestamp of block
      */
-    async function getBlockTime(blockNumber) {
+    parity.getBlockTime = async (blockNumber) => {
         log.debug(`parity.getBlockTime ${blockNumber}`)
 
         let result = await db.getBlockTime(blockNumber)
@@ -219,6 +254,7 @@ module.exports = function (db, log) {
         })
     }
 
+
     /**
      * Function responsible for retrieving basic transaction information
      *
@@ -229,11 +265,11 @@ module.exports = function (db, log) {
     parity.getTransaction = async function (transactionHash) {
         return new Promise((resolve, reject) => {
             web3.eth.getTransaction(transactionHash, (err, res) => {
-              if (err) {
-                reject(err)
-              } else {
-                resolve(res)
-              }
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(res)
+                }
             })
         })
     }
@@ -265,7 +301,7 @@ module.exports = function (db, log) {
      */
     parity.getHistory = async function (address, startBlock, endBlock) {
         log.debug(`parity.getHistory ${address} ${startBlock} ${endBlock}`)
-        
+
         return new Promise((resolve, reject) => {
             return web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address}).get((err, res) => {
                 if (err) {
@@ -303,7 +339,7 @@ module.exports = function (db, log) {
             events = await Promise.map(events, event => {
                 let blockNumber = event.blockNumber.valueOf()
 
-                return Promise.all([getBlockTime(blockNumber),
+                return Promise.all([RabbitMq.getBlockTimestamp(blockNumber),
                     valueAtBlock(parsedContract[variableName], blockNumber), blockNumber])
             })
 
