@@ -1,22 +1,22 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: etheroscope-transaction-list
+  name: etheroscope-transaction-list-service
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: etheroscope-transaction-list
+      app: etheroscope-transaction-list-service
   template:
     metadata:
       labels:
-        app: etheroscope-transaction-list
+        app: etheroscope-transaction-list-service
     spec:
       terminationGracePeriodSeconds: 30
       containers:
-      - name: etheroscope-transaction-list-container
-        image: gcr.io/etheroscope/etheroscope-transaction-list:latest
+      - name: etheroscope-transaction-list-service-container
+        image: gcr.io/etheroscope/etheroscope-transaction-list-service:latest
         env:
         - name: ETHEROSCOPEPARITYMAINNET
           value: "35.230.140.68:8545"
