@@ -11,13 +11,13 @@ RUN npm install && \
     ls && \
     echo "-----------middle container end-------------"
 
-FROM node:8 AS microServiceEtheroscope
+FROM node:8 AS dataPointsServiceEtheroscope
 WORKDIR /app
 # Copy files
 COPY --from=projectBase /app/node_modules ./node_modules
 COPY ./ ./
 # Start microservice
-CMD echo "CMD start microService\n" && node ./data-points-service/dataPointsService.js
+CMD echo "CMD start dataPointsService\n" && node ./data-points-service/service.js
 
 FROM node:8 AS serverEtheroscope
 WORKDIR /app

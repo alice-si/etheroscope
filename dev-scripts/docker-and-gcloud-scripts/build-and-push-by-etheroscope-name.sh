@@ -6,9 +6,9 @@ then
 elif [ "$1" = "server" ]
 then
     docker build -t etheroscope-$1 ../../backend/ --target serverEtheroscope
-elif [ $1 = "micro-service" ]
+elif [ $1 = "data-points-service" ]
 then
-    docker build -t etheroscope-$1 ../../backend/ --target microServiceEtheroscope
+    docker build -t etheroscope-$1 ../../backend/ --target dataPointsServiceEtheroscope
 elif [ $1 = "contract-info-service" ]
 then
     docker build -t etheroscope-$1 ../../backend/ --target contractInfoServiceEtheroscope

@@ -1,17 +1,17 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: etheroscope-micro-service
+  name: etheroscope-data-points-service
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: etheroscope-micro-service
+      app: etheroscope-data-points-service
   template:
     metadata:
       labels:
-        app: etheroscope-micro-service
+        app: etheroscope-data-points-service
     spec:
       terminationGracePeriodSeconds: 30
 #      volumes:
@@ -20,8 +20,8 @@ spec:
 #          pdName: ethereum-geth-disk2
 #          fsType: ext4
       containers:
-      - name: etheroscope-micro-service-container
-        image: gcr.io/etheroscope/etheroscope-micro-service:latest
+      - name: etheroscope-data-points-service-container
+        image: gcr.io/etheroscope/etheroscope-data-points-service:latest
         env:
         - name: ETHEROSCOPEPARITYMAINNET
           value: "35.230.140.68:8545"
