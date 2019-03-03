@@ -11,7 +11,16 @@ const blockTimestampsRequestChannel = '@timestamps@'
  * @param blockNumber
  * @returns {string}
  */
-function blockTimestampResponseChannel(blockNumber) { return '@block'+blockNumber+'@'}
+function blockTimestampResponseChannel(blockNumber) {
+    return '@block' + blockNumber + '@'
+}
+
+function connectRabbitMq(cb) {
+    amqp.connect('amqp://' + settings.RABBITMQHOST, (err, conn) => {
+        if (err) console.log(err)
+        else cb(conn)
+    });
+}
 
 /**
  *
@@ -19,13 +28,13 @@ function blockTimestampResponseChannel(blockNumber) { return '@block'+blockNumbe
  * @param message
  */
 function sendToQueue(queueName, message) {
-    amqp.connect('amqp://' + settings.RABBITMQHOST, function (err, conn) {
-        conn.createChannel(function (err, ch) {
+    connectRabbitMq((conn) => {
+        conn.createChannel((err, ch) => {
             ch.assertQueue(queueName, {durable: false});
             ch.sendToQueue(queueName, new Buffer(message));
             console.log("rabbitmq: '" + message + "' ->", queueName);
         });
-        setTimeout(function () {
+        setTimeout(() => {
             conn.close();
             process.exit(0)
         }, 500);
@@ -39,10 +48,10 @@ function sendToQueue(queueName, message) {
  * @param onlyOnce - take only first message
  */
 function subscribeQueue(queueName, consume, onlyOnce = false) {
-    amqp.connect('amqp://' + settings.RABBITMQHOST, function (err, conn) {
-        conn.createChannel(function (err, ch) {
+    connectRabbitMq((conn) => {
+        conn.createChannel((err, ch) => {
             ch.assertQueue(queueName, {durable: false});
-            ch.consume(queueName, function (msg) {
+            ch.consume(queueName, (msg) => {
                 var message = msg.content.toString()
                 console.log("rabbitmq: '" + message + "' <-", queueName);
                 consume(message)
@@ -60,9 +69,9 @@ function subscribeQueue(queueName, consume, onlyOnce = false) {
  * @param blockNumber
  * @param consume(msg) - do something with timestamp
  */
-module.exports.getBlockTimestamp = (blockNumber,consume) => {
-    sendToQueue(blockTimestampsRequestChannel,blockNumber.toString())
-    subscribeQueue(blockTimestampResponseChannel(blockNumber),consume,true)
+module.exports.getBlockTimestamp = (blockNumber, consume) => {
+    sendToQueue(blockTimestampsRequestChannel, blockNumber.toString())
+    subscribeQueue(blockTimestampResponseChannel(blockNumber), consume, true)
 }
 
 /**
@@ -70,8 +79,8 @@ module.exports.getBlockTimestamp = (blockNumber,consume) => {
  * @param answerer(blockNumber) - function wich returns block timestamp
  */
 module.exports.serveBlockTimestamps = (answerer) => {
-    subscribeQueue(blockTimestampsRequestChannel,async function (blockNumber) {
+    subscribeQueue(blockTimestampsRequestChannel, async (blockNumber) => {
         var timestamp = await answerer(blockNumber)
-        sendToQueue(await blockTimestampResponseChannel(blockNumber),timestamp)
+        sendToQueue(await blockTimestampResponseChannel(blockNumber), timestamp)
     })
 }

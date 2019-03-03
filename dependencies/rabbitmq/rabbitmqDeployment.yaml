@@ -1,0 +1,67 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: rabbitmq
+        image: rabbitmq
+        env:
+        - name: TARGET
+          value: "parity"
+        - name: RUST_BACKTRACE
+          value: "1"
+        - name: PATH
+          value: "/opt/rabbitmq/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        - name: OPENSSL_VERSION
+          value: "1.1.1a"
+        - name: OPENSSL_SOURCE_SHA256
+          value: "fc20130f8b7cbd2fb918b2f14e2f429e109c31ddd0fb38fc5d71d9ffed3f9f41"
+        - name: OPENSSL_PGP_KEY_ID
+          value: "0x8657ABB260F056B1E5190839D9C4D26D0E604491"
+        - name: OTP_VERSION
+          value: "21.2.6"
+        - name: OTP_SOURCE_SHA256
+          value: "aa0b95031e7c01af8a7042a00974ab16ed8fec305a68d7dbaa4185e5d58ef4d5"
+        - name: RABBITMQ_DATA_DIR
+          value: "/var/lib/rabbitmq"
+        - name: RABBITMQ_VERSION
+          value: "3.7.12"
+        - name: RABBITMQ_PGP_KEY_ID
+          value: "0x0A9AF2115F4687BD29803A206B73A36E6026DFCA"
+        - name: RABBITMQ_HOME
+          value: "/opt/rabbitmq"
+        - name: RABBITMQ_LOGS
+          value: "-"
+        - name: RABBITMQ_SASL_LOGS
+          value: "-"
+        - name: HOME
+          value: "/var/lib/rabbitmq"
+        - name: LANG
+          value: "C.UTF-8"
+        - name: LANGUAGE
+          value: "C.UTF-8"
+        - name: LC_ALL
+          value: "C.UTF-8"
+        command: ["rabbitmq-server"]
+        ports:
+        - containerPort: 5671
+          name: port1rabbitmq
+        - containerPort: 5672
+          name: port2rabbitmq
+        - containerPort: 4369
+          name: port3rabbitmq
+        - containerPort: 25672
+          name: port4rabbitmq
