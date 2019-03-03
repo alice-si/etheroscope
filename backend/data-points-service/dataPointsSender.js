@@ -72,7 +72,7 @@ module.exports = function (io, log) {
                     await sendAllDataPointsFromDB(address, variableName, cachedFrom, cachedUpTo)
 
                     var contractRaw = await RabbitMq.getContractRaw(address)
-                    let contractInfo = await parityClient.parseContract(await JSON.parse(contractRaw))
+                    let contractInfo = await parityClient.parseContract(await JSON.parse(contractRaw),address)
                     let parsedContract = contractInfo.parsedContract
 
                     await cacheMorePoints(parsedContract, variableName, cachedFrom, cachedUpTo, latestBlock)

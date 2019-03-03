@@ -33,6 +33,6 @@ RabbitMq.serveContractRaw((contractAddress, fromBLock, toBlock, startIndex, endI
     db.addContractLookup(contractAddress.substr(2)).catch((err) => console.log('could not add contract lookup'))
     return getTransactions(contractAddress, fromBLock, toBlock, startIndex, endIndex)
         .then(async (transactions) => {
-            return await JSON.stringify(await transactions)
+            return await JSON.stringify(transactions)
         })
 })

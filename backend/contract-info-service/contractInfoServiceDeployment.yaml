@@ -20,15 +20,8 @@ spec:
         env:
         - name: ETHEROSCOPEPARITYMAINNET
           value: "35.230.140.68:8545"
-        - name: ETHEROSCOPEGETHHOST
-          #          value: "10.3.255.188:8545" # rinkeby
-          value: "10.3.240.197:8545"
         - name: ETHEROSCOPEMARIADB
           value: "10.3.240.97:8083"
-        - name: ETHEROSCOPEDATAPOINTSSERVICE
-          value: "35.246.65.214:80"
-        - name: ETHEROSCOPESERVER
-          value: "35.246.120.150:8080"
-        - name: ETHEROSCOPEFRONTEND
-          value: "35.242.161.116:80"
+        - name: RABBITMQHOST
+          value: "10.3.249.34"
         imagePullPolicy: "Always"

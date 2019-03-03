@@ -33,7 +33,7 @@ module.exports = function (app, db, log, validator) {
             })
     })
 
-    app.get('/api/explore/:contractAddress', (req, res) => {
+    app.get('/api/explore/:contractAddress', async (req, res) => {
         console.log('Reached API')
         let address = req.params.contractAddress
         if (!validAddress(address)) {
@@ -41,7 +41,16 @@ module.exports = function (app, db, log, validator) {
             let err = 'Error - invalid contract hash'
             return res.status(400).json(err)
         }
-        RabbitMq.getContractVariables(address, (contractVariables) => res.status(200).json(contractVariables))
+        try {
+            var contractVariables = await RabbitMq.getContractVariables(address)
+            console.log('serverApi.js will serve contract variables: ', contractVariables)
+            return res.status(200).json(JSON.parse(contractVariables))
+
+        }
+        catch (err) {
+            console.log('serverApi.js contract variables err: ', err.slice(0, 32))
+            return res.status(400).json(err)
+        }
     })
 
     /**
@@ -97,9 +106,7 @@ module.exports = function (app, db, log, validator) {
             ' to index ' + endIndex + ' from block ' + fromBlock + ' to block ' + toBlock)
 
         return RabbitMq.getTransactions(contractAddress, fromBlock, toBlock, startIndex, endIndex)
-            .then(transactionsHistory => {
-                res.status(200).json(transactionsHistory)
-            })
+            .then(transactionsHistory => res.status(200).json(transactionsHistory))
             .catch((err) => {
                 log.error(err)
                 return res.status(400).json(err.message)

@@ -118,7 +118,7 @@ module.exports = function (db, log) {
         }
     }
 
-    parity.parseContract = async function (contractRaw) {
+    parity.parseContract = async function (contractRaw,address) {
         try {
             log.debug(`parity.getContract ${address}`)
             var {contractName, parsedABI} = contractRaw

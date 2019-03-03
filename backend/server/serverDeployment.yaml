@@ -31,4 +31,6 @@ spec:
           value: "35.246.120.150:8080"
         - name: ETHEROSCOPEFRONTEND
           value: "35.242.161.116:80"
+        - name: RABBITMQHOST
+          value: "10.3.249.34"
         imagePullPolicy: "Always"

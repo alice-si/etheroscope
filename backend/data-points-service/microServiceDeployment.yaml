@@ -38,6 +38,8 @@ spec:
           value: "35.242.161.116:80"
         - name: ETHEROSCOPEBLOCKCHAIN
           value: "/blockchain/geth/chaindata"
+        - name: RABBITMQHOST
+          value: "10.3.249.34"
         imagePullPolicy: "Always"
 #        volumeMounts:
 #        - name: ethereum-geth-volume

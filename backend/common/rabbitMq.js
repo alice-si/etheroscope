@@ -51,7 +51,7 @@ function sendToQueue(queueName, message) {
             ch.assertQueue(queueName, {durable: false});
             ch.sendToQueue(queueName, new Buffer(message));
             ch.close()
-            console.log("rabbitmq: '" + message + "' ->", queueName);
+            console.log("rabbitmq: '" + message.slice(0,32) + "' ->", queueName);
         });
         defaultTimeout(conn)
     });
@@ -69,8 +69,9 @@ var subscribeQueue = (queueName, consume, onlyOnce = false) => {
             ch.assertQueue(queueName, {durable: false});
             ch.consume(queueName, (msg) => {
                 var message = msg.content.toString()
-                console.log("rabbitmq: '" + message + "' <-", queueName);
-                consume(message, ch)
+                console.log("rabbitmq: '" + message.slice(0,32) + "' <-", queueName);
+                consume(message)
+                console.log('resolved:<-',queueName)
                 if (onlyOnce) {
                     defaultTimeout(conn)
                 }
@@ -168,8 +169,9 @@ module.exports.serveContractVariables = (answerer) => {
 module.exports.getTransactions = (contractAddress, fromBlock, toBlock, startIndex, endIndex) => new Promise((resolve, reject) => {
     try {
         var args = {contractAddress, fromBlock, toBlock, startIndex, endIndex}
-        sendToQueue(requestChannel(transactionsChannelName), JSON.stringify(args))
-        subscribeQueue(responseChannel(transactionsChannelName, contractHash), resolve, true)
+        var query = JSON.stringify(args)
+        sendToQueue(requestChannel(transactionsChannelName), query)
+        subscribeQueue(responseChannel(transactionsChannelName, query), resolve, true)
     }
     catch (err) {
         reject(err)
