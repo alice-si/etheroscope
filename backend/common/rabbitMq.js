@@ -29,6 +29,7 @@ var responseChannel = (channelName, query) => '@response:' + channelName + ':' +
  * @param cb
  */
 var connectRabbitMq = (cb) => amqp.connect('amqp://' + settings.RABBITMQHOST,
+    {username: "test", password: "test"},
     (err, conn) => {
         if (err) console.log(err)
         else cb(conn)
@@ -51,7 +52,7 @@ function sendToQueue(queueName, message) {
             ch.assertQueue(queueName, {durable: false});
             ch.sendToQueue(queueName, new Buffer(message));
             ch.close()
-            console.log("rabbitmq: '" + message.slice(0,32) + "' ->", queueName);
+            console.log("rabbitmq: '" + message.slice(0, 32) + "' ->", queueName);
         });
         defaultTimeout(conn)
     });
@@ -69,9 +70,9 @@ var subscribeQueue = (queueName, consume, onlyOnce = false) => {
             ch.assertQueue(queueName, {durable: false});
             ch.consume(queueName, (msg) => {
                 var message = msg.content.toString()
-                console.log("rabbitmq: '" + message.slice(0,32) + "' <-", queueName);
+                console.log("rabbitmq: '" + message.slice(0, 32) + "' <-", queueName);
                 consume(message)
-                console.log('resolved:<-',queueName)
+                console.log('resolved:<-', queueName)
                 if (onlyOnce) {
                     defaultTimeout(conn)
                 }

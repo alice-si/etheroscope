@@ -17,7 +17,7 @@ spec:
         fsGroup: 1000
       containers:
       - name: rabbitmq
-        image: rabbitmq
+        image: gcr.io/etheroscope/rabbitmq_test_user
         env:
         - name: TARGET
           value: "parity"
@@ -55,7 +55,7 @@ spec:
           value: "C.UTF-8"
         - name: LC_ALL
           value: "C.UTF-8"
-        command: ["rabbitmq-server"]
+#        command: ["rabbitmq-server"]
         ports:
         - containerPort: 5671
           name: port1rabbitmq

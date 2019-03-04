@@ -1,13 +1,14 @@
 FROM rabbitmq
 
-# Create app directory
-WORKDIR /app
+# Define environment variables.
+ENV RABBITMQ_USER test
+ENV RABBITMQ_PASSWORD test
 
-# Copy files
-COPY package.json ./package.json
-COPY package-lock.json ./package-lock.json
+ADD init.sh /init.sh
+EXPOSE 15672
 
-# Install dependencies
-RUN npm install
+# Define default command
+CMD ["/init.sh"]
+
 
 
