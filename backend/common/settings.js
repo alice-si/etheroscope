@@ -5,8 +5,10 @@ module.exports.ETHEROSCOPEPARITYMAINNET=process.env.ETHEROSCOPEPARITYMAINNET
 module.exports.ETHEROSCOPEMARIADB=process.env.ETHEROSCOPEMARIADB
 // module.exports.RABBITMQHOST='192.168.99.100'
 // module.exports.RABBITMQHOST='35.189.85.243'
+// module.exports.RABBITMQHOST='35.246.65.214'
+module.exports.RABBITMQHOST='35.197.222.111'
 // module.exports.RABBITMQHOST='10.3.249.34'
-module.exports.RABBITMQHOST=process.env.RABBITMQHOST
+// module.exports.RABBITMQHOST=process.env.RABBITMQHOST
 
 
 module.exports.mysqlConnectionOptions = {

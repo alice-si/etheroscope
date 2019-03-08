@@ -28,8 +28,9 @@ var responseChannel = (channelName, query) => '@response:' + channelName + ':' +
  *
  * @param cb
  */
+const opt = { credentials: require('amqplib').credentials.plain('test', 'test') };
 var connectRabbitMq = (cb) => amqp.connect('amqp://' + settings.RABBITMQHOST,
-    {username: "test", password: "test"},
+    opt,
     (err, conn) => {
         if (err) console.log(err)
         else cb(conn)
