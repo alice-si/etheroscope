@@ -1,7 +1,7 @@
 "use strict";
 
 const models = require('./models');
-const sequelize = models.sequelize
+const sequelize = models.sequelize;
 
 /**
  *
@@ -23,7 +23,7 @@ async function getContracts() {
     try {
         return await models.Contract.findAll();
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("getContracts()")
     }
 }
 
@@ -36,7 +36,7 @@ async function getContract(contractHash) {
     try {
         return await models.Contract.findOne({where: {hash: [contractHash]}});
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("getContract(" + contractHash + ")")
     }
 }
 
@@ -49,7 +49,7 @@ async function addContracts(values) {
     try {
         return await models.Contract.bulkCreate(values);
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("addContracts(" + values + ")")
     }
 }
 
@@ -66,7 +66,7 @@ async function addContractLookup(contractHash) {
         return await lookup.save()
         // return await contract.addContractLookup(lookup);
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("addContractLookup(" + contractHash + ")")
     }
 }
 
@@ -84,7 +84,7 @@ async function getPopularContracts(limit1, lastDays = 7) {
             {raw: true, bind: [limit1, lastDays], type: sequelize.QueryTypes.SELECT}
         )
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("getPopularContracts(" + limit1 + ", " + lastDays + ")")
     }
 }
 
@@ -115,7 +115,8 @@ async function addDataPoints(contractAddress, variableName, values, cachedFrom, 
             return await models.DataPoint.bulkCreate(bulkmap);
         }
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("addDataPoints(" + contractAddress + ", " + variableName + ", " + values + ", " + cachedFrom + ", " + cachedUpTo + ")")
+
     }
 }
 
@@ -130,7 +131,7 @@ async function getDataPoints(contractAddress, variableName) {
         let variable = await models.Variable.findOne({where: {ContractHash: contractAddress, name: variableName}});
         return await models.DataPoint.findAll({include: [Block], where: {VariableId: variable.id}});
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("getDataPoints(" + contractAddress + ", " + variableName + ")")
     }
 }
 
@@ -227,10 +228,14 @@ async function getLatestCachedBlock() {
  */
 
 async function getCachedFromTo(contractHash, variableName) {
-    let variable = await models.Variable.findOne({where: {ContractHash: contractHash, name: variableName}});
-    return {
-        cachedFrom: variable.cachedFrom,
-        cachedUpTo: variable.cachedUpTo
+    try {
+        let variable = await models.Variable.findOne({where: {ContractHash: contractHash, name: variableName}});
+        return {
+            cachedFrom: variable.cachedFrom,
+            cachedUpTo: variable.cachedUpTo
+        }
+    } catch (e) {
+        console.error("EEEEEEE!")
     }
 }
 
@@ -241,9 +246,29 @@ async function getCachedFromTo(contractHash, variableName) {
  * @returns {Promise<this>}
  */
 async function updateContractABI(contractHash, contractABI) {
-    let contract = await models.Contract.findOne({where: {hash: [contractHash]}});
-    return await contract.update({abi: contractABI})
+    try {
+        let contract = await models.Contract.findOne({where: {hash: [contractHash]}});
+        return await contract.update({abi: contractABI})
+    } catch (e) {
+        console.error("EEEEEEE!")
+    }
 }
+
+
+async function searchContract(pattern) {
+    // todo function (pattern, variables, transactions) - advanced search
+    try {
+        if (pattern[0] === '0' && (pattern[1] === 'x' || pattern[1] === 'X')) {
+            pattern = pattern.substr(2)
+            return await models.Contract.findOne({where: {hash: [pattern]}})
+        } else {
+            return await models.Contract.findOne({where: {name: [pattern]}})
+        }
+    } catch (e) {
+        console.error("EEEEEEE!")
+    }
+}
+
 
 /*
 ###########################################################################
@@ -268,74 +293,3 @@ module.exports.getContracts = getContracts;
 module.exports.getContract = getContract;
 module.exports.addContractLookup = addContractLookup;
 module.exports.getPopularContracts = getPopularContracts;
-
-
-//
-// todo jeszcze ta funkcja
-//     db.searchContract = function (pattern, variables, transactions) {
-//         console.log('db.searchContract')
-//         return new Promise(function (resolve, reject) {
-//
-//             let interspersedPattern = intersperse(pattern, '%')
-//             let searchField = 'name'
-//             // if the pattern is a hash, rather than a name
-//             if (pattern[0] === '0' && (pattern[1] === 'x' || pattern[1] === 'X')) {
-//                 pattern = pattern.substr(2)
-//                 interspersedPattern = pattern + '%'
-//                 searchField = 'contractHash'
-//             }
-//
-//             var sql = 'select *, strcmp(' + searchField + ', \'' + pattern +
-//                 '\') as nameDiff' + ' from contracts where ' + searchField + ' LIKE \'' +
-//                 interspersedPattern + '\''
-//
-//             console.log('sql with difference: ', sql)
-//
-//             if (variables !== null && variables.length > 0) {
-//                 for (let i = 0; i < variables.length; i++) {
-//                     sql += ' and contracthash in' +
-//                         ' (select contracthash from datapoints inner join blocks' +
-//                         ' on datapoints.blocknumber = blocks.blocknumber where' +
-//                         ' variableName = \'' + variables[i].name + '\''
-//                     if (variables[i].endTime !== '' && variables[i].startTime !== '') {
-//                         sql += ' and (timestamp between ' + variables[i].startTime + ' and ' +
-//                             variables[i].endTime + ')'
-//                     }
-//                     if (variables[i].min !== null && variables[i].max !== null) {
-//                         sql += ' and (value between ' + variables[i].min +
-//                             ' and ' + variables[i].max + ')'
-//                     }
-//                     sql += ')'
-//                 }
-//             }
-//
-//             if (transactions !== null && transactions.length > 0) {
-//                 for (let i = 0; i < transactions.length; i++) {
-//                     sql += ' and contracthash in' +
-//                         ' (select contracthash from datapoints inner join blocks' +
-//                         ' on datapoints.blocknumber = blocks.blocknumber where' +
-//                         ' timestamp between ' + transactions[i].startTime + ' and ' +
-//                         transactions[i].endTime + ') ' +
-//                         'limit 5'
-//                 }
-//             }
-//
-//             sql += ' order by nameDiff DESC;'
-//             pool.query(sql).then((results) => {
-//                 return resolve(results)
-//             })
-//                 .catch((err) => {
-//                     log.error(err)
-//                 })
-//         })
-//     }
-//
-//     let intersperse = function (str, intrsprs) {
-//         str = str.split('').map((elem) => {
-//             return elem + intrsprs
-//         })
-//         return ('%' + str.join(''))
-//     }
-//
-//     return db
-// }
