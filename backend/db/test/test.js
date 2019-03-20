@@ -6,7 +6,7 @@ let dao;
 describe('db tests', function () {
     this.timeout(0);
     it('test connection then rest of tests', async function () {
-        dao = await require('../db');
+        dao = await require('..');
 
         describe('#getContracts()', function () {
                 it('empty db', async function () {
@@ -22,14 +22,14 @@ describe('db tests', function () {
                         dao.addContracts(
                             [
                                 {hash: '1234567890123456', name: 'ch', abi: 'hw'},
-                                {hash: '2', name: 'wd', abi: 'dp'},
-                                {hash: '3', name: 'pp', abi: 'toIdeaUlic'},
+                                {hash: '2', name: 'w', abi:''},
+                                {hash: '3', name: 'hh', abi: 'toIdeaUlic'},
                             ]
                         ).then( () =>
                             dao.getContracts().then(result => assert.deepEqual(result, [
                                 {hash: '1234567890123456', name: 'ch', abi: 'hw'},
-                                {hash: '2', name: 'wd', abi: 'dp'},
-                                {hash: '3', name: 'pp', abi: 'toIdeaUlic'},
+                                {hash: '2', name: 'w', abi:''},
+                                {hash: '3', name: 'hh', abi: 'toIdeaUlic'},
                             ]))
                         );
 

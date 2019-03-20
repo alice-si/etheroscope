@@ -15,7 +15,7 @@ app.listen(port, () =>
 
 
 async function f() {
-    let dao = await require('./db');
+    let dao = await require('..');
     await sleep(3000)
 
     // let result = await dao.getContracts();

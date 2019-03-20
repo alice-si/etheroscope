@@ -4,9 +4,11 @@ const fs = require('fs');
 const path = require('path');
 const basename = path.basename(__filename);
 const Sequelize = require('sequelize');
-const settings = require('../settings');
-const sequelize = new Sequelize(settings.DBNAME, settings.DBUSER, settings.DBPASS, settings.DBOPTIONS);
+const env = process.env.NODE_ENV || 'development';
+const config = require('../config')[env];
 const db = {};
+console.log(env);
+const sequelize = new Sequelize(config.database, config.username, config.password, config);
 
 /**
  * get all .js files from current path, and sync as a model, and associate
