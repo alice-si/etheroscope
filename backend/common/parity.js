@@ -77,20 +77,20 @@ module.exports = function (db, log) {
             log.debug(`parity.getContract ${address}`)
 
             let contractFromDB = await db.getContract(address.substr(2))
-            let parsedABI = contractFromDB.contract
+            let parsedABI = contractFromDB.abi
 
             // this scenario happens "in" the main server
             if (parsedABI === null) {
                 parsedABI = await getContractInfoFromEtherscan(address)
-                await db.updateContractWithABI(address.substr(2), parsedABI)
+                await db.updateContractABI(address.substr(2), parsedABI)
                 contractFromDB = await db.getContract(address.substr(2))
-                parsedABI = contractFromDB.contract
+                parsedABI = contractFromDB.abi
             }
 
             let contract = web3.eth.contract(parsedABI)
             let parsedContract = contract.at(address)
 
-            return {contractName: contractFromDB.contractName, parsedContract: parsedContract}
+            return {contractName: contractFromDB.name, parsedContract: parsedContract}
         } catch (err) {
             errorHandler.errorHandleThrow(`parity.getContract ${address}`, '')(err)
         }
@@ -107,17 +107,27 @@ module.exports = function (db, log) {
         await Promise.each(parsedAbi, (item) => {
             if (isVariable(item)) variableNames.push(item.name)
         })
-        await db.addVariables(address, variableNames)
+
+        let values = [];
+        variableNames.forEach((variable) => {
+            values.push({
+                       ContractHash: address,
+                       name: variable,
+                //        cachedFrom: 'NULL',
+                //        cachedUpTo: 'NULL',
+                //        UnitId:'NULL',
+        })});
+
+        await db.addVariables(values)
     }
 
     parity.getContractVariables = async function (contractInfo) {
         let parsedContract = await contractInfo.parsedContract
         let address = await parsedContract.address.substr(2)
         let contractName = contractInfo.contractName
-        var parsedAbi = parsedContract.abi
+        let parsedAbi = parsedContract.abi;
 
-        var variables = await db.getVariables(address)
-
+        let variables = await db.getVariables(address);
         if (variables.length === undefined || variables.length === 0) {
             await cacheContractVariables(address, parsedAbi)
             variables = await db.getVariables(address)
@@ -126,7 +136,7 @@ module.exports = function (db, log) {
         // if (variables.length === 0 ) throw "still only 0 variabels"
 
         let variableNames = []
-        await Promise.map(variables, (elem) => variableNames.push(elem), {concurrency: 5})
+        variables.forEach(variable => {variableNames.push(variable.name)});
         return {variables: variableNames, contractName: contractName}
     }
 
@@ -189,23 +199,22 @@ module.exports = function (db, log) {
     async function getBlockTime(blockNumber) {
         log.debug(`parity.getBlockTime ${blockNumber}`)
 
-        let result = await db.getBlockTime(blockNumber)
-        if (result.length !== 0)
-            return result[0].timeStamp
+        let timeStamp = await db.getBlockTime(blockNumber)
+        if (timeStamp !== null)
+            return timeStamp
 
         return new Promise((resolve, reject) => {
             try {
                 lock.writeLock(blockNumber, async (release) => {
-                    let result = await db.getBlockTime(blockNumber)
+                    let timeStamp = await db.getBlockTime(blockNumber)
 
-                    if (result.length !== 0) {
+                    if (timeStamp !== null) {
                         release()
-                        return resolve(result[0].timeStamp)
+                        return resolve(timeStamp)
                     }
 
                     let time = await parity.calculateBlockTime(blockNumber)
-
-                    await db.addBlockTime([[blockNumber, time]])
+                    await db.addBlocks([{ number: blockNumber, timeStamp: time}])
 
                     release()
 
@@ -265,7 +274,7 @@ module.exports = function (db, log) {
      */
     parity.getHistory = async function (address, startBlock, endBlock) {
         log.debug(`parity.getHistory ${address} ${startBlock} ${endBlock}`)
-        
+
         return new Promise((resolve, reject) => {
             return web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address}).get((err, res) => {
                 if (err) {

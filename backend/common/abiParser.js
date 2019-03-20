@@ -1,6 +1,6 @@
 let log = require('loglevel')
 let validator = require('validator')
-let db = require('../common/db.js')(log)
+let db = require('../db')
 var Promise = require('bluebird')
 var Parity = require('../common/parity.js')
 var parityClient = Parity(db, log,validator)
