@@ -111,7 +111,7 @@ async function addContractLookup(contractHash) {
  */
 async function getPopularContracts(limit1, lastDays = 7) {
     try {
-        return await sequelize.query('SELECT hash, Count(t2.id) as cnt FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash where t2.date >= DATE_SUB(NOW(), INTERVAL $2 DAY) group by t1.hash order by cnt desc limit $1 ',
+        return await sequelize.query('SELECT hash, name, Count(t2.id) as cnt FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash where t2.date >= DATE_SUB(NOW(), INTERVAL $2 DAY) group by t1.hash, t1.name order by cnt desc limit $1 ',
             {raw: true, bind: [limit1, lastDays], type: sequelize.QueryTypes.SELECT}
         )
     } catch (e) {
