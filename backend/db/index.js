@@ -125,8 +125,8 @@ async function getPopularContracts(limit1, lastDays = 7) {
  * Timestamps are currently ignored.
  *
  * Consists of 2 steps:
- * Step 2 adds values into database.
- * Step 1 updates  cached range for this variable.
+ * Step 1 adds values into database.
+ * Step 2 updates  cached range for this variable.
  *
  * @param {string}   contractAddress
  * @param {string}   variableName
@@ -142,8 +142,8 @@ async function addDataPoints(contractAddress, variableName, values, cachedFrom, 
             values.forEach((elem) => {
                 bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
             });
-            await variable.update({cachedFrom: cachedFrom, cachedUpTo: cachedUpTo});
-            return await models.DataPoint.bulkCreate(bulkmap);
+            await models.DataPoint.bulkCreate(bulkmap);
+            return await variable.update({cachedFrom: cachedFrom, cachedUpTo: cachedUpTo});
         }
     } catch (e) {
         console.error("addDataPoints(" + contractAddress + ", " + variableName + ", " + values + ", " + cachedFrom + ", " + cachedUpTo + ")")
