@@ -359,7 +359,7 @@ async function searchContract(pattern) {
     }).catch((e) => {
         console.log(e)
     })
-})(true);
+})(false);
 
 module.exports.addContracts = addContracts;
 module.exports.getContracts = getContracts;
