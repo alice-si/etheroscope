@@ -2,22 +2,24 @@
 
 const models = require('./models');
 const sequelize = models.sequelize;
+const Sequelize = models.Sequelize;
+const Op = Sequelize.Op;
 
 /**
+ * Get all Contracts from db.
  *
- * @returns {Promise<void>}
- */
-async function testConnection() {
-    try {
-        return await sequelize.authenticate();
-    } catch (e) {
-        console.error("testConnection()")
-    }
-}
-
-/**
- *
- * @returns {Promise<Array<Model>>}
+ * @returns {Promise<Array<Model>>} - array of Contract instances.
+ * Contract is a sequelizejs Model with 'hash', 'name', 'abi' fields,
+ * and with hasMany(ContractLookup), hasMany(Variable) associations.
+ * Model represents a table in the database. Instances of this class represent a database row.
+ * The values from dataValues can be accessed directly from the Instance, that is:
+ *      ```
+ *      instance.field
+ *      // is the same as
+ *      instance.get('field')
+ *      // is the same as
+ *      instance.getDataValue('field')
+ *      ```
  */
 async function getContracts() {
     try {
@@ -28,9 +30,22 @@ async function getContracts() {
 }
 
 /**
+ * Get Contract from db with hash = {@param contractHash}.
  *
- * @param contractHash
- * @returns {Promise<Model>}
+ * @param contractHash - contract hash
+ *
+ * @returns {Promise<Model>} - Contract instance
+ * Contract is a sequelizejs Model with 'hash', 'name', 'abi' fields,
+ * and with hasMany(ContractLookup), hasMany(Variable) assotiations.
+ * Model represents a table in the database. Instances of this class represent a database row.
+ * The values from dataValues can be accessed directly from the Instance, that is:
+ *      ```
+ *      instance.field
+ *      // is the same as
+ *      instance.get('field')
+ *      // is the same as
+ *      instance.getDataValue('field')
+ *      ```
  */
 async function getContract(contractHash) {
     try {
@@ -41,9 +56,26 @@ async function getContract(contractHash) {
 }
 
 /**
- * todo
- * @param values  [{ hash: 'barfooz', name: '', abi: ''}, { hash: 'barfooz', name: '', abi: ''}, { hash: 'barfooz', name: '', abi: ''},]
- * @returns {Promise<Array<Model>>}
+ * Create many Contracts in database.
+ *
+ * @param values - should be an array of contracts e.g:
+ *      ```
+ *      [{ hash: 'barfoohash1z', name: 'name1', abi: 'abisbiss'},
+ *      { hash: 'barfohash2oz', name: 'name2', abi: 'abisbiss'},
+ *      { hash: 'barfoozhash3', name: 'name 23', abi: '8aushiau'},]
+ *      ```
+ * @returns {Promise<Array<Model>>} - array of inserted instances.
+ * Contract is a sequelizejs Model with 'hash', 'name', 'abi' fields,
+ * and with hasMany(ContractLookup), hasMany(Variable) assotiations.
+ * Model represents a table in the database. Instances of this class represent a database row.
+ * The values from dataValues can be accessed directly from the Instance, that is:
+ *      ```
+ *      instance.field
+ *      // is the same as
+ *      instance.get('field')
+ *      // is the same as
+ *      instance.getDataValue('field')
+ *      ```
  */
 async function addContracts(values) {
     try {
@@ -54,8 +86,8 @@ async function addContracts(values) {
 }
 
 /**
- * todo
- * @param contractHash
+ * Add a lookup for contract.
+ * @param contractHash - hash of contract.
  * @returns {Promise<*>}
  */
 async function addContractLookup(contractHash) {
@@ -72,13 +104,12 @@ async function addContractLookup(contractHash) {
 
 
 /**
- * todo
- * @param limit1
- * @param lastDays
+ * Get top limit1 popular contracts in last lasDays days.
+ * @param {int}     limit1      how many contracts
+ * @param {int}     lastDays    how many last days
  * @returns {Promise<void>}
  */
 async function getPopularContracts(limit1, lastDays = 7) {
-    // noinspection JSCheckFunctionSignatures
     try {
         return await sequelize.query('SELECT hash, Count(t2.id) as cnt FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash where t2.date >= DATE_SUB(NOW(), INTERVAL $2 DAY) group by t1.hash order by cnt desc limit $1 ',
             {raw: true, bind: [limit1, lastDays], type: sequelize.QueryTypes.SELECT}
@@ -94,8 +125,8 @@ async function getPopularContracts(limit1, lastDays = 7) {
  * Timestamps are currently ignored.
  *
  * Consists of 2 steps:
- * Step 1 adds values into database.
- * Step 2 updates  cached range for this variable.
+ * Step 2 adds values into database.
+ * Step 1 updates  cached range for this variable.
  *
  * @param {string}   contractAddress
  * @param {string}   variableName
@@ -111,7 +142,7 @@ async function addDataPoints(contractAddress, variableName, values, cachedFrom, 
             values.forEach((elem) => {
                 bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
             });
-            await variable.update({cachedFrom: cachedFrom, cachedUpTo: cachedUpTo})
+            await variable.update({cachedFrom: cachedFrom, cachedUpTo: cachedUpTo});
             return await models.DataPoint.bulkCreate(bulkmap);
         }
     } catch (e) {
@@ -124,12 +155,13 @@ async function addDataPoints(contractAddress, variableName, values, cachedFrom, 
  * Returns all timestamps and values for a given contract and variable.
  * @param contractAddress
  * @param variableName
- * @returns {Promise<Array<Model>>} -> with assosiated models -> maybe todo better
+ * @returns {Promise<Array<Model>>}         Array of DataPoints instances with included associated Block instance.
+ *                                          Block is accessible eq. `res[i].Block.number`
  */
 async function getDataPoints(contractAddress, variableName) {
     try {
         let variable = await models.Variable.findOne({where: {ContractHash: contractAddress, name: variableName}});
-        return await models.DataPoint.findAll({include: [Block], where: {VariableId: variable.id}});
+        return await models.DataPoint.findAll({include: [models.Block], where: {VariableId: variable.id}});
     } catch (e) {
         console.error("getDataPoints(" + contractAddress + ", " + variableName + ")")
     }
@@ -137,57 +169,84 @@ async function getDataPoints(contractAddress, variableName) {
 
 
 /**
- * todo
- * @param values  [{ ContractHash: 'barfooz', name: '', cachedFrom: '', cachedUpTo: '', UnitId:'' }, ... ]
- * @returns {Promise<Array<Model>>}
+ * Create many Variables in database.
+ *
+ * @param values - should be an array of variables e.g:
+ * let result4 = await dao.addVariables([{
+ *       ContractHash: '1',
+ *       name: 'namenameVariable',
+ *       cachedFrom: '420',
+ *       cachedUpTo: '422',
+ *       // UnitId:'1',
+ *   }, {
+ *       ContractHash: '2',
+ *       name: 'namename22',
+ *       cachedFrom: '420',
+ *       cachedUpTo: '422',
+ *       // UnitId:'1',
+ * },
+ *
+ * ]);
+ *
+ * Care Unit.js model is currently not used that's why u shouldn't set UnitId in values.
+ *
+ * @returns {Promise<Array<Model>>} - array of inserted instances.
  */
 async function addVariables(values) {
     try {
         return await models.Variable.bulkCreate(values);
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("addVariables()")
     }
 }
 
-
+/**
+ * Get all variables for contract.
+ *
+ * @param   contractHash    hash of contract
+ * @returns {Promise<Array<Model>>}
+ */
 async function getVariables(contractHash) {
     try {
         return await models.Variable.findAll({where: {ContractHash: contractHash}});
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("getVariables()")
     }
 }
 
 
 /**
+ * Get timeStamp for given block number.
  *
- * @param blockNumber
- * @returns {Promise<*>}
+ * @param blockNumber   - block number
+ * @returns {Promise<*>} - timestamp
  */
 async function getBlockTime(blockNumber) {
     try {
         let block = await models.Block.findOne({where: {number: blockNumber}});
         return block.timeStamp;
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("getBlockTime()")
     }
 }
 
 /**
- * todo
- * @param values [{ number: 34, timeStamp: 23}, ... ]
- * @returns {Promise<Array<Model>>}
+ * Create in db blocks for given values.
+ *
+ * @param   values    eq. [{ number: 34, timeStamp: Date.now()}, ... ]
+ * @returns {Promise<Array<Model>>} - array of inserted instances.
  */
 async function addBlocks(values) {
     try {
         return await models.Block.bulkCreate(values);
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("addBlocks()!")
     }
 }
 
 /**
- * todo
+ * Gets dataPoints for a variable in block number <from, to> range.
+ *
  * @param contractHash
  * @param variableName
  * @param from
@@ -199,22 +258,29 @@ async function getDataPointsInBlockNumberRange(contractHash, variableName, from,
         let variable = await models.Variable.findOne({where: {ContractHash: contractHash, name: variableName}});
         return await models.DataPoint.findAll({
             // include: [models.Block],
-            where: {VariableId: variable.id, blockNumber: {[Op.between]: [from, to]}}
-        });
+            where: {
+                VariableId: variable.id,
+                BlockNumber: {
+                    [Op.between]: [from, to]
+                }
+            }
+        })
+            ;
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("getDataPointsInBlockNumberRange()")
     }
 }
 
 /**
- * todo
- * @returns {Promise<*>}
+ * Get the latest number of cached blocks.
+ *
+ * @returns {Promise<*>} - block number
  */
 async function getLatestCachedBlock() {
     try {
         return await models.Block.max('number')
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error(getLatestCachedBlock())
     }
 }
 
@@ -226,7 +292,6 @@ async function getLatestCachedBlock() {
  *
  * @returns {Promise<Object>} returns Object {cachedFrom, cachedUpTo}
  */
-
 async function getCachedFromTo(contractHash, variableName) {
     try {
         let variable = await models.Variable.findOne({where: {ContractHash: contractHash, name: variableName}});
@@ -235,26 +300,33 @@ async function getCachedFromTo(contractHash, variableName) {
             cachedUpTo: variable.cachedUpTo
         }
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("getCachedFromTo()")
     }
 }
 
 /**
+ * Updates abi of given contract.
  *
- * @param contractHash
- * @param contractABI
- * @returns {Promise<this>}
+ * @param contractHash      contract hash
+ * @param contractABI       new abi
+ * @returns {Promise<Model>}    updated instance
  */
 async function updateContractABI(contractHash, contractABI) {
     try {
         let contract = await models.Contract.findOne({where: {hash: [contractHash]}});
         return await contract.update({abi: contractABI})
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("updateContractABI()")
     }
 }
 
-
+/**
+ * Temp. implementation looking for exact hash or name match.
+ * fixme
+ *
+ * @param pattern
+ * @returns {Promise<Model>}
+ */
 async function searchContract(pattern) {
     // todo function (pattern, variables, transactions) - advanced search
     try {
@@ -265,31 +337,43 @@ async function searchContract(pattern) {
             return await models.Contract.findOne({where: {name: [pattern]}})
         }
     } catch (e) {
-        console.error("EEEEEEE!")
+        console.error("searchContract()")
     }
 }
 
-
-/*
-###########################################################################
-###########################################################################
-###########################################################################
- */
-
-
 /**
- * @param {Boolean} [force=false] If force is true, each Model will run `DROP TABLE IF EXISTS`, before it tries to create its own table
+ * Initialize connection with db.
+ *
+ * @param {Boolean} [force=false] If force is true, each Model will run `DROP TABLE IF EXISTS`,
+ * before it tries to create its own table
  */
 (function initDB(force = false) {
-    testConnection().then(() => {
-        sequelize.sync({force: force})
+    sequelize.sync({force: force})
+        .catch((e) => {
+            console.log(e)
+        })
+        .then(() => {
+            console.log("DB CONNECTED")
+        });
+    sequelize.authenticate().then(() => {
+    }).catch((e) => {
+        console.log(e)
     })
 })(true);
 
-module.exports.testConnection = testConnection;
 module.exports.addContracts = addContracts;
 module.exports.getContracts = getContracts;
-// module.exports.addDataPoints = addDataPoints; todo test
+module.exports.updateContractABI = updateContractABI;
+module.exports.searchContract = searchContract;
 module.exports.getContract = getContract;
 module.exports.addContractLookup = addContractLookup;
 module.exports.getPopularContracts = getPopularContracts;
+module.exports.addVariables = addVariables;
+module.exports.getVariables = getVariables;
+module.exports.addDataPoints = addDataPoints;
+module.exports.getDataPoints = getDataPoints;
+module.exports.getDataPointsInBlockNumberRange = getDataPointsInBlockNumberRange;
+module.exports.addBlocks = addBlocks;
+module.exports.getBlockTime = getBlockTime;
+module.exports.getLatestCachedBlock = getLatestCachedBlock;
+module.exports.getCachedFromTo = getCachedFromTo;

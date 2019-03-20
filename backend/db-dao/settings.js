@@ -1,7 +1,7 @@
 module.exports.DBNAME = 'mysqldb';
 module.exports.DBUSER = 'zppuser';
 module.exports.DBPASS = 'T6yt1rLPYv25';
-module.exports.DBOPTIONS = {host: '35.205.216.85', dialect: 'mysql', operatorsAliases: false, logging: /*false*/console.log/*todo delete logging: false from here*/};
+module.exports.DBOPTIONS = {host: '35.205.216.85', dialect: 'mysql', operatorsAliases: false, logging: false};
 // todo secrets - code like this one below would be perfect ;]
 // module.exports = {
 //     development: {
