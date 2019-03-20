@@ -341,26 +341,6 @@ async function searchContract(pattern) {
     }
 }
 
-/**
- * Initialize connection with db.
- *
- * @param {Boolean} [force=false] If force is true, each Model will run `DROP TABLE IF EXISTS`,
- * before it tries to create its own table
- */
-(function initDB(force = false) {
-    sequelize.sync({force: force})
-        .catch((e) => {
-            console.log(e)
-        })
-        .then(() => {
-            console.log("DB CONNECTED")
-        });
-    sequelize.authenticate().then(() => {
-    }).catch((e) => {
-        console.log(e)
-    })
-})(false);
-
 module.exports.addContracts = addContracts;
 module.exports.getContracts = getContracts;
 module.exports.updateContractABI = updateContractABI;
@@ -377,3 +357,15 @@ module.exports.addBlocks = addBlocks;
 module.exports.getBlockTime = getBlockTime;
 module.exports.getLatestCachedBlock = getLatestCachedBlock;
 module.exports.getCachedFromTo = getCachedFromTo;
+
+(function initDB(force = false) {
+    // If force is true, each Model will run `DROP TABLE IF EXISTS`, before it tries to create its own table
+    sequelize.sync({force: force})
+        .then(() => {
+            sequelize.authenticate().then(() => {
+                console.log("DB CONNECTED")
+            });
+        }).catch((e) => {
+        console.log(e)
+    })
+})();
