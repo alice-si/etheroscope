@@ -24,7 +24,7 @@ module.exports = function (db, log) {
      *
      * @return {Promise<number>} number of latest block
      */
-    parity.getLatestBlock = async function() {
+    parity.getLatestBlock = async function () {
         try {
             log.debug('parity.getLatestBlock')
 
@@ -37,7 +37,7 @@ module.exports = function (db, log) {
                     return resolve(block)
                 })
             })
-        } catch(err) {
+        } catch (err) {
             errorHandler.errorHandleThrow('parity.getLatestBlock', '')(err)
         }
     }
@@ -50,7 +50,7 @@ module.exports = function (db, log) {
      *
      * @return {Promise<any>} contract's instance
      */
-    async function getContractInfoFromEtherscan(address, network="mainnet") {
+    async function getContractInfoFromEtherscan(address, network = "mainnet") {
         // TODO - store apiKey in settings
         let etherscanAPIKey = "RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23"
 
@@ -77,20 +77,24 @@ module.exports = function (db, log) {
             log.debug(`parity.getContract ${address}`)
 
             let contractFromDB = await db.getContract(address.substr(2))
-            let parsedABI = contractFromDB.abi
+
+            let parsedABI = contractFromDB === null ? null : contractFromDB.abi
 
             // this scenario happens "in" the main server
             if (parsedABI === null) {
                 parsedABI = await getContractInfoFromEtherscan(address)
-                await db.updateContractABI(address.substr(2), parsedABI)
-                contractFromDB = await db.getContract(address.substr(2))
-                parsedABI = contractFromDB.abi
+                await db.updateContractABI(address, parsedABI)
+                contractFromDB = await db.getContract(address)
+                parsedABI = contractFromDB === null ? null : contractFromDB.abi
             }
 
-            let contract = web3.eth.contract(parsedABI)
-            let parsedContract = contract.at(address)
-
-            return {contractName: contractFromDB.name, parsedContract: parsedContract}
+            if (parsedABI !== null) {
+                let contract = web3.eth.contract(parsedABI)
+                // let parsedContract = /*contract.at(JSON.parse(*/address/*))*/
+                return {contractName: contractFromDB === null ? " " : contractFromDB.name, parsedContract: contract}
+            } else {
+                return null;
+            }
         } catch (err) {
             errorHandler.errorHandleThrow(`parity.getContract ${address}`, '')(err)
         }
@@ -111,12 +115,13 @@ module.exports = function (db, log) {
         let values = [];
         variableNames.forEach((variable) => {
             values.push({
-                       ContractHash: address,
-                       name: variable,
+                ContractHash: address,
+                name: variable,
                 //        cachedFrom: 'NULL',
                 //        cachedUpTo: 'NULL',
                 //        UnitId:'NULL',
-        })});
+            })
+        });
 
         await db.addVariables(values)
     }
@@ -136,7 +141,9 @@ module.exports = function (db, log) {
         // if (variables.length === 0 ) throw "still only 0 variabels"
 
         let variableNames = []
-        variables.forEach(variable => {variableNames.push(variable.name)});
+        variables.forEach(variable => {
+            variableNames.push(variable.name)
+        });
         return {variables: variableNames, contractName: contractName}
     }
 
@@ -214,14 +221,13 @@ module.exports = function (db, log) {
                     }
 
                     let time = await parity.calculateBlockTime(blockNumber)
-                    await db.addBlocks([{ number: blockNumber, timeStamp: time}])
+                    await db.addBlocks([{number: blockNumber, timeStamp: time}])
 
                     release()
 
                     return resolve(time)
                 })
-            }
-            catch (err) {
+            } catch (err) {
                 log.error(`ERROR - parity.getBlockTime ${blockNumber}`, err)
                 reject(err)
             }
@@ -238,11 +244,11 @@ module.exports = function (db, log) {
     parity.getTransaction = async function (transactionHash) {
         return new Promise((resolve, reject) => {
             web3.eth.getTransaction(transactionHash, (err, res) => {
-              if (err) {
-                reject(err)
-              } else {
-                resolve(res)
-              }
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(res)
+                }
             })
         })
     }

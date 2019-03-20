@@ -51,8 +51,9 @@ module.exports = function (app, db, log, validator) {
         db.addContractLookup(address.substr(2))
             .catch((err) => console.log('could not add contract lookup'))
         return web3Client.getContract(address)
-            .then((contractInfo) => {
-                return web3Client.getContractVariables(contractInfo)
+            .then((contract) => {
+                if (contract !== null)
+                return web3Client.getContractVariables(contract)
             })
             .then((contractInfo) => {
                 return res.status(200).json(contractInfo)
@@ -139,11 +140,13 @@ module.exports = function (app, db, log, validator) {
         if (typeof req.body.transactions !== 'undefined') {
             transactions = req.body.transactions
         }
-        let contract = await db.searchContract(searchStr/* todo , variables, transactions*/);
-        let results = []
-        if (contract !== null) {
-            results = [{contract.hash, contract.name, contract.abi}]
-        }
-        return res.status(200).json(results)
+        db.searchContract(searchStr/* todo , variables, transactions*/).then(contract => {
+                let results = []
+                if (contract !== null) {
+                    results = [contract.hash, contract.name, contract.abi]
+                }
+                return res.status(200).json(results)
+            }
+        );
     })
 }
