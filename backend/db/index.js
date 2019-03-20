@@ -359,6 +359,8 @@ module.exports.getLatestCachedBlock = getLatestCachedBlock;
 module.exports.getCachedFromTo = getCachedFromTo;
 
 // todo  - address can be 0x, 0X or just hash - better fix everywhere hash used
+// todo - loglevel require('../db')(log)
+
 
 (function initDB(force = false) {
     // If force is true, each Model will run `DROP TABLE IF EXISTS`, before it tries to create its own table
