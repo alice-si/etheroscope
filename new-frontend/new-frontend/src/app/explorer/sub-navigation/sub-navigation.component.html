@@ -1,0 +1,18 @@
+<nav class="sub-navigation">
+  <div class="sub-navigation__contract">
+    <div class="sub-navigation__contract__name">{{contractInfo.contractName}}</div>
+    <div class="sub-navigation__contract__hash">{{contractHash}}</div>
+  </div>
+  <ul class="sub-navigation__links">
+    <li class="sub-navigation__links__item left" routerLinkActive="active">
+      <a href="#" routerLink="/explorer/{{contractHash}}/graph">
+        Graph
+      </a>
+    </li>
+    <li class="sub-navigation__links__item right" routerLinkActive="active">
+      <a href="#" routerLink="/explorer/{{contractHash}}/transactions/1">
+        Transactions
+      </a>
+    </li>
+  </ul>
+</nav>

@@ -1,0 +1,123 @@
+.title {
+  font-family: Metropolis,Avenir Next,Helvetica Neue,Arial,sans-serif;
+  font-size: 2em;
+  margin: 0;
+  font-weight: 200;
+  color: #1998a2;
+  display: none;
+}
+
+.subtitle {
+  font-family: Metropolis,Avenir Next,Helvetica Neue,Arial,sans-serif;
+  font-size: 1.3em;
+  margin: 10px 0 0;
+  font-weight: 200;
+  color: #1998a2;
+  border-left: 2px solid #1998a2;
+  padding-left: 10px;
+}
+
+.variables {
+  padding: 0;
+  text-align: center;
+  position: relative;
+
+  &:before {
+    content: '';
+    display: block;
+    height: 1em;
+    width: 1em;
+    border: 3px solid #1998a2;
+    border-top: none;
+    border-right: none;
+    transform: translateY(-50%) rotate(45deg);
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    cursor: pointer;
+  }
+
+  &:after {
+    content: '';
+    display: block;
+    height: 1em;
+    width: 1em;
+    border: 3px solid #1998a2;
+    border-top: none;
+    border-left: none;
+    transform: translateY(-50%) rotate(-45deg);
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    cursor: pointer;
+  }
+}
+
+.variable {
+  padding: 7px 15px;
+  background: #1998a2;
+  font-size: 0.7em;
+  font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+  text-transform: uppercase;
+  color: white;
+  margin: 10px auto;
+  width: 50%;
+  list-style: none;
+  cursor: pointer;
+  position: relative;
+
+  &.active:after {
+    content: '';
+    display: inline-block;
+    width: 1em;
+    height: 0.5em;
+    border: 2px solid white;
+    border-top: none;
+    border-right: none;
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%) rotate(-45deg);
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+}
+
+.wrapper {
+  margin: 10px 0;
+}
+
+.label {
+  font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+  font-size: 0.8em;
+  font-weight: 200;
+  color: #1998a2;
+}
+
+.picker {
+  background: white;
+  border: 1px solid #1998a2;
+  padding: 5px;
+  color: #565656;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+}
+
+.choices {
+  display: flex;
+  justify-content: space-between;
+}
+
+.time {
+  padding: 7px;
+  background: #1998a2;
+  border-radius: 5px;
+  font-size: 0.8em;
+  font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+  text-transform: uppercase;
+  color: white;
+}

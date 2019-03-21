@@ -1,0 +1,13 @@
+<app-search *ngIf="!contractId"></app-search>
+
+<div class="not-found" *ngIf="!!contractId && !contractInformation">
+  Not found
+</div>
+
+<div class="explore-contract" *ngIf="!!contractInformation">
+  <app-sub-navigation [contractHash]="contractId" [contractInfo]="contractInformation"></app-sub-navigation>
+  <main class="container">
+    <router-outlet></router-outlet>
+  </main>
+</div>
+

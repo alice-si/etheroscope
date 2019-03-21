@@ -1,0 +1,55 @@
+<div style="display: flex;">
+  <div style="height: calc(100vh - 115px); margin: 15px;">
+    <ngx-charts-line-chart
+      [scheme]="colorScheme"
+      [results]="multi"
+      [gradient]="gradient"
+      [xAxis]="showXAxis"
+      [yAxis]="showYAxis"
+      [legend]="showLegend"
+      [showXAxisLabel]="showXAxisLabel"
+      [trimXAxisTicks]="false"
+      [showYAxisLabel]="showYAxisLabel"
+      [xAxisLabel]="xAxisLabel"
+      [xScaleMax]="timeNow"
+      [yAxisLabel]="yAxisLabel"
+      [autoScale]="autoScale"
+      [timeline]="timeline"
+      [curve]="curve">
+    </ngx-charts-line-chart>
+  </div>
+  <div style="box-shadow: 0 0.5px 10px 1px rgba(0, 0, 0, 0.2); background: white;">
+    <div style="padding: 15px;">
+      <h2 class="title">Properties</h2>
+      <h3 class="subtitle">Graph type</h3>
+      <select>
+        <option value="volvo">Line Graph</option>
+        <option value="saab">Updates by day</option>
+        <option value="mercedes">Histogram</option>
+      </select>
+      <h3 class="subtitle">Variables</h3>
+      <ul *ngIf="!!variables" class="variables">
+        <li *ngFor="let variable of variables" class="variable" routerLinkActive="active" routerLink="/explorer/{{contractAddress}}/graph/{{variable.variableName}}">
+          {{variable.variableName}}
+        </li>
+      </ul>
+      <h3 class="subtitle">Timeline</h3>
+      <div class="wrapper">
+        <label class="label" for="from">From</label>
+        <input class="picker" id="from" type="datetime-local" value="2017-06-01T08:30">
+      </div>
+      <div class="wrapper">
+        <label class="label" for="to">To</label>
+        <input class="picker" id="to" type="datetime-local" name="partydate" value="2017-06-01T08:30">
+      </div>
+      <div class="choices">
+        <span class="time">1h</span>
+        <span class="time">12h</span>
+        <span class="time">1d</span>
+        <span class="time">1w</span>
+        <span class="time">1m</span>
+        <span class="time">1y</span>
+      </div>
+    </div>
+  </div>
+</div>
