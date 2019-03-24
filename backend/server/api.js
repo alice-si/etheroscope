@@ -142,7 +142,7 @@ module.exports = function (app, db, log, validator) {
         db.searchContract(searchStr/* todo , variables, transactions*/).then(contract => {
                 let results = []
                 if (contract !== null) {
-                    results = [contract.hash, contract.name, contract.abi]
+                    results.push({contractHash: contract.hash, name: contract.name, abi: contract.abi})
                 }
                 return res.status(200).json(results)
             }

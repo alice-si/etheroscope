@@ -79,7 +79,7 @@ async function getContract(contractHash) {
  */
 async function addContracts(values) {
     try {
-        return await models.Contract.bulkCreate(values, { returning: true });
+        return await models.Contract.bulkCreate(values, {returning: true});
     } catch (e) {
         console.error("addContracts()", values, e)
     }
@@ -141,7 +141,7 @@ async function addDataPoints(contractAddress, variableName, values, cachedFrom, 
     try {
         let variable = await models.Variable.findOne({where: {ContractHash: contractAddress, name: variableName}});
         let bulkmap = [];
-        if (variable && values.length !== 0) {
+        if (variable && values && values.length !== 0) {
             values.forEach((elem) => {
                 bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
             });
@@ -149,7 +149,7 @@ async function addDataPoints(contractAddress, variableName, values, cachedFrom, 
             return await variable.update({cachedFrom: cachedFrom, cachedUpTo: cachedUpTo});
         }
     } catch (e) {
-        console.error("addDataPoints(" + contractAddress + ", " + variableName + ", " + values + ", " + cachedFrom + ", " + cachedUpTo + ")")
+        console.error("addDataPoints(" + contractAddress + ", " + variableName + ", " + values + ", " + cachedFrom + ", " + cachedUpTo + ")", e)
 
     }
 }
@@ -197,8 +197,6 @@ async function getDataPoints(contractAddress, variableName) {
  */
 async function addVariables(values) {
     try {
-        console.log("aaaaaaa", values)
-        console.log(await getContracts())
         return await models.Variable.bulkCreate(values);
     } catch (e) {
         console.error("addVariables()", e)
@@ -229,9 +227,9 @@ async function getVariables(contractHash) {
 async function getBlockTime(blockNumber) {
     try {
         let block = await models.Block.findOne({where: {number: blockNumber}});
-        return block.timeStamp;
+        return block === null ? null : block.timeStamp;
     } catch (e) {
-        console.error("getBlockTime()")
+        console.error("getBlockTime()", e)
     }
 }
 
@@ -300,12 +298,15 @@ async function getLatestCachedBlock() {
 async function getCachedFromTo(contractHash, variableName) {
     try {
         let variable = await models.Variable.findOne({where: {ContractHash: contractHash, name: variableName}});
-        return {
+        return variable == null ? {
+            cachedFrom: null,
+            cachedUpTo: null
+        } : {
             cachedFrom: variable.cachedFrom,
             cachedUpTo: variable.cachedUpTo
         }
     } catch (e) {
-        console.error("getCachedFromTo()")
+        console.error("getCachedFromTo()", e)
     }
 }
 

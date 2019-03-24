@@ -89,8 +89,9 @@ module.exports = function (db, log) {
                     abi: JSON.stringify(parsedABI)
                 }])
                 contractFromDB = await db.getContract(address.substr(2))
-                parsedABI = JSON.parse(contractFromDB.abi)
             }
+
+            parsedABI = JSON.parse(contractFromDB.abi)
             let contract = web3.eth.contract(parsedABI)
             let parsedContract = contract.at(address)
             return {contractName: contractFromDB.name, parsedContract: parsedContract}
@@ -138,11 +139,11 @@ module.exports = function (db, log) {
             variables = await db.getVariables(address)
         }
 
-        if (variables.length === 0 ) throw "still only 0 variabels"
+        // if (variables.length === 0 ) throw "still only 0 variabels"
 
         let variableNames = []
         variables.forEach(variable => {
-            variableNames.push(variable.name)
+            variableNames.push({variableName: variable.name, unit: null, description: null})
         });
         return {variables: variableNames, contractName: contractName}
     }
