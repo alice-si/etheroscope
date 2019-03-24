@@ -83,18 +83,18 @@ module.exports = function (db, log) {
             // this scenario happens "in" the main server
             if (parsedABI === null) {
                 parsedABI = await getContractInfoFromEtherscan(address)
-                await db.updateContractABI(address, parsedABI)
-                contractFromDB = await db.getContract(address)
-                parsedABI = contractFromDB === null ? null : contractFromDB.abi
+                await db.addContracts([{
+                    hash: address.substr(2),
+                    name: 'ethereum kontrakt :)',
+                    abi: JSON.stringify(parsedABI)
+                }])
+                contractFromDB = await db.getContract(address.substr(2))
+                parsedABI = JSON.parse(contractFromDB.abi)
             }
+            let contract = web3.eth.contract(parsedABI)
+            let parsedContract = contract.at(address)
+            return {contractName: contractFromDB.name, parsedContract: parsedContract}
 
-            if (parsedABI !== null) {
-                let contract = web3.eth.contract(parsedABI)
-                // let parsedContract = /*contract.at(JSON.parse(*/address/*))*/
-                return {contractName: contractFromDB === null ? " " : contractFromDB.name, parsedContract: contract}
-            } else {
-                return null;
-            }
         } catch (err) {
             errorHandler.errorHandleThrow(`parity.getContract ${address}`, '')(err)
         }
@@ -138,7 +138,7 @@ module.exports = function (db, log) {
             variables = await db.getVariables(address)
         }
 
-        // if (variables.length === 0 ) throw "still only 0 variabels"
+        if (variables.length === 0 ) throw "still only 0 variabels"
 
         let variableNames = []
         variables.forEach(variable => {

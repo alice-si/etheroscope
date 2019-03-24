@@ -79,9 +79,9 @@ async function getContract(contractHash) {
  */
 async function addContracts(values) {
     try {
-        return await models.Contract.bulkCreate(values);
+        return await models.Contract.bulkCreate(values, { returning: true });
     } catch (e) {
-        console.error("addContracts(" + values + ")")
+        console.error("addContracts()", values, e)
     }
 }
 
@@ -98,7 +98,7 @@ async function addContractLookup(contractHash) {
         return await lookup.save()
         // return await contract.addContractLookup(lookup);
     } catch (e) {
-        console.error("addContractLookup(" + contractHash + ")")
+        console.error("addContractLookup()", e)
     }
 }
 
@@ -111,11 +111,14 @@ async function addContractLookup(contractHash) {
  */
 async function getPopularContracts(limit1, lastDays = 7) {
     try {
+        // return await sequelize.query('SELECT hash, name, Count(t2.id) as cnt FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash where t2.date >= datetime(\'now\', \'+$2 DAY\') group by t1.hash, t1.name order by cnt desc limit $1 ',
+        //     {raw: true, bind: [limit1, lastDays], type: sequelize.QueryTypes.SELECT}
+        // )
         return await sequelize.query('SELECT hash, name, Count(t2.id) as cnt FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash where t2.date >= DATE_SUB(NOW(), INTERVAL $2 DAY) group by t1.hash, t1.name order by cnt desc limit $1 ',
             {raw: true, bind: [limit1, lastDays], type: sequelize.QueryTypes.SELECT}
         )
     } catch (e) {
-        console.error("getPopularContracts(" + limit1 + ", " + lastDays + ")")
+        console.error("getPopularContracts(" + limit1 + ", " + lastDays + ")", e)
     }
 }
 
@@ -194,9 +197,11 @@ async function getDataPoints(contractAddress, variableName) {
  */
 async function addVariables(values) {
     try {
+        console.log("aaaaaaa", values)
+        console.log(await getContracts())
         return await models.Variable.bulkCreate(values);
     } catch (e) {
-        console.error("addVariables()")
+        console.error("addVariables()", e)
     }
 }
 
@@ -316,7 +321,7 @@ async function updateContractABI(contractHash, contractABI) {
         let contract = await models.Contract.findOne({where: {hash: [contractHash]}});
         return await contract.update({abi: contractABI})
     } catch (e) {
-        console.error("updateContractABI()")
+        console.error("updateContractABI()", e)
     }
 }
 
@@ -372,4 +377,4 @@ module.exports.getCachedFromTo = getCachedFromTo;
         }).catch((e) => {
         console.log(e)
     })
-})();
+})(true);

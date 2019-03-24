@@ -48,11 +48,10 @@ module.exports = function (app, db, log, validator) {
             let err = 'Error - invalid contract hash'
             return res.status(400).json(err)
         }
-        db.addContractLookup(address.substr(2))
-            .catch((err) => console.log('could not add contract lookup'))
         return web3Client.getContract(address)
             .then((contract) => {
-                if (contract !== null)
+                db.addContractLookup(address.substr(2))
+                    .catch((err) => console.log('could not add contract lookup'))
                 return web3Client.getContractVariables(contract)
             })
             .then((contractInfo) => {

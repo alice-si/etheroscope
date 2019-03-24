@@ -31,8 +31,8 @@ module.exports = (sequelize, DataTypes) => {
     const Variable = sequelize.define('Variable', {
             ContractHash: {type: DataTypes.STRING(40), allowNull: false, unique: 'uniqueTag'},
             name: {type: DataTypes.STRING(50), allowNull: false, unique: 'uniqueTag'},
-            cachedFrom: {type: DataTypes.BIGINT, allowNull: false},
-            cachedUpTo: {type: DataTypes.BIGINT, allowNull: false},
+            cachedFrom: {type: DataTypes.BIGINT, allowNull: true},
+            cachedUpTo: {type: DataTypes.BIGINT, allowNull: true},
         },
         {
             // don't add the timestamp attributes (updatedAt, createdAt)
@@ -53,7 +53,7 @@ module.exports = (sequelize, DataTypes) => {
         models.Variable.belongsTo(models.Unit, {
             onDelete: "CASCADE",
             foreignKey: {
-                allowNull: false
+                allowNull: true
             }
         });
     };
