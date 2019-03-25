@@ -111,12 +111,17 @@ async function addContractLookup(contractHash) {
  */
 async function getPopularContracts(limit1, lastDays = 7) {
     try {
-        // return await sequelize.query('SELECT hash, name, Count(t2.id) as cnt FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash where t2.date >= datetime(\'now\', \'+$2 DAY\') group by t1.hash, t1.name order by cnt desc limit $1 ',
-        //     {raw: true, bind: [limit1, lastDays], type: sequelize.QueryTypes.SELECT}
-        // )
-        return await sequelize.query('SELECT hash, name, Count(t2.id) as cnt FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash where t2.date >= DATE_SUB(NOW(), INTERVAL $2 DAY) group by t1.hash, t1.name order by cnt desc limit $1 ',
-            {raw: true, bind: [limit1, lastDays], type: sequelize.QueryTypes.SELECT}
-        )
+        let res = [];
+        if (process.env.NODE_ENV) { // if in production
+            res =  await sequelize.query('SELECT hash as contractHash, name, Count(t2.id) as searches FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash where t2.date >= DATE_SUB(NOW(), INTERVAL $2 DAY) group by t1.hash, t1.name order by searches desc limit $1 ',
+                {raw: true, bind: [limit1, lastDays], type: sequelize.QueryTypes.SELECT}
+            )
+        } else {
+            res =  await sequelize.query('SELECT hash as contractHash, name, Count(t2.id) as searches FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash group by t1.hash, t1.name order by searches desc limit $1 ',
+                {raw: true, bind: [limit1], type: sequelize.QueryTypes.SELECT}
+            )
+        }
+        return res
     } catch (e) {
         console.error("getPopularContracts(" + limit1 + ", " + lastDays + ")", e)
     }
@@ -363,10 +368,6 @@ module.exports.addBlocks = addBlocks;
 module.exports.getBlockTime = getBlockTime;
 module.exports.getLatestCachedBlock = getLatestCachedBlock;
 module.exports.getCachedFromTo = getCachedFromTo;
-
-// todo  - address can be 0x, 0X or just hash - better fix everywhere hash used
-// todo - loglevel require('../db')(log)
-
 
 (function initDB(force = false) {
     // If force is true, each Model will run `DROP TABLE IF EXISTS`, before it tries to create its own table
