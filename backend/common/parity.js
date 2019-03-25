@@ -210,12 +210,10 @@ module.exports = function (db, log) {
         let timeStamp = await db.getBlockTime(blockNumber)
         if (timeStamp !== null)
             return timeStamp
-
         return new Promise((resolve, reject) => {
             try {
                 lock.writeLock(blockNumber, async (release) => {
                     let timeStamp = await db.getBlockTime(blockNumber)
-
                     if (timeStamp !== null) {
                         release()
                         return resolve(timeStamp)

@@ -379,4 +379,4 @@ module.exports.getCachedFromTo = getCachedFromTo;
         }).catch((e) => {
         console.log(e)
     })
-})(true);
+})();

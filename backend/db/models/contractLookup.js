@@ -1,14 +1,6 @@
 "use strict";
 
 /*
-previously:
-create table if not exists contractLookupHistory(
-    contractHash VARCHAR(40)  not null,
-    date datetime,
-    primary key (contractHash, date)
-);
-
-now:
 CREATE TABLE IF NOT EXISTS `ContractLookups` (
     `id`            INTEGER NOT NULL auto_increment ,
     `date`          DATETIME NOT NULL,

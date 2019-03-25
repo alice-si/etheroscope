@@ -1,15 +1,6 @@
 'use strict';
 
 /*
-previously:
-create table if not exists contracts(
-    contractHash VARCHAR(40)  not null,
-    name         VARCHAR(128),
-    abi          NVARCHAR(11844),
-    primary key (contractHash)
-);
-
-now:
 CREATE TABLE IF NOT EXISTS `Contracts` (
     `hash`      VARCHAR(40) NOT NULL ,
     `name`      VARCHAR(255),

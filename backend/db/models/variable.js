@@ -1,17 +1,6 @@
 "use strict";
 
 /*
-previously:
-create table if not exists variables(
-    contractHash VARCHAR(40) not null,
-    variableName VARCHAR(50) not null,
-    cachedFrom   BIGINT,
-    cachedUpTo   BIGINT,
-    unitID       BIGINT,
-    primary key (contractHash, variableName)
-);
-
-now:
 CREATE TABLE IF NOT EXISTS `Variables` (
     `id` INTEGER NOT NULL auto_increment ,
     `ContractHash` VARCHAR(40) NOT NULL,
