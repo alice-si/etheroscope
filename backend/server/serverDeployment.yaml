@@ -31,4 +31,14 @@ spec:
           value: "35.246.120.150:8080"
         - name: ETHEROSCOPEFRONTEND
           value: "35.242.161.116:80"
+        - name: NODE_ENV
+          value: "production"
+        - name: DB_USERNAME
+          value: "zppuser"
+        - name: DB_PASSWORD
+          value: "T6yt1rLPYv25"
+        - name: DB_NAME
+          value: "mysqldb"
+        - name: DB_HOSTNAME
+          value: "35.205.216.85"
         imagePullPolicy: "Always"
