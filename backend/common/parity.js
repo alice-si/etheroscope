@@ -9,15 +9,16 @@ const errorHandler = require('../common/errorHandlers')
 const lock = new ReadWriteLock()
 const parityUrl = "http://" + settings.ETHEROSCOPEPARITYMAINNET
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
-
+// console.log(web3)
 module.exports = function (db, log) {
     let parity = {}
 
-    if (!web3.isConnected()) {
-        log.error('Please start parity, have tried:', parityUrl)
-        process.exit(1)
-    }
-    log.info('Successfully connected to parity, tried', parityUrl)
+    web3.eth.net.isListening()
+        .then(() => log.info('Successfully connected to parity, tried', parityUrl))
+        .catch(() => {
+            log.error('Please start parity, have tried:', parityUrl)
+            process.exit(1)
+        })
 
     /**
      * Function responsible for sending number of latest block in ethereum.
@@ -70,7 +71,7 @@ module.exports = function (db, log) {
      *
      * @param {string} address
      *
-     * @return {Promise<{parsedContract: Object, contractName: string}>}
+     * @return {Promise<{contractName: string, parsedContract: Object, parsedABI: Object}>}
      */
     parity.getContract = async function (address) {
         try {
@@ -92,9 +93,8 @@ module.exports = function (db, log) {
             }
 
             parsedABI = JSON.parse(contractFromDB.abi)
-            let contract = web3.eth.contract(parsedABI)
-            let parsedContract = contract.at(address)
-            return {contractName: contractFromDB.name, parsedContract: parsedContract}
+            let contract = web3.eth.Contract(parsedABI, address)
+            return {contractName: contractFromDB.name, parsedContract: contract, parsedABI: parsedABI}
 
         } catch (err) {
             errorHandler.errorHandleThrow(`parity.getContract ${address}`, '')(err)
@@ -129,9 +129,9 @@ module.exports = function (db, log) {
 
     parity.getContractVariables = async function (contractInfo) {
         let parsedContract = await contractInfo.parsedContract
-        let address = await parsedContract.address.substr(2)
+        let address = await parsedContract.options.address.substr(2)
         let contractName = contractInfo.contractName
-        let parsedAbi = parsedContract.abi;
+        let parsedAbi = contractInfo.parsedABI;
 
         let variables = await db.getVariables(address);
         if (variables.length === undefined || variables.length === 0) {
@@ -262,7 +262,7 @@ module.exports = function (db, log) {
      */
     parity.convertValue = function (value, unit) {
         try {
-            return web3.fromWei(value, unit)
+            return web3.utils.fromWei(value, unit)
         } catch (err) {
             errorHandler.errorHandleThrow('ParityClient', 'Problem with converting transaction value')(err)
         }
@@ -281,7 +281,8 @@ module.exports = function (db, log) {
         log.debug(`parity.getHistory ${address} ${startBlock} ${endBlock}`)
 
         return new Promise((resolve, reject) => {
-            return web3.eth.filter({fromBlock: startBlock, toBlock: endBlock, address: address}).get((err, res) => {
+            return web3.eth.getPastLogs({fromBlock: startBlock.toString(), toBlock: endBlock.toString(),
+                address: address}, (err, res) => {
                 if (err) {
                     log.error(`ERROR - parity.getHistory ${address} ${startBlock} ${endBlock}`)
                     return reject(err)
