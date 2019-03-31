@@ -9,7 +9,7 @@ const errorHandler = require('../common/errorHandlers')
 const lock = new ReadWriteLock()
 const parityUrl = "http://" + settings.ETHEROSCOPEPARITYMAINNET
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
-// console.log(web3)
+
 module.exports = function (db, log) {
     let parity = {}
 
@@ -301,25 +301,27 @@ module.exports = function (db, log) {
      * Step 3 - sorting elements (ascending by timestamp) and discarding consecutive elements with
      *          the same blockNumber (????) or value as predecessor
      *
-     * @param {Object} parsedContract contract's instance
+     * @param {Object} contractInfo
      * @param {string} variableName
      * @param {Number} from           beginning of block frame
      * @param {Number} upTo           end of block frame
      *
      * @return {Promise<Array>} array of tuples [timeStamp, value, blockNumber]
      */
-    parity.generateDataPoints = async function (parsedContract, variableName, from, upTo) {
+    parity.generateDataPoints = async function (contractInfo, variableName, from, upTo) {
+        let address = contractInfo.parsedContract.options.address
         try {
-            log.debug(`parity.generateDataPoints ${parsedContract.address} ${variableName} ${from} ${upTo}`)
+            log.debug(`parity.generateDataPoints ${address} ${variableName} ${from} ${upTo}`)
 
-            let address = parsedContract.address
             let events = await parity.getHistory(address, from, upTo)
+
+            let methods = contractInfo.parsedContract.jsonInterface.abi.methods
 
             events = await Promise.map(events, event => {
                 let blockNumber = event.blockNumber.valueOf()
 
                 return Promise.all([getBlockTime(blockNumber),
-                    valueAtBlock(parsedContract[variableName], blockNumber), blockNumber])
+                    valueAtBlock(methods[variableName], blockNumber), blockNumber])
             })
 
             events = events.sort((a, b) => a[0] - b[0])
@@ -344,7 +346,7 @@ module.exports = function (db, log) {
             return results
         } catch (err) {
             errorHandler.errorHandleThrow(
-                `parity.generateDataPoints ${parsedContract.address} ${variableName} ${from} ${upTo}`
+                `parity.generateDataPoints ${address} ${variableName} ${from} ${upTo}`
                 , '')(err)
         }
     }
