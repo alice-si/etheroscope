@@ -1,0 +1,81 @@
+.graph-dashboard {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+
+  &__headline {
+    text-align: center;
+    font-size: 3.125rem;
+    font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+    letter-spacing: -0.0055em;
+    font-weight: normal;
+    color: #1998a2;
+    margin: 20px 0;
+  }
+
+  &__description {
+    text-align: center;
+    max-width: 50%;
+    margin: 0 auto;
+    color: #565656;
+    font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+    font-size: 1.2em;
+    letter-spacing: 0.02em;
+  }
+
+  &__variables {
+    //display: flex;
+    //flex-wrap: wrap;
+    margin: 20px auto;
+    width: 50%;
+    justify-content: center;
+    padding-left: 0;
+    list-style-type: none;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    &__variable-wrapper {
+      //width: calc(100% / 3);
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    &__variable {
+      font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+      font-size: 0.8em;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      display: block;
+      text-align: center;
+      list-style: none;
+      cursor: pointer;
+      padding:14px 40px;
+      border: 1px solid #1998a2;
+      position: relative;
+      color: #1998a2;
+
+      &:before {
+        -webkit-transition: 0.5s all ease;
+        transition: 0.5s all ease;
+        position: absolute;
+        top: 0;
+        left: 50%;
+        right: 50%;
+        bottom: 0;
+        opacity: 0;
+        content: '';
+        background-color: #1998a2;
+        z-index:-1;
+      }
+      &:hover {
+        color: white;
+
+        &:before {
+          left: 0;
+          right: 0;
+          opacity: 1;
+        }
+      }
+    }
+  }
+}

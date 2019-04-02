@@ -3,6 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { ExplorerComponent } from "./explorer/explorer.component";
 import {TransactionsComponent} from "./transactions/transactions.component";
 import {GraphComponent} from "./graph/graph.component";
+import {GraphDashboardComponent} from "./graph-dashboard/graph-dashboard.component";
 
 const routes: Routes = [
   {
@@ -31,7 +32,7 @@ const routes: Routes = [
 
       {
         path: 'graph',
-        component: GraphComponent
+        component: GraphDashboardComponent
       },
 
       {
