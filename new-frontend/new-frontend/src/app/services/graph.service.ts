@@ -4,16 +4,19 @@ import {SocketService} from "./socket.service";
 import {switchMap, tap} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {of} from "rxjs/internal/observable/of";
-
+  
 @Injectable({
   providedIn: 'root'
 })
 export class GraphService {
   private contractAddress: string;
   private variable: string;
+
   private processedBlocks: number;
   private latestBlock: number;
+
   private dataPoints: any;
+  private datetimeBounds: any;
 
   constructor(private logger: LoggerService, private socketService: SocketService) {}
 

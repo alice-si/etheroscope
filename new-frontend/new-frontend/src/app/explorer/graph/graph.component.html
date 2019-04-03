@@ -97,10 +97,15 @@
       <div class="progress-section" [ngClass]="{'completed': (progress == 100), 'error': error}">
         <h3 class="subtitle">Progress</h3>
         <div class="progress-bar">
-          <div class="progress" [ngStyle]="{'width': progress + '%'}"></div>
-          <div class="progress-text"> {{ getProgress }} %</div>
+          <div class="progress-positive" [ngStyle]="{'width': progress + '%'}">
+            <div class="progress-text"> {{ getProgress }} %</div>
+            <div class="progress-error">&times;</div>
+          </div>
+          <div class="progress-negative" [ngStyle]="{'width': (100 - progress) + '%'}">
+            <div class="progress-text"> {{ getProgress }} %</div>
+            <div class="progress-error">&times;</div>
+          </div>
           <div class="progress-completed"></div>
-          <div class="progress-error">&times;</div>
         </div>
         <div class="error-text" [ngClass]="{'error': error}">Error occurred. Explored {{ getProgress }} %.</div>
       </div>

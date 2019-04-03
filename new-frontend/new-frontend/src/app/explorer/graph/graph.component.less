@@ -321,30 +321,54 @@ label {
 }
 
 .progress-bar {
-  width: 100%;
+  width: calc(25vw - 30px);
   height: 20px;
   margin: 10px 0;
   outline: 1px solid #1998a2;
   position: relative;
   box-sizing: border-box;
 
-  .progress {
-    background: #1998a2;
+  .progress-positive {
+    position: absolute;
+    top: 0;
     height: 100%;
-    width: 0;
+    background: #1998a2;
     overflow: hidden;
     transition: width 0.3s ease-in-out;
+
+    .progress-text {
+      color: #ffffff;
+    }
+  }
+
+  .progress-negative {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    background: #ffffff;
+    overflow: hidden;
+    transition: width 0.3s ease-in-out;
+
+    .progress-text {
+      color: #1998a2;
+      right: 0;
+    }
   }
 
   .progress-text {
     position: absolute;
     font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
-    color: white;
+    width: calc(25vw - 30px);
+    //color: white;
     font-size: 0.7em;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    //top: 50%;
+    //left: 50%;
+    //transform: translate(-50%, -50%);
     transition: opacity 1s ease;
+    text-align: center;
+    top: 50%;
+    transform: translateY(-50%);
   }
 
   .progress-completed {
@@ -366,9 +390,8 @@ label {
     color: white;
     font-size: 1.5em;
     top: 50%;
-    left: 50%;
-    -webkit-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
     opacity: 0;
     transition: opacity 1s ease;
   }
@@ -395,8 +418,24 @@ label {
     .progress-bar {
       outline-color: #f52323;
 
-      .progress {
+      .progress-positive {
         background: #f52323;
+
+        .progress-error {
+          transform: translateY(-50%);
+          width: calc(25vw - 30px);
+          text-align: center;
+        }
+      }
+
+      .progress-negative {
+        .progress-error {
+          transform: translateY(-50%);
+          width: calc(25vw - 30px);
+          text-align: center;
+          right: 0;
+          color: #f52323;
+        }
       }
 
       .progress-text {
@@ -418,7 +457,7 @@ label {
     .progress-bar {
       animation: completed2 2s ease-in-out forwards;
 
-      .progress {
+      .progress-positive {
         animation: completed 2s ease-in-out forwards;
       }
 
