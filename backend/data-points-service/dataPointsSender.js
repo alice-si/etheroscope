@@ -1,5 +1,3 @@
-const Promise = require('bluebird')
-
 const errorHandler = require('../common/errorHandlers')
 const Parity = require('../common/parity')
 const streamedSet = require('./streamedSet')()
@@ -28,7 +26,7 @@ module.exports = function (io, log) {
         function setInitCached(cachedRange) {
             let {cachedFrom, cachedUpTo} = cachedRange
 
-            if (cachedUpTo == null || cachedUpTo === null)
+            if (cachedUpTo == null || cachedFrom === null)
                 return {
                     cachedFrom: 1,
                     cachedUpTo: 0
@@ -96,8 +94,10 @@ module.exports = function (io, log) {
                 log.debug(`dataPointsSender.sendAllDataPointsFromDB ${address} ${variableName} ${from} ${to}`)
 
                 let dataPoints = await db.getDataPoints(address.substr(2), variableName)
-                let new_dataPoints = []
-                dataPoints.forEach(dataPoint => (new_dataPoints.push([dataPoint.Block.timeStamp, dataPoint.value, dataPoint.Block.number])))
+                dataPoints = dataPoints == null ? [] : dataPoints
+                let new_dataPoints = dataPoints.map(dataPoint =>
+                    [dataPoint.Block.timeStamp, dataPoint.value, dataPoint.Block.number])
+
                 io.sockets.in(address + variableName).emit('getHistoryResponse', {
                     error: false,
                     from: from,

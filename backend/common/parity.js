@@ -113,16 +113,13 @@ module.exports = function (db, log) {
             if (isVariable(item)) variableNames.push(item.name)
         })
 
-        let values = [];
-        variableNames.forEach((variable) => {
-            values.push({
-                ContractHash: address,
-                name: variable,
-                //        cachedFrom: 'NULL',
-                //        cachedUpTo: 'NULL',
-                //        UnitId:'NULL',
-            })
-        });
+        let values = variableNames.map(variable => {
+            // after that in database values another values are
+            //        cachedFrom: 'NULL',
+            //        cachedUpTo: 'NULL',
+            //        UnitId:'NULL',
+            return {ContractHash: address, name: variable}
+        })
 
         await db.addVariables(values)
     }
@@ -139,12 +136,9 @@ module.exports = function (db, log) {
             variables = await db.getVariables(address)
         }
 
-        // if (variables.length === 0 ) throw "still only 0 variabels"
-
-        let variableNames = []
-        variables.forEach(variable => {
-            variableNames.push({variableName: variable.name, unit: null, description: null})
-        });
+        let variableNames = variables.map(variable => {
+            return {variableName: variable.name, unit: null, description: null}
+        })
         return {variables: variableNames, contractName: contractName}
     }
 
@@ -155,20 +149,12 @@ module.exports = function (db, log) {
      * @param {number}   blockNumber
      * @return {Promise<number>} value of variable
      */
-    function valueAtBlock(variableFunction, blockNumber) {
+    async function valueAtBlock(variableFunction, blockNumber) {
         log.debug(`parity.valueAtBlock ${blockNumber}`)
 
-        let hex = '0x' + blockNumber.toString(16)
-        web3.eth.defaultBlock = hex
-        return new Promise((resolve, reject) => {
-            return variableFunction((err, result) => {
-                if (err) {
-                    log.error(`ERROR - parity.valueAtBlock ${blockNumber}`, err)
-                    return reject(err)
-                }
-                return resolve(parseInt(result.valueOf()))
-            })
-        })
+        web3.eth.defaultBlock = '0x' + blockNumber.toString(16)
+        let result = await variableFunction.call();
+        return parseInt((result.valueOf()))
     }
 
     /**
@@ -299,7 +285,7 @@ module.exports = function (db, log) {
      * Step 1 - generating all events in given range (getHistory call)
      * Step 2 - converting event to tuple [timestamp, value, blockNumber]
      * Step 3 - sorting elements (ascending by timestamp) and discarding consecutive elements with
-     *          the same blockNumber (????) or value as predecessor
+     *          the same blockNumber or value as predecessor
      *
      * @param {Object} contractInfo
      * @param {string} variableName
@@ -315,7 +301,7 @@ module.exports = function (db, log) {
 
             let events = await parity.getHistory(address, from, upTo)
 
-            let methods = contractInfo.parsedContract.jsonInterface.abi.methods
+            let methods = contractInfo.parsedContract.methods
 
             events = await Promise.map(events, event => {
                 let blockNumber = event.blockNumber.valueOf()
