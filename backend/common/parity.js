@@ -49,18 +49,15 @@ module.exports = function (db, log) {
      * @param {string} address
      * @param {string} [network=mainnet] specifies ethereum's network we currently use
      *
-     * @return {Promise<any>} contract's instance
+     * @return {Promise<{contractName: String, ABI: Object}>} contract's instance
      */
     async function getContractInfoFromEtherscan(address, network = "mainnet") {
-        // TODO - store apiKey in settings
-        let etherscanAPIKey = "RVDWXC49N3E3RHS6BX77Y24F6DFA8YTK23"
-
         let axiosGET = network === "mainnet" ? 'https://api' : `https://api-${network}`
-        axiosGET += `.etherscan.io/api?module=contract&action=getabi&address=${address}&apikey=${etherscanAPIKey}`
+        axiosGET += `.etherscan.io/api?module=contract&action=getsourcecode&address=${address}&apikey=${settings.server.etherscanAPIKey}`
 
         let response = await axios.get(axiosGET)
-
-        return JSON.parse(response.data.result)
+        let contractInstance = response.data.result[0]
+        return { contractName: contractInstance.ContractName, ABI: JSON.parse(contractInstance.ABI) }
     }
 
     /**
@@ -83,10 +80,12 @@ module.exports = function (db, log) {
 
             // this scenario happens "in" the main server
             if (parsedABI === null) {
-                parsedABI = await getContractInfoFromEtherscan(address)
+                let contractInstance = await getContractInfoFromEtherscan(address)
+                parsedABI = contractInstance.ABI
+                let contractName = contractInstance.contractName
                 await db.addContracts([{
                     hash: address.substr(2),
-                    name: 'ethereum kontrakt :)',
+                    name: contractName,
                     abi: JSON.stringify(parsedABI)
                 }])
                 contractFromDB = await db.getContract(address.substr(2))
@@ -281,10 +280,11 @@ module.exports = function (db, log) {
     /**
      * Main function responsible for generating data points for variable in block range [from, upTo]
      *
-     * Consists of 3 steps:
-     * Step 1 - generating all events in given range (getHistory call)
-     * Step 2 - converting event to tuple [timestamp, value, blockNumber]
-     * Step 3 - sorting elements (ascending by timestamp) and discarding consecutive elements with
+     * Consists of 4 steps:
+     * Step 1 - filtering events, so we have unique blocks' numbers (reduces amount of requests to parity)
+     * Step 2 - generating all events in given range (getHistory call)
+     * Step 3 - converting event to tuple [timestamp, value, blockNumber]
+     * Step 4 - sorting elements (ascending by timestamp) and discarding consecutive elements with
      *          the same blockNumber or value as predecessor
      *
      * @param {Object} contractInfo
@@ -303,9 +303,10 @@ module.exports = function (db, log) {
 
             let methods = contractInfo.parsedContract.methods
 
-            events = await Promise.map(events, event => {
-                let blockNumber = event.blockNumber.valueOf()
+            events = events.map(event => event.blockNumber.valueOf())
+            events = events.filter((blockNumber, index, self) => self.indexOf(blockNumber) === index)
 
+            events = await Promise.map(events, blockNumber => {
                 return Promise.all([getBlockTime(blockNumber),
                     valueAtBlock(methods[variableName], blockNumber), blockNumber])
             })
@@ -316,18 +317,16 @@ module.exports = function (db, log) {
             let results = []
 
             events.forEach((elem, index) => {
-                if (index === 0 || (elem[1].valueOf() !== prevElem[1].valueOf() && elem[2] !== prevElem[2])) {
+                if (index === 0 || elem[1].valueOf() !== prevElem[1].valueOf()) {
                     prevElem = elem
                     results.push(elem)
                 }
             })
 
-            if (results.length > 0) {
-                if (this.curLastValue && results[0][1].valueOf() === this.curLastValue.valueOf())
-                    results.shift()
-                if (results.length > 0)
-                    this.curLastValue = results[results.length - 1][1]
-            }
+            if (results.length > 0 && this.curLastValue != null && results[0][1].valueOf() === this.curLastValue.valueOf())
+                results.shift()
+            if (results.length > 0)
+                this.curLastValue = results[results.length - 1][1]
 
             return results
         } catch (err) {
