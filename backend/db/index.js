@@ -26,7 +26,7 @@ async function getContracts() {
     try {
         return await models.Contract.findAll();
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in getContracts')(e);
+        handler('[DB index.js] getContracts', 'Problem occurred in getContracts')(e);
     }
 }
 
@@ -52,7 +52,7 @@ async function getContract(contractHash) {
     try {
         return await models.Contract.findOne({where: {hash: [contractHash]}});
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in getContract')(e);
+        handler('[DB index.js] getContract', 'Problem occurred in getContract')(e);
     }
 }
 
@@ -82,7 +82,7 @@ async function addContracts(values) {
     try {
         return await models.Contract.bulkCreate(values, {returning: true});
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in addContracts')(e);
+        handler('[DB index.js] addContracts', 'Problem occurred in addContracts')(e);
     }
 }
 
@@ -99,7 +99,7 @@ async function addContractLookup(contractHash) {
         return await lookup.save()
         // return await contract.addContractLookup(lookup);
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in addContractLookup')(e);
+        handler('[DB index.js] addContractLookup', 'Problem occurred in addContractLookup')(e);
     }
 }
 
@@ -124,7 +124,7 @@ async function getPopularContracts(limit1, lastDays = 7) {
         }
         return res
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in getPopularContracts')(e);
+        handler('[DB index.js] getPopularContracts', 'Problem occurred in getPopularContracts')(e);
     }
 }
 
@@ -152,10 +152,10 @@ async function addDataPoints(contractAddress, variableName, values, cachedFrom, 
                 bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
             });
             await models.DataPoint.bulkCreate(bulkmap);
-            return await variable.update({cachedFrom: cachedFrom, cachedUpTo: cachedUpTo});
         }
+        return await variable.update({cachedFrom: cachedFrom, cachedUpTo: cachedUpTo});
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in addDataPoints')(e);
+        handler('[DB index.js] addDataPoints', 'Problem occurred in addDataPoints')(e);
     }
 }
 
@@ -171,7 +171,7 @@ async function getDataPoints(contractAddress, variableName) {
         let variable = await models.Variable.findOne({where: {ContractHash: contractAddress, name: variableName}});
         return await models.DataPoint.findAll({include: [models.Block], where: {VariableId: variable.id}});
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in getDataPoints')(e);
+        handler('[DB index.js] getDataPoints', 'Problem occurred in getDataPoints')(e);
     }
 }
 
@@ -204,7 +204,7 @@ async function addVariables(values) {
     try {
         return await models.Variable.bulkCreate(values);
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in addVariables')(e);
+        handler('[DB index.js] addVariables', 'Problem occurred in addVariables')(e);
     }
 }
 
@@ -218,7 +218,7 @@ async function getVariables(contractHash) {
     try {
         return await models.Variable.findAll({where: {ContractHash: contractHash}});
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in getVariables')(e);
+        handler('[DB index.js] getVariables', 'Problem occurred in getVariables')(e);
     }
 }
 
@@ -234,7 +234,7 @@ async function getBlockTime(blockNumber) {
         let block = await models.Block.findOne({where: {number: blockNumber}});
         return block === null ? null : block.timeStamp;
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in getBlockTime')(e);
+        handler('[DB index.js] getBlockTime', 'Problem occurred in getBlockTime')(e);
     }
 }
 
@@ -248,7 +248,7 @@ async function addBlocks(values) {
     try {
         return await models.Block.bulkCreate(values);
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in addBlocks')(e);
+        handler('[DB index.js] addBlocks', 'Problem occurred in addBlocks')(e);
     }
 }
 
@@ -275,7 +275,7 @@ async function getDataPointsInBlockNumberRange(contractHash, variableName, from,
         })
             ;
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in getDataPointsInBlockNumberRange')(e);
+        handler('[DB index.js] getDataPointsInBlockNumberRange', 'Problem occurred in getDataPointsInBlockNumberRange')(e);
     }
 }
 
@@ -288,7 +288,7 @@ async function getLatestCachedBlock() {
     try {
         return await models.Block.max('number')
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in getLatestCachedBlock')(e);
+        handler('[DB index.js] getLatestCachedBlock', 'Problem occurred in getLatestCachedBlock')(e);
     }
 }
 
@@ -311,7 +311,7 @@ async function getCachedFromTo(contractHash, variableName) {
             cachedUpTo: variable.cachedUpTo
         }
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in getCachedFromTo')(e);
+        handler('[DB index.js] getCachedFromTo', 'Problem occurred in getCachedFromTo')(e);
     }
 }
 
@@ -327,7 +327,7 @@ async function updateContractABI(contractHash, contractABI) {
         let contract = await models.Contract.findOne({where: {hash: [contractHash]}});
         return await contract.update({abi: contractABI})
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in updateContractABI')(e);
+        handler('[DB index.js] updateContractABI', 'Problem occurred in updateContractABI')(e);
     }
 }
 
@@ -348,7 +348,7 @@ async function searchContract(pattern) {
             return await models.Contract.findOne({where: {name: [pattern]}})
         }
     } catch (e) {
-        handler('[DB index.js]', 'Problem occurred in searchContract')(e);
+        handler('[DB index.js] searchContract', 'Problem occurred in searchContract')(e);
     }
 }
 
