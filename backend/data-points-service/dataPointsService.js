@@ -42,7 +42,7 @@ io.on('connection', function (socket) {
             let room = address + varableName
             log.debug(`Joining room ${room}`)
             socket.join(room)
-            dataPointsSender.sendHistory(address, varableName)
+            dataPointsSender.sendHistory(address, varableName, socket.id)
         } catch (err) {
             log.error('dataPointsService connection', err)
         }

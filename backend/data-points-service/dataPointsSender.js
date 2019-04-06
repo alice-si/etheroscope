@@ -48,8 +48,9 @@ module.exports = function (io, log) {
          *
          * @param {string} address
          * @param {string} variableName
+         * @param {string} socketId
          */
-        dataPointsSender.sendHistory = async function (address, variableName) {
+        dataPointsSender.sendHistory = async function (address, variableName, socketId) {
             try {
                 log.debug(`dataPointsSender.sendHistory ${address} ${variableName}`)
 
@@ -62,11 +63,11 @@ module.exports = function (io, log) {
                 if (curLatestBlock) {
                     io.sockets.in(address + variableName).emit('latestBlock', {latestBlock: curLatestBlock})
 
-                    await sendAllDataPointsFromDB(address, variableName, cachedFrom, cachedUpTo)
+                    await sendAllDataPointsFromDB(address, variableName, cachedFrom, cachedUpTo, socketId)
                 } else {
                     io.sockets.in(address + variableName).emit('latestBlock', {latestBlock: latestBlock})
 
-                    await sendAllDataPointsFromDB(address, variableName, cachedFrom, cachedUpTo)
+                    await sendAllDataPointsFromDB(address, variableName, cachedFrom, cachedUpTo, socketId)
 
                     let contractInfo = await parityClient.getContract(address)
 
@@ -88,8 +89,9 @@ module.exports = function (io, log) {
          * @param {string} variableName
          * @param {Number} from
          * @param {Number} to
+         * @param {String} socketId
          */
-        async function sendAllDataPointsFromDB(address, variableName, from, to) {
+        async function sendAllDataPointsFromDB(address, variableName, from, to, socketId) {
             try {
                 log.debug(`dataPointsSender.sendAllDataPointsFromDB ${address} ${variableName} ${from} ${to}`)
 
@@ -98,7 +100,7 @@ module.exports = function (io, log) {
                 let new_dataPoints = dataPoints.map(dataPoint =>
                     [dataPoint.Block.timeStamp, dataPoint.value, dataPoint.Block.number])
 
-                io.sockets.in(address + variableName).emit('getHistoryResponse', {
+                io.to(socketId).emit('getHistoryResponse', {
                     error: false,
                     from: from,
                     to: to,
