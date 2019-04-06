@@ -40,5 +40,5 @@ spec:
         - name: DB_NAME
           value: "mysqldb"
         - name: DB_HOSTNAME
-          value: "35.205.216.85"
+          value: "10.43.144.3"
         imagePullPolicy: "Always"
