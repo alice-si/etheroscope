@@ -1,0 +1,227 @@
+.waiting {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+
+  .headline {
+    text-align: center;
+    font-size: 2.5em;
+    font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+    letter-spacing: -0.0055em;
+    font-weight: normal;
+    color: #1998a2;
+    margin: 10px 0;
+  }
+  .description {
+    text-align: center;
+    max-width: 50%;
+    margin: 0 auto;
+    color: #565656;
+    font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+    font-size: 1.2em;
+    letter-spacing: 0.02em;
+  }
+
+  .loader {
+    width: 50%;
+    height: 5px;
+    margin: 40px auto;
+    border-radius: 2px;
+    background-color: #cfcfcf;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+
+    .positive {
+      height: 100%;
+      width: 50%;
+      position: absolute;
+      transform: translate(-50%, 0);
+      background-color: #1998a2;
+      border-radius: 2px;
+      animation: loading 1.5s infinite ease;
+    }
+  }
+}
+
+@keyframes loading {
+  0%, 100% {
+    transform: translate(-50%,0)
+  }
+  50% {
+    transform: translate(150%,0)
+  }
+}
+
+.transactions {
+  text-align: center;
+
+  &__header {
+    font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+    letter-spacing: -0.0055em;
+    font-weight: normal;
+    color: #1998a2;
+    font-size: 1.5em;
+    text-align: center;
+    padding: 15px 0;
+  }
+
+  .left {
+    content: '';
+    display: inline-block;
+    border-bottom: 1px solid #1998a2;
+    border-left: 1px solid #1998a2;
+    transition: all 0.4s ease;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    left: -1.3em;
+    transform: translateY(-50%) rotate(45deg);
+    width: 1em;
+    height: 1em;
+  }
+
+  .left-text {
+    position: absolute;
+    top: 50%;
+    left: -4em;
+    transform: translateY(-50%);
+    padding: 7px;
+    font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+    font-size: 0.8em;
+    letter-spacing: 0.01em;
+    color: #1988a2;
+    text-transform: uppercase;
+    transition: all 0.6s;
+    opacity: 0;
+  }
+
+  .left-link:hover {
+    .left {
+      left: -3.5em;
+    }
+    .left-text {
+      opacity: 1;
+    }
+  }
+
+  .right {
+    content: '';
+    display: inline-block;
+    border-bottom: 1px solid #1998a2;
+    border-right: 1px solid #1998a2;
+    transition: all 0.4s ease;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    right: -1.3em;
+    transform: translateY(-50%) rotate(-45deg);
+    width: 1em;
+    height: 1em;
+  }
+
+  .right-text {
+    position: absolute;
+    top: 50%;
+    right: -4em;
+    transform: translateY(-50%);
+    padding: 7px;
+    font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+    font-size: 0.8em;
+    letter-spacing: 0.01em;
+    color: #1988a2;
+    text-transform: uppercase;
+    transition: all 0.6s ease;
+    opacity: 0;
+  }
+
+  .right-link:hover {
+    .right {
+      right: -3.5em;
+    }
+    .right-text {
+      opacity: 1;
+    }
+  }
+
+  &__wrapper {
+    position: relative;
+    display: inline-block;
+  }
+
+  &__container {
+    margin: 0 auto;
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    border-collapse: collapse;
+    overflow: hidden;
+    position: relative;
+
+    &__header {
+      background: #1998a2;
+    }
+
+    &__title {
+      padding: 10px;
+      font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+      font-size: 0.9em;
+      letter-spacing: 0.01em;
+      color: #fafafa;
+      text-transform: uppercase;
+      text-align: left;
+      font-weight: normal;
+    }
+
+    &__cell {
+      padding: 10px;
+      font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+      font-size: 0.9em;
+      letter-spacing: 0.01em;
+      color: #565656;
+      text-align: left;
+      font-weight: normal;
+      border-right: 1px solid #d7d7d7;
+      border-bottom: 1px solid #d7d7d7;
+
+      a {
+        text-decoration: none;
+        color: #1998a2;
+      }
+
+      &.copy {
+        border-right: none;
+        padding: 7px;
+        cursor: pointer;
+      }
+    }
+
+    &__row {
+      transition: all 0.3s ease;
+
+      &:hover {
+        background-color: rgba(25, 152, 162,0.2);
+      }
+    }
+  }
+}
+
+.svg-icon {
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: middle;
+}
+
+.svg-icon path,
+.svg-icon polygon,
+.svg-icon rect {
+  fill: #1998a2;
+}
+
+.svg-icon circle {
+  stroke: #1998a2;
+  stroke-width: 1;
+}
+

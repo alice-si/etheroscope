@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { environment } from "../../environments/environment";
 import { LoggerService } from "./logger.service";
+import {Observable} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
@@ -13,9 +14,9 @@ export class ApiService {
     this.apiUrl = environment.apiURL;
   }
 
-  getPopularContracts(): any {
+  getPopularContracts(): Observable<any[]> {
     this.logger.info(`Obtaining popular contracts`);
-    return this.httpClient.get(`${this.apiUrl}/api/popular/`);
+    return this.httpClient.get<any[]>(`${this.apiUrl}/api/popular/`);
   }
 
   exploreContract(contract: string) {

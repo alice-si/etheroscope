@@ -22,25 +22,27 @@ const routes: Routes = [
 
       {
         path: 'transactions',
-        component: TransactionsComponent
+        component: TransactionsComponent,
+        data: { state: 'transactions' }
       },
 
       {
         path: 'transactions/:page',
-        component: TransactionsComponent
+        component: TransactionsComponent,
+        data: { state: 'transactions' }
       },
 
       {
         path: 'graph',
-        component: GraphDashboardComponent
+        component: GraphDashboardComponent,
+        data: { state: 'graph' }
       },
 
       {
         path: 'graph/:chosenVariable',
-        component: GraphComponent
+        component: GraphComponent,
+        data: { state: 'graph' }
       },
-
-
     ]
   }
 ];

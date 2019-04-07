@@ -20,6 +20,8 @@ export class PopularService {
     }
 
     return this.apiService.getPopularContracts()
-               .pipe(tap(popularContracts => this.popularContracts = popularContracts));
+               .pipe(tap(popularContracts => {
+                 this.popularContracts = popularContracts.sort((a, b) => b.searches - a.searches);
+               }));
   }
 }

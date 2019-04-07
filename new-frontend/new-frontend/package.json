@@ -30,6 +30,7 @@
     "ng-pick-datetime": "^7.0.0",
     "ngx-socket-io": "^2.1.1",
     "rxjs": "~6.3.3",
+    "ts-clipboard": "^1.0.17",
     "tslib": "^1.9.0",
     "zone.js": "~0.8.26"
   },
