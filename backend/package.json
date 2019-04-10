@@ -99,6 +99,9 @@
     "web-animations-js": "^2.3.1",
     "web3": "^0.19.0",
     "webpack-sources": "^1.0.1",
-    "zone.js": "^0.8.18"
+    "zone.js": "^0.8.18",
+    "mysql2": "^1.6.4",
+    "sequelize": "^4.42.0",
+    "sqlite3": "^3.1.3"
   }
 }

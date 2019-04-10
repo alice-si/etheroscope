@@ -19,16 +19,24 @@ spec:
         image: gcr.io/etheroscope/etheroscope-server:latest
         env:
         - name: ETHEROSCOPEPARITYMAINNET
-          value: "35.230.140.68:8545"
+          value: "35.246.67.158:8545"
         - name: ETHEROSCOPEGETHHOST
           #          value: "10.3.255.188:8545" # rinkeby
           value: "10.3.240.197:8545"
-        - name: ETHEROSCOPEMARIADB
-          value: "10.3.240.97:8083"
         - name: ETHEROSCOPEMICROSERVICE
-          value: "35.246.65.214:80"
+          value: "35.246.39.252:80"
         - name: ETHEROSCOPESERVER
-          value: "35.246.120.150:8080"
+          value: "35.246.8.29:8080"
         - name: ETHEROSCOPEFRONTEND
-          value: "35.242.161.116:80"
+          value: "35.242.160.198:80"
+        - name: NODE_ENV
+          value: "production"
+        - name: DB_USERNAME
+          value: "zppuser"
+        - name: DB_PASSWORD
+          value: "T6yt1rLPYv25"
+        - name: DB_NAME
+          value: "mysqldb"
+        - name: DB_HOSTNAME
+          value: "10.43.145.3"
         imagePullPolicy: "Always"

@@ -17,10 +17,10 @@ log.setLevel('trace')
 log.enableAll()
 
 console.log('server.js: Starting server.js')
-console.log('server.js: Will require db.js')
+console.log('server.js: Will require db')
 
 try {
-    var db = require('../common/db.js')(log)
+    var db = require('../db')
 
     var Promise = require('bluebird')
     Promise.config({

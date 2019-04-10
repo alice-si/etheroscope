@@ -9,7 +9,7 @@ module.exports = function (io, log) {
     try {
         let dataPointsSender = {}
 
-        const db = require('../common/db.js')(log)
+        const db = require('../db')
 
         const parityClient = Parity(db, log)
 
@@ -97,14 +97,13 @@ module.exports = function (io, log) {
                 log.debug(`dataPointsSender.sendAllDataPointsFromDB ${address} ${variableName} ${from} ${to}`)
 
                 let dataPoints = await db.getDataPoints(address.substr(2), variableName)
-
-                dataPoints = await Promise.map(dataPoints, dataPoint => [dataPoint.timeStamp, dataPoint.value])
-
+                let new_dataPoints = []
+                dataPoints.forEach(dataPoint => (new_dataPoints.push([dataPoint.Block.timeStamp, dataPoint.value, dataPoint.Block.number])))
                 io.sockets.in(address + variableName).emit('getHistoryResponse', {
                     error: false,
                     from: from,
                     to: to,
-                    results: dataPoints
+                    results: new_dataPoints
                 })
             } catch (err) {
                 errorHandler.errorHandleThrow("dataPointsSender sendAllDataPointsFromDB", '')(err)

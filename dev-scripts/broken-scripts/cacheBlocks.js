@@ -1,5 +1,5 @@
 var log = require('loglevel')
-var db = require('../../backend/db/db.js')(log)
+// var db = require('../../backend/db/db.js')(log)
 const Web3 = require('web3')
 const Promise = require('bluebird')
 const parityUrl = 'http://localhost:8545'

@@ -18,29 +18,6 @@ module.exports = function (app, db, log, validator) {
         }
     })
 
-    app.get('/tester/db/:query', async (req, res) => {
-        try {
-            let query = req.params.query
-            var result = await db.anyQuery(query)
-            return res.status(200).json(result)
-        }
-        catch (err) {
-            return res.status(400).json(err)
-        }
-    })
-
-    app.get('/tester/db/tables', async (req, res) => {
-        try {
-            db.anyQuery('show tables')
-            let query = req.params.query
-            var result = await db.anyQuery(query)
-            return res.status(200).json(result)
-        }
-        catch (err) {
-            return res.status(400).json(err)
-        }
-    })
-
     app.get('/tester/web3Api/isSyncing', async (req, res) => {
         try {
             var settings = await require('./settings.js')
