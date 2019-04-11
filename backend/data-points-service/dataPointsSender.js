@@ -1,5 +1,3 @@
-const Promise = require('bluebird')
-
 const errorHandler = require('../common/errorHandlers')
 const Parity = require('../common/parity')
 const streamedSet = require('./streamedSet')()
@@ -28,7 +26,7 @@ module.exports = function (io, log) {
         function setInitCached(cachedRange) {
             let {cachedFrom, cachedUpTo} = cachedRange
 
-            if (cachedUpTo == null || cachedUpTo === null)
+            if (cachedUpTo == null || cachedFrom === null)
                 return {
                     cachedFrom: 1,
                     cachedUpTo: 0
@@ -50,8 +48,9 @@ module.exports = function (io, log) {
          *
          * @param {string} address
          * @param {string} variableName
+         * @param {string} socketId
          */
-        dataPointsSender.sendHistory = async function (address, variableName) {
+        dataPointsSender.sendHistory = async function (address, variableName, socketId) {
             try {
                 log.debug(`dataPointsSender.sendHistory ${address} ${variableName}`)
 
@@ -64,16 +63,15 @@ module.exports = function (io, log) {
                 if (curLatestBlock) {
                     io.sockets.in(address + variableName).emit('latestBlock', {latestBlock: curLatestBlock})
 
-                    await sendAllDataPointsFromDB(address, variableName, cachedFrom, cachedUpTo)
+                    await sendAllDataPointsFromDB(address, variableName, cachedFrom, cachedUpTo, socketId)
                 } else {
                     io.sockets.in(address + variableName).emit('latestBlock', {latestBlock: latestBlock})
 
-                    await sendAllDataPointsFromDB(address, variableName, cachedFrom, cachedUpTo)
+                    await sendAllDataPointsFromDB(address, variableName, cachedFrom, cachedUpTo, socketId)
 
                     let contractInfo = await parityClient.getContract(address)
-                    let parsedContract = contractInfo.parsedContract
 
-                    await cacheMorePoints(parsedContract, variableName, cachedFrom, cachedUpTo, latestBlock)
+                    await cacheMorePoints(contractInfo, variableName, cachedFrom, cachedUpTo, latestBlock)
                 }
 
             } catch (err) {
@@ -91,15 +89,18 @@ module.exports = function (io, log) {
          * @param {string} variableName
          * @param {Number} from
          * @param {Number} to
+         * @param {String} socketId
          */
-        async function sendAllDataPointsFromDB(address, variableName, from, to) {
+        async function sendAllDataPointsFromDB(address, variableName, from, to, socketId) {
             try {
                 log.debug(`dataPointsSender.sendAllDataPointsFromDB ${address} ${variableName} ${from} ${to}`)
 
                 let dataPoints = await db.getDataPoints(address.substr(2), variableName)
-                let new_dataPoints = []
-                dataPoints.forEach(dataPoint => (new_dataPoints.push([dataPoint.Block.timeStamp, dataPoint.value, dataPoint.Block.number])))
-                io.sockets.in(address + variableName).emit('getHistoryResponse', {
+                dataPoints = dataPoints == null ? [] : dataPoints
+                let new_dataPoints = dataPoints.map(dataPoint =>
+                    [dataPoint.Block.timeStamp, dataPoint.value, dataPoint.Block.number])
+
+                io.to(socketId).emit('getHistoryResponse', {
                     error: false,
                     from: from,
                     to: to,
@@ -115,26 +116,27 @@ module.exports = function (io, log) {
          *
          * Generates all points in range (upTo, latestBlock].
          *
-         * @param {Object} parsedContract
+         * @param {Object} contractInfo
          * @param {string} variableName
          * @param {Number} from         beginning of range currently cached in database
          * @param {Number} upTo         end of range currently cached in database
          * @param {Number} latestBlock  latest block number in ethereum
          */
-        async function cacheMorePoints(parsedContract, variableName, from, upTo, latestBlock) {
+        async function cacheMorePoints(contractInfo, variableName, from, upTo, latestBlock) {
+            let address = contractInfo.parsedContract.options.address
             try {
-                log.debug(`dataPointsSender.cacheMorePoints ${parsedContract.address} ${variableName} ${from} ${upTo}`)
+                log.debug(`dataPointsSender.cacheMorePoints ${address} ${variableName} ${from} ${upTo}`)
 
                 let totalUpTo = upTo, totalFrom = from
                 let chunkSize = settings.dataPointsService.cacheChunkSize
 
                 while (totalUpTo < latestBlock) {
                     [from, totalUpTo] = [totalUpTo + 1, Math.min(totalUpTo + chunkSize, latestBlock)]
-                    await generateAndSendDataPoints(parsedContract, variableName, from, totalUpTo, totalFrom, totalUpTo)
+                    await generateAndSendDataPoints(contractInfo, variableName, from, totalUpTo, totalFrom, totalUpTo)
                 }
             } catch (err) {
                 errorHandler.errorHandleThrow(
-                    `dataPointsSender.cacheMorePoints ${parsedContract.address} ${variableName} ${from} ${upTo}`,
+                    `dataPointsSender.cacheMorePoints ${address} ${variableName} ${from} ${upTo}`,
                     '')(err)
             }
         }
@@ -143,21 +145,21 @@ module.exports = function (io, log) {
          * Function responsible for generating and caching blocks in range [from, upTo].
          * Additionally it updates information about cached range for this variable.
          *
-         * @param {Object} parsedContract
+         * @param {Object} contractInfo
          * @param {string} variableName
          * @param {Number} from         beginning of range to be cached
          * @param {Number} upTo         end of range to be cached
          * @param {Number} totalFrom    beginning of range of totally cached data for this variable
          * @param {Number} totalUpTo    end of range of totally cached data for this variable
          */
-        async function generateAndSendDataPoints(parsedContract, variableName, from, upTo, totalFrom, totalUpTo) {
+        async function generateAndSendDataPoints(contractInfo, variableName, from, upTo, totalFrom, totalUpTo) {
+            let address = contractInfo.parsedContract.options.address
             try {
-                log.debug(`dataPointsSender.generateAndSendDataPoints ${parsedContract.address} ${variableName} ${from} ${upTo}`)
+                log.debug(`dataPointsSender.generateAndSendDataPoints ${address} ${variableName} ${from} ${upTo}`)
 
                 // TODO method to index
-                let address = parsedContract.address
 
-                let dataPoints = await parityClient.generateDataPoints(parsedContract, variableName, from, upTo)
+                let dataPoints = await parityClient.generateDataPoints(contractInfo, variableName, from, upTo)
 
                 await db.addDataPoints(address.substr(2), variableName, dataPoints, totalFrom, totalUpTo)
 
@@ -169,7 +171,7 @@ module.exports = function (io, log) {
                 })
             } catch (err) {
                 errorHandler.errorHandleThrow(
-                    `dataPointsSender.generateAndSendDataPoints ${parsedContract.address} ${variableName} ${from} ${upTo}`,
+                    `dataPointsSender.generateAndSendDataPoints ${address} ${variableName} ${from} ${upTo}`,
                     '')(err)
             }
         }
