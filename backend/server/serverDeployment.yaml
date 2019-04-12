@@ -18,17 +18,6 @@ spec:
       - name: etheroscope-server-container
         image: gcr.io/etheroscope/etheroscope-server:latest
         env:
-        - name: ETHEROSCOPEPARITYMAINNET
-          value: "35.246.67.158:8545"
-        - name: ETHEROSCOPEGETHHOST
-          #          value: "10.3.255.188:8545" # rinkeby
-          value: "10.3.240.197:8545"
-        - name: ETHEROSCOPEMICROSERVICE
-          value: "35.246.39.252:80"
-        - name: ETHEROSCOPESERVER
-          value: "35.246.8.29:8080"
-        - name: ETHEROSCOPEFRONTEND
-          value: "35.242.160.198:80"
         - name: NODE_ENV
           value: "production"
         - name: DB_USERNAME
