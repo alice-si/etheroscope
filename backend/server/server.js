@@ -52,11 +52,8 @@ try {
 // add query handler API
     require('./api.js')(app, db, log, validator) // configure our routes
 
-// add test query handler API
-    require('../tester/testerApi.js')(app, db, log, validator) // configure our routes
-
 // Set port to 8080
-    var port = settings.ETHEROSCOPESERVER.slice(-4)
+    var port = settings.server.port
 
 // Start application
     log.info('server.js: Starting server at: ' + port)    // shoutout to the user

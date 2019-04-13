@@ -1,9 +1,0 @@
-#!/usr/bin/env node
-const axios = require('axios')
-const Web3 = require('web3')
-var Promise = require('bluebird')
-const parityUrl = 'http://localhost:8545'
-const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
-web3.eth.getBlockNumber((error, block) => {
-  console.log(block)
-})
