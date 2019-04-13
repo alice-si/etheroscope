@@ -140,10 +140,9 @@ async function getPopularContracts(limit1, lastDays = 7) {
  * @param {string}   contractAddress
  * @param {string}   variableName
  * @param {Object[]} values          elements are [timestamp, value, blockNumber]
- * @param {Number}   cachedFrom      beginning of range of cached blocks
  * @param {Number}   cachedUpTo      end of range of cached blocks
  */
-async function addDataPoints(contractAddress, variableName, values, cachedFrom, cachedUpTo) {
+async function addDataPoints(contractAddress, variableName, values, cachedUpTo) {
     try {
         let variable = await models.Variable.findOne({where: {ContractHash: contractAddress, name: variableName}});
         let bulkmap = [];
@@ -153,7 +152,7 @@ async function addDataPoints(contractAddress, variableName, values, cachedFrom, 
             });
             await models.DataPoint.bulkCreate(bulkmap);
         }
-        return await variable.update({cachedFrom: cachedFrom, cachedUpTo: cachedUpTo});
+        return await variable.update({cachedUpTo: cachedUpTo});
     } catch (e) {
         handler('[DB index.js] addDataPoints', 'Problem occurred in addDataPoints')(e);
     }
@@ -183,13 +182,11 @@ async function getDataPoints(contractAddress, variableName) {
  * let result4 = await dao.addVariables([{
  *       ContractHash: '1',
  *       name: 'namenameVariable',
- *       cachedFrom: '420',
  *       cachedUpTo: '422',
  *       // UnitId:'1',
  *   }, {
  *       ContractHash: '2',
  *       name: 'namename22',
- *       cachedFrom: '420',
  *       cachedUpTo: '422',
  *       // UnitId:'1',
  * },
@@ -298,20 +295,14 @@ async function getLatestCachedBlock() {
  * @param {string} contractHash
  * @param {string} variableName
  *
- * @returns {Promise<Object>} returns Object {cachedFrom, cachedUpTo}
+ * @returns {Promise<Number>} returns cachedUpTo value
  */
-async function getCachedFromTo(contractHash, variableName) {
+async function getCachedUpTo(contractHash, variableName) {
     try {
         let variable = await models.Variable.findOne({where: {ContractHash: contractHash, name: variableName}});
-        return variable == null ? {
-            cachedFrom: null,
-            cachedUpTo: null
-        } : {
-            cachedFrom: variable.cachedFrom,
-            cachedUpTo: variable.cachedUpTo
-        }
+        return variable == null ? null : variable.cachedUpTo
     } catch (e) {
-        handler('[DB index.js] getCachedFromTo', 'Problem occurred in getCachedFromTo')(e);
+        handler('[DB index.js] getCachedUpTo', 'Problem occurred in getCachedUpTo')(e);
     }
 }
 
@@ -367,7 +358,7 @@ module.exports.getDataPointsInBlockNumberRange = getDataPointsInBlockNumberRange
 module.exports.addBlocks = addBlocks;
 module.exports.getBlockTime = getBlockTime;
 module.exports.getLatestCachedBlock = getLatestCachedBlock;
-module.exports.getCachedFromTo = getCachedFromTo;
+module.exports.getCachedUpTo = getCachedUpTo;
 
 (function initDB(force = false) {
     // If force is true, each Model will run `DROP TABLE IF EXISTS`, before it tries to create its own table
