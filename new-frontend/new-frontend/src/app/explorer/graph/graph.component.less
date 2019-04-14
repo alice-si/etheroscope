@@ -9,7 +9,7 @@
 
 .subtitle {
   font-family: Metropolis,Avenir Next,Helvetica Neue,Arial,sans-serif;
-  font-size: 1.3em;
+  font-size: 1.2em;
   margin: 10px 0 0;
   font-weight: 200;
   color: #1998a2;
@@ -28,39 +28,8 @@
   position: relative;
   transition: transform 0.5s ease;
   display: flex;
-  flex-flow: column wrap;
-  height: 72px;
+  flex-flow: row wrap;
   margin: 10px 0;
-
-  /*&:before {
-    content: '';
-    display: block;
-    height: 1em;
-    width: 1em;
-    border: 3px solid #1998a2;
-    border-top: none;
-    border-right: none;
-    transform: translateY(-50%) rotate(45deg);
-    position: absolute;
-    top: 50%;
-    left: 10px;
-    cursor: pointer;
-  }
-
-  &:after {
-    content: '';
-    display: block;
-    height: 1em;
-    width: 1em;
-    border: 3px solid #1998a2;
-    border-top: none;
-    border-left: none;
-    transform: translateY(-50%) rotate(-45deg);
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    cursor: pointer;
-  }*/
 }
 
 .variable {
@@ -133,6 +102,17 @@
   }
 }
 
+.graphtype-section select {
+  margin: 10px 0 5px;
+  background: white;
+  border: 1px solid #1998a2;
+  padding: 5px;
+  color: #565656;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+}
+
 .navigation {
   text-align: center;
 }
@@ -149,10 +129,6 @@
   transition: all 0.5s ease;
   cursor: pointer;
   visibility: hidden;
-
-  &:hover {
-    transform: rotate(45deg) scale(2);
-  }
 
   &.visible {
     visibility: visible;
@@ -171,10 +147,6 @@
   transition: transform 0.5s ease;
   cursor: pointer;
   visibility: hidden;
-
-  &:hover {
-    transform: rotate(-45deg) scale(2);
-  }
 
   &.visible {
     visibility: visible;
@@ -402,7 +374,7 @@ label {
     font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
     font-size: 0.7em;
     text-align: center;
-    color: red;
+    color: #f52323;
     opacity: 0;
     visibility: hidden;
     transition: all 1s ease;

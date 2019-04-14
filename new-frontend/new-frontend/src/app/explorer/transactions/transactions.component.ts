@@ -14,6 +14,7 @@ export class TransactionsComponent implements OnInit {
   public contractId: string;
   public page: number;
   public transactions: any;
+  public error: boolean;
 
   constructor(private route: ActivatedRoute, private transactionsService: TransactionsService,
               private router: Router) { }
@@ -31,6 +32,7 @@ export class TransactionsComponent implements OnInit {
         this.transactions = null;
         this.contractId = parentParams.get("contractAddress");
         this.page = parseInt(params.get("page"));
+
         if (isNaN(this.page)) {
           return this.router.navigate([`/explorer/${this.contractId}/transactions/1`]);
         }
@@ -39,7 +41,8 @@ export class TransactionsComponent implements OnInit {
       })
     ).subscribe(data => {
       this.transactions = data;
-      console.log(data);
+    }, error => {
+      this.error = true;
     });
   }
 
@@ -57,5 +60,20 @@ export class TransactionsComponent implements OnInit {
 
   copy(value: string) {
     Clipboard.copy(value);
+  }
+
+  get message() {
+    if (this.error) {
+      return "Error occured. Try again later";
+    }
+    if (this.transactions && !this.transactions.length) {
+      return "No transactions found for this contract.";
+    }
+
+    return "Obtaining transactions list...";
+  }
+
+  get noTransactions() {
+    return this.transactions && !this.transactions.length;
   }
 }

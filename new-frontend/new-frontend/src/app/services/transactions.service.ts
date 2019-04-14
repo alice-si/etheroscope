@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {ApiService} from "./api.service";
 import {Observable, of} from "rxjs";
-import {map, tap} from "rxjs/operators";
+import {delay, map, tap} from "rxjs/operators";
 import {LoggerService} from "./logger.service";
 
 @Injectable({
@@ -31,7 +31,6 @@ export class TransactionsService {
 
     let startNumber = (page - 1) * this.TRANSACTIONS_PER_PAGE;
     let endNumber = page * this.TRANSACTIONS_PER_PAGE;
-
     return this.apiService.getTransactionsHistory(this.contractAddress, startNumber, endNumber)
                .pipe(tap(transactionsData => this.transactions[page] = transactionsData));
   }

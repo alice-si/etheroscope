@@ -10,6 +10,7 @@ import { filter, map, switchMap} from "rxjs/operators";
 })
 export class ExplorerComponent implements OnInit {
   public contractId: string;
+  public notFound: boolean;
   public contractInformation: object;
 
   constructor(private route: ActivatedRoute, private contractService: ApiService) { }
@@ -27,7 +28,7 @@ export class ExplorerComponent implements OnInit {
       console.log(data);
       this.contractInformation = data;
     }, error => {
-      console.log(error);
+      this.notFound = true;
     });
   }
 }

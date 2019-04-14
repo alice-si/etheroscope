@@ -9,6 +9,7 @@ import {Router} from "@angular/router";
 })
 export class SearchComponent {
   public searchResults: any;
+  public keyword: any;
   public selectedResultHash: string;
 
   constructor(private contractService: ApiService, private router: Router) { }
@@ -18,7 +19,7 @@ export class SearchComponent {
       this.searchResults = [];
       return;
     }
-
+    this.keyword = keyword;
     this.contractService.searchContracts(keyword, null).subscribe(
       (searchResults) => {
         console.log(searchResults);
@@ -70,7 +71,7 @@ export class SearchComponent {
     }
 
     if (!this.searchResults || !this.searchResults.length) {
-      this.selectedResultHash = null;
+      this.selectedResultHash = this.keyword;
       return;
     }
 

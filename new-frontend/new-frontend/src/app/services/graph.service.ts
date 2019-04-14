@@ -61,6 +61,7 @@ export class GraphService {
 
   getDatapoints(): Observable<any> {
     return this.socketService.getHistoryEvent().pipe(switchMap(data => {
+
       console.log(data);
       if (data.error) {
         return of(null);

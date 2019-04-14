@@ -14,11 +14,11 @@ const routes: Routes = [
     path: 'explorer/:contractAddress',
     component: ExplorerComponent,
     children: [
-      /*{
+      {
         path: '',
         redirectTo: 'graph',
         pathMatch: 'full'
-      },*/
+      },
 
       {
         path: 'transactions',

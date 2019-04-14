@@ -13,6 +13,11 @@
     font-weight: normal;
     color: #1998a2;
     margin: 10px 0;
+    transition: color 0.6s ease;
+
+    &.error {
+      color: #f52323;
+    }
   }
   .description {
     text-align: center;
@@ -22,6 +27,13 @@
     font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
     font-size: 1.2em;
     letter-spacing: 0.02em;
+    transition: all 0.4s ease;
+    max-height: 100vh;
+
+    &.error, &.complete {
+      max-height: 0;
+      opacity: 0;
+    }
   }
 
   .loader {
@@ -33,6 +45,11 @@
     position: relative;
     overflow: hidden;
     z-index: 1;
+    transition: all 0.4s ease;
+
+    &.complete {
+      opacity: 0;
+    }
 
     .positive {
       height: 100%;
@@ -42,6 +59,12 @@
       background-color: #1998a2;
       border-radius: 2px;
       animation: loading 1.5s infinite ease;
+
+
+      &.error {
+        animation-play-state: paused;
+        background-color: #f52323;
+      }
     }
   }
 }
