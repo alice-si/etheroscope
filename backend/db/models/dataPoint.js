@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `DataPoints` (
 
 module.exports = (sequelize, DataTypes) => {
     const DataPoint = sequelize.define('DataPoint', {
-            value: {type: DataTypes.STRING(80), allowNull: false},
+            value: {type: DataTypes.BIGINT(80), allowNull: false},
         },
         {
             // don't add the timestamp attributes (updatedAt, createdAt)

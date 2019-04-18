@@ -133,9 +133,11 @@ async function getPopularContracts(limit1, lastDays = 7) {
  * Caches information about value of a given variable in a given block.
  * Timestamps are currently ignored.
  *
- * Consists of 2 steps:
+ * Consists of 3 steps:
  * Step 1 adds values into database.
- * Step 2 updates  cached range for this variable.
+ * Step 2 checks if last value in values is the same as the latest value in database
+ *        (we want to omit having the same consecutive values in database)
+ * Step 3 updates  cached range for this variable.
  *
  * @param {string}   contractAddress
  * @param {string}   variableName
@@ -147,6 +149,12 @@ async function addDataPoints(contractAddress, variableName, values, cachedUpTo) 
         let variable = await models.Variable.findOne({where: {ContractHash: contractAddress, name: variableName}});
         let bulkmap = [];
         if (variable && values && values.length !== 0) {
+            let maxBlockNumber = await models.DataPoint.max('BlockNumber', {where: {VariableId: variable.id}})
+            if (isNaN(maxBlockNumber) === false) {
+                let lastDataPoint = await models.DataPoint.findOne({where: {BlockNumber: maxBlockNumber, VariableId: variable.id}})
+                if (values.length > 0 && lastDataPoint.value === values[0][1])
+                    values.shift()
+            }
             values.forEach((elem) => {
                 bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
             });
