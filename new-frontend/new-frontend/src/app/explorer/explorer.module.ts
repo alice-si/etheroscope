@@ -14,7 +14,6 @@ import { CustomTimelineComponent } from './custom-timeline/custom-timeline.compo
 import {OwlDateTimeModule, OwlNativeDateTimeModule} from "ng-pick-datetime";
 import {FormsModule} from "@angular/forms";
 import { GraphDashboardComponent } from './graph-dashboard/graph-dashboard.component';
-import { GraphOptionsComponent } from './graph-options/graph-options.component';
 
 @NgModule({
   declarations: [
@@ -25,8 +24,7 @@ import { GraphOptionsComponent } from './graph-options/graph-options.component';
     SearchComponent,
     CustomGraphComponent,
     CustomTimelineComponent,
-    GraphDashboardComponent,
-    GraphOptionsComponent
+    GraphDashboardComponent
   ],
   imports: [
     CommonModule,

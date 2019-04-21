@@ -28,12 +28,15 @@ export class GraphComponent implements OnInit, OnDestroy {
 
   public currentPage: number;
   public error: boolean;
+  public datapoints: any[] = [];
+  public curve = shape.curveStepAfter;
+  public timeNow: any = new Date(Date.now());
 
   @ViewChild(CustomGraphComponent)
   private customGraph: CustomGraphComponent;
 
-  private sub1;
-  private sub2;
+  private latestBlockSubscription;
+  private datapointsSubscription;
 
   constructor(private contractService: ContractService, private graphService: GraphService, private route: ActivatedRoute) {
   }
@@ -41,23 +44,22 @@ export class GraphComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.getContractVariables();
     this.initGeneratingDatapoints();
-    this.dateFrom = new Date(Date.now());
-    this.boundFrom = this.dateFrom;
-    this.dateTo = new Date(Date.now());
-    this.boundTo = this.dateTo;
-    this.sub1 = this.graphService.getLatestBlock().subscribe();
-    this.sub2 = this.graphService.getDatapoints().subscribe(data => {
-      if (data === null) {
-        this.error = true;
-        //leave method, etc.
-        return;
-      }
-
+    this.dateFrom = this.timeNow;
+    this.boundFrom = this.timeNow;
+    this.dateTo = this.timeNow;
+    this.boundTo = this.timeNow;
+    this.latestBlockSubscription = this.graphService.getLatestBlock().subscribe();
+    this.datapointsSubscription = this.graphService.getDatapoints().subscribe(data => {
       if (this.error) {
         return;
       }
 
-      this.multi = [data];
+      if (data === null) {
+        this.error = true;
+        return;
+      }
+
+      this.datapoints = [data];
       if (data.series.length) {
         this.dateFrom = data.series.reduce((datapoint, other) => (datapoint.name < other.name) ? datapoint : other).name;
       }
@@ -65,21 +67,22 @@ export class GraphComponent implements OnInit, OnDestroy {
       this.progress = this.graphService.getProgress();
 
       if (this.progress === 100) {
-        this.graphService.leave(this.contractAddress, this.chosenVariable);
+        this.graphService.leave();
       }
 
-      console.log(this.multi);
+      console.log(this.datapoints);
     });
   }
 
   ngOnDestroy(): void {
-    this.sub1.unsubscribe();
-    this.sub2.unsubscribe();
-    this.graphService.leave(this.contractAddress, this.chosenVariable);
+    this.latestBlockSubscription.unsubscribe();
+    this.datapointsSubscription.unsubscribe();
+    this.graphService.leave();
   }
 
   updateFrom(seconds) {
-    this.dateFrom = new Date(this.boundTo.valueOf() - new Date(seconds * 1000).valueOf());
+    let pastTime = new Date(this.boundTo.valueOf() - new Date(seconds * 1000).valueOf());
+    this.dateFrom = (this.boundFrom > pastTime) ? this.boundFrom : pastTime;
     this.dateTo = this.boundTo;
     this.updateGraph();
   }
@@ -131,7 +134,7 @@ export class GraphComponent implements OnInit, OnDestroy {
   }
 
   get anyDatapoints() {
-    let chart = this.multi.find(variable => variable.name == this.chosenVariable);
+    let chart = this.datapoints.find(variable => variable.name == this.chosenVariable);
     return chart && chart.series.length
   }
 
@@ -152,13 +155,13 @@ export class GraphComponent implements OnInit, OnDestroy {
   }
 
   get getVariables() {
-    //return this.variables;
     return this.variables.slice(this.currentPage * 4, (this.currentPage + 1) * 4);
   }
 
   get getNumberOfPages() {
     return Math.ceil(this.variables.length / 4);
   }
+
   nextPage() {
     this.currentPage += 1;
   }
@@ -166,24 +169,5 @@ export class GraphComponent implements OnInit, OnDestroy {
   prevPage() {
     this.currentPage -= 1;
   }
-
-  colorScheme = {
-    domain: ['#1998a2', '#1998a2', '#1998a2', '#1998a2']
-  };
-  multi: any[] = [];
-
-  showXAxis = true;
-  showYAxis = true;
-  gradient = false;
-  showLegend = false;
-  showXAxisLabel = true;
-  xAxisLabel = 'Date';
-  showYAxisLabel = true;
-  yAxisLabel = 'Value';
-  timeline = true;
-  autoScale = true;
-  view: any[] = [700, 400];
-  curve = shape.curveStepAfter;
-  timeNow: any = new Date(Date.now());
 }
 

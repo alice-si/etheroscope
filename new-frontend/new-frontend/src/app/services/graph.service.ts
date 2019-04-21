@@ -16,12 +16,11 @@ export class GraphService {
   private latestBlock: number;
 
   private dataPoints: any;
-  private datetimeBounds: any;
 
   constructor(private logger: LoggerService, private socketService: SocketService) {}
 
   init(contractAddress: string, variable: string) {
-    this.socketService.leaveMethod(this.contractAddress, this.variable);
+    this.leave();
     this.contractAddress = contractAddress;
     this.variable = variable;
     this.dataPoints = [{
@@ -33,14 +32,13 @@ export class GraphService {
     this.socketService.generateDatapoints(this.contractAddress, this.variable);
   }
 
-  leave(contractAddress: string, variable: string) {
+  leave() {
     this.socketService.leaveMethod(this.contractAddress, this.variable);
   }
 
   getLatestBlock(): Observable<any> {
     return this.socketService.latestBlockEvent().pipe(tap(data => {
       this.latestBlock = parseInt(data.latestBlock);
-      console.log(this.latestBlock);
     }));
   }
 
@@ -61,8 +59,6 @@ export class GraphService {
 
   getDatapoints(): Observable<any> {
     return this.socketService.getHistoryEvent().pipe(switchMap(data => {
-
-      console.log(data);
       if (data.error) {
         return of(null);
       }
@@ -74,6 +70,7 @@ export class GraphService {
           value: val
         };
       });
+
       let dataPoints = this.dataPoints.find(variable => variable.name == this.variable);
       dataPoints.series = dataPoints.series.concat(timeValues);
 

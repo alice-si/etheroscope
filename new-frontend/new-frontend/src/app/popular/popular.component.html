@@ -2,21 +2,24 @@
   <h2 class="popular__headline">
     Popular contracts
   </h2>
+  <div class="popular__description">
+    View the most popular contracts this week.
+  </div>
   <div class="popular">
     <div *ngFor="let popular of popularContracts" class="popular__contract__wrapper">
-      <div class="popular__contract">
+      <a class="popular__contract" routerLink="/explorer/0x{{popular.contractHash}}/graph">
         <div class="popular__contract__searches">{{popular.searches}} searches</div>
         <div class="popular__contract__description">
           <div class="popular__contract__description__name">{{popular.name}}</div>
           <div class="popular__contract__description__hash">0x{{popular.contractHash}}</div>
         </div>
-        <a class="popular__contract__link" href="#" routerLink="/explorer/0x{{popular.contractHash}}/graph">
+        <!--<a class="popular__contract__link" href="#" routerLink="/explorer/0x{{popular.contractHash}}/graph">
           Graph
         </a>
         <a class="popular__contract__link" href="#" routerLink="/explorer/0x{{popular.contractHash}}/transactions">
           Transactions
-        </a>
-      </div>
+        </a>-->
+      </a>
     </div>
   </div>
 </div>
