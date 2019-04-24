@@ -10,6 +10,9 @@ const db = require('../db')
 log.enableAll()
 const parity = Parity(db, log)
 
+const opt = { credentials: require('amqplib').credentials.plain(settings.RABBITMQ.user,
+        settings.RABBITMQ.password) }
+
 /**
  * Function responsible for caching all variables' values in a given range [from, upTo]
  *
@@ -60,6 +63,8 @@ async function cacheDataPoints(contractInfo, variables, from, upTo) {
  */
 async function processContract(address) {
     try {
+        log.debug(`Started processing contract ${address}`)
+
         let latestBlock = await parity.getLatestBlock()
         let contractInfo = await parity.getContract(address)
         let variables = await parity.getContractVariables(contractInfo)
@@ -81,6 +86,8 @@ async function processContract(address) {
                 await cacheDataPoints(contractInfo, variables, actFrom, actUpTo)
             }
         }
+
+        log.debug(`Finished processing contract ${address}`)
     } catch (err) {
         errorHandler.errorHandle(`processContract ${address}`)(err)
         process.exit(1)
@@ -88,5 +95,23 @@ async function processContract(address) {
 }
 
 
-processContract("0xab7c74abC0C4d48d1bdad5DCB26153FC8780f83E")
+amqp.connect(`amqp://${settings.RABBITMQ.address}`, opt, (err, conn) => {
+    if (err) {
+        log.error('Failed to connect to RABBITMQ', err)
+        process.exit(1)
+    }
+    log.debug('Successfully connected to RABBITMQ')
+    conn.createChannel((err, ch) => {
+        if (err) {
+            log.error('Failed to create a channel', err)
+            process.exit(1)
+        }
+        log.debug('Successfully created channel')
+        ch.assertQueue(settings.RABBITMQ.queue, { durable: true, messageTtl: settings.RABBITMQ.messageTtl })
 
+        ch.consume(settings.RABBITMQ.queue, async msg => {
+            await processContract(msg.content.toString())
+            ch.ack(msg)
+        }, { noAck: false })
+    })
+})

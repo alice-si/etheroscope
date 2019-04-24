@@ -12,6 +12,17 @@ then
 elif [ $1 = "database-initiator" ]
 then
     docker build -t etheroscope-$1 ../../backend/ --target databaseInitiatorEtheroscope
+
+elif [ $1 = "process-contract-service" ]
+then
+    docker build -t etheroscope-$1 ../../backend/ --target processContractService
+elif [ $1 = "rabbitmq" ]
+then
+    docker build -t rabbitmq_test_user ../../dependencies/rabbitmq/
+    docker tag rabbitmq_test_user gcr.io/etheroscope/rabbitmq_test_user
+    docker push gcr.io/etheroscope/rabbitmq_test_user
+    echo "script done"
+    exit 0
 else
     echo "docker image unrecognized, got: $1"
     exit 1
