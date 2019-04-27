@@ -9,6 +9,7 @@ import {GraphService} from "../../services/graph.service";
 import {CustomGraphComponent} from "../custom-graph/custom-graph.component";
 import {CustomTimelineComponent} from "../custom-timeline/custom-timeline.component";
 import {animate, style, transition, trigger} from "@angular/animations";
+import {headersToString} from "selenium-webdriver/http";
 
 @Component({
   selector: 'app-graph',
@@ -25,10 +26,13 @@ export class GraphComponent implements OnInit, OnDestroy {
   public dateFrom: Date;
   public dateTo: Date;
   public boundTo: Date;
+  public selectedTime: number;
+  public selectedGraph: string;
 
   public currentPage: number;
   public error: boolean;
   public datapoints: any[] = [];
+  public histogramData: any[] = [];
   public curve = shape.curveStepAfter;
   public timeNow: any = new Date(Date.now());
 
@@ -48,8 +52,9 @@ export class GraphComponent implements OnInit, OnDestroy {
     this.boundFrom = this.timeNow;
     this.dateTo = this.timeNow;
     this.boundTo = this.timeNow;
+    this.selectedGraph = 'linear';
     this.latestBlockSubscription = this.graphService.getLatestBlock().subscribe();
-    this.datapointsSubscription = this.graphService.getDatapoints().subscribe(data => {
+    this.datapointsSubscription = this.graphService.getDatapoints().subscribe(([[data], histogram]) => {
       if (this.error) {
         return;
       }
@@ -60,6 +65,8 @@ export class GraphComponent implements OnInit, OnDestroy {
       }
 
       this.datapoints = [data];
+      this.histogramData = histogram;
+
       if (data.series.length) {
         this.dateFrom = data.series.reduce((datapoint, other) => (datapoint.name < other.name) ? datapoint : other).name;
       }
@@ -69,8 +76,6 @@ export class GraphComponent implements OnInit, OnDestroy {
       if (this.progress === 100) {
         this.graphService.leave();
       }
-
-      console.log(this.datapoints);
     });
   }
 
@@ -81,9 +86,18 @@ export class GraphComponent implements OnInit, OnDestroy {
   }
 
   updateFrom(seconds) {
+    if (this.selectedTime === seconds) {
+      this.dateFrom = this.boundFrom;
+      this.dateTo = this.boundTo;
+      this.selectedTime = this.dateTo.valueOf() - this.dateFrom.valueOf();
+      this.updateGraph();
+      return;
+    }
+
     let pastTime = new Date(this.boundTo.valueOf() - new Date(seconds * 1000).valueOf());
     this.dateFrom = (this.boundFrom > pastTime) ? this.boundFrom : pastTime;
     this.dateTo = this.boundTo;
+    this.selectedTime = seconds;
     this.updateGraph();
   }
 
@@ -97,6 +111,7 @@ export class GraphComponent implements OnInit, OnDestroy {
   updateDates([dateFrom, dateTo]) {
     this.dateFrom = dateFrom;
     this.dateTo = dateTo;
+    this.selectedTime = (this.dateTo.valueOf() - this.dateFrom.valueOf()) / 1000;
   }
 
   private getContractVariables() {

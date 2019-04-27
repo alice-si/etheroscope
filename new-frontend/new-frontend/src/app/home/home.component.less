@@ -1,0 +1,78 @@
+.home {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding-top: 50px;
+
+  &__header {
+    &__headline {
+      font-weight: 200;
+      color: #1998a2;
+      font-size: 4.3em;
+      font-family: Metropolis,Avenir Next,Helvetica Neue,Arial,sans-serif;
+      letter-spacing: normal;
+      line-height: 4rem;
+      text-align: center;
+    }
+
+    &__subheadline {
+      color: #565656;
+      font-size: 1.3rem;
+      font-weight: 300;
+      font-family: Metropolis,Avenir Next,Helvetica Neue,Arial,sans-serif;
+      letter-spacing: normal;
+      line-height: 2rem;
+      text-align: center;
+    }
+  }
+
+  &__introduction {
+    display: flex;
+    align-items: center;
+
+    &__text {
+      font-family: Metropolis,Avenir Next,Helvetica Neue,Arial,sans-serif;
+      font-size: 0.85em;
+      letter-spacing: normal;
+      line-height: 1.7em;
+      color: #565656;
+      margin: 15px;
+    }
+
+    &__button {
+      font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      display: inline-block;
+      text-align: center;
+      list-style: none;
+      cursor: pointer;
+      padding: 10px 20px;
+      position: relative;
+      background: #1998a2;
+      text-decoration: none;
+      color: white;
+      border-radius: 5px;
+      white-space: nowrap;
+      margin: 15px;
+    }
+  }
+
+  &__footer {
+    border-top: 1px solid #565656;
+
+    &__text {
+      font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+      font-size: 0.85em;
+      letter-spacing: normal;
+      color: #565656;
+      text-align: center;
+      margin: 5px;
+
+      a {
+        color: #1998a2;
+      }
+    }
+  }
+}

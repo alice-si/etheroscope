@@ -1,7 +1,7 @@
 <div class="graph" *ngIf="chosenVariable">
   <div class="graph__graph">
     <app-custom-graph
-      *ngIf="anyDatapoints"
+      *ngIf="anyDatapoints && selectedGraph === 'linear'"
       [scheme]="{ domain: ['#1998a2'] }"
       [results]="datapoints"
       [gradient]="false"
@@ -19,6 +19,19 @@
       [curve]="curve"
       (domainChanged)="updateDates($event)">
     </app-custom-graph>
+    <ngx-charts-bar-vertical
+      *ngIf="anyDatapoints && selectedGraph === 'histogram'"
+      [animations]="true"
+      [scheme]="{ domain: ['#1998a2'] }"
+      [results]="histogramData"
+      [xAxis]="true"
+      [yAxis]="true"
+      [legend]="false"
+      [showXAxisLabel]="true"
+      [showYAxisLabel]="true"
+      [xAxisLabel]="'Variable Value'"
+      [yAxisLabel]="'Frequency'">
+    </ngx-charts-bar-vertical>
     <div class="graph__waiting-screen" *ngIf="!anyDatapoints">
       <h3 class="graph__waiting-screen__headline" *ngIf="error">
         Error occurred. Try again later
@@ -44,9 +57,8 @@
     <div class="graph__options">
       <div class="graphtype-section">
         <h3 class="subtitle">Graph type</h3>
-        <select>
+        <select [(ngModel)]="selectedGraph">
           <option value="linear">Linear</option>
-          <option value="days">Days</option>
           <option value="histogram">Histogram</option>
         </select>
       </div>
@@ -65,7 +77,7 @@
           <span class="right" [ngClass]="{'visible': nextPageExists}" (click)="nextPage()"></span>
         </div>
       </div>
-      <div class="timeline-section" [ngClass]="{'disabled': !anyDatapoints}">
+      <div class="timeline-section" [ngClass]="{'disabled': !anyDatapoints}" *ngIf="selectedGraph === 'linear'">
         <h3 class="subtitle">Timeline</h3>
         <div class="wrapper-wrapper">
           <label for="from">From:</label>
@@ -86,12 +98,12 @@
           </div>
         </div>
         <div class="choices">
-          <span class="time-wrapper"><span class="time" (click)="updateFrom(1 * 60 * 60)">1h</span></span>
-          <span class="time-wrapper"><span class="time" (click)="updateFrom(12 * 60 * 60)">12h</span></span>
-          <span class="time-wrapper"><span class="time" (click)="updateFrom(24 * 60 * 60)">1d</span></span>
-          <span class="time-wrapper"><span class="time" (click)="updateFrom(7 * 24 * 60 * 60)">1w</span></span>
-          <span class="time-wrapper"><span class="time" (click)="updateFrom(30 * 24 * 60 * 60)">1m</span></span>
-          <span class="time-wrapper"><span class="time" (click)="updateFrom(365 * 24 * 60 * 60)">1y</span></span>
+          <span class="time-wrapper"><span class="time" [ngClass]="{'active': selectedTime === 60 * 60}" (click)="updateFrom(60 * 60)">1h</span></span>
+          <span class="time-wrapper"><span class="time" [ngClass]="{'active': selectedTime === 12 * 60 * 60}" (click)="updateFrom(12 * 60 * 60)">12h</span></span>
+          <span class="time-wrapper"><span class="time" [ngClass]="{'active': selectedTime === 24 * 60 * 60}" (click)="updateFrom(24 * 60 * 60)">1d</span></span>
+          <span class="time-wrapper"><span class="time" [ngClass]="{'active': selectedTime === 7 * 24 * 60 * 60}" (click)="updateFrom(7 * 24 * 60 * 60)">1w</span></span>
+          <span class="time-wrapper"><span class="time" [ngClass]="{'active': selectedTime === 30 * 24 * 60 * 60}" (click)="updateFrom(30 * 24 * 60 * 60)">1m</span></span>
+          <span class="time-wrapper"><span class="time" [ngClass]="{'active': selectedTime === 365 * 24 * 60 * 60}" (click)="updateFrom(365 * 24 * 60 * 60)">1y</span></span>
         </div>
       </div>
       <div class="progress-section" [ngClass]="{'completed': (progress == 100), 'error': error}">

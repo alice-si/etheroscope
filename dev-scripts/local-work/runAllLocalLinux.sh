@@ -11,7 +11,7 @@ export ETHEROSCOPEMICROSERVICE="localhost:8081"
 export ETHEROSCOPESERVER="localhost:8082"
 export ETHEROSCOPEFRONTEND="localhost:1234"
 export ETHEROSCOPEBLOCKCHAIN=$1
-export ETHEROSCOPEPARITYMAINNET="35.230.140.68:8545"
+export ETHEROSCOPEPARITYMAINNET="35.246.67.158:8545"
 
 sudo docker-compose -f ../../dependencies/mariadb/docker-compose.yml up -d &\
 

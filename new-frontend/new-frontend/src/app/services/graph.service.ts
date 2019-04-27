@@ -17,6 +17,9 @@ export class GraphService {
 
   private dataPoints: any;
 
+  private histogramData: any;
+  private histogramSeparators: number[];
+
   constructor(private logger: LoggerService, private socketService: SocketService) {}
 
   init(contractAddress: string, variable: string) {
@@ -27,6 +30,7 @@ export class GraphService {
       name: this.variable,
       series: []
     }];
+    this.histogramData = [];
     this.processedBlocks = 0;
     this.latestBlock = 0;
     this.socketService.generateDatapoints(this.contractAddress, this.variable);
@@ -78,7 +82,67 @@ export class GraphService {
         dataPoints.series = dataPoints.series.concat(this.getLatestDatapointValue(dataPoints.series));
       }
 
-      return this.dataPoints;
+      if (dataPoints.series && dataPoints.series.length > 0) {
+        this.fillBuckets(
+          +dataPoints.series.reduce((datapoint, other) => (datapoint.value > other.value) ? datapoint : other).value,
+          +dataPoints.series.reduce((datapoint, other) => (datapoint.value < other.value) ? datapoint : other).value,
+          10
+        );
+      }
+
+      return of([this.dataPoints, this.histogramData]);
     }))
+  }
+
+  fillBuckets(high, low, wantedBuckets) {
+    let bucketSize = (high - low + 1) < wantedBuckets ? 1 : Math.ceil((high - low + 1) / wantedBuckets);
+    let buckets = (high - low + 1) < wantedBuckets ? high - low + 1 : wantedBuckets;
+
+    this.histogramSeparators = [];
+    this.histogramData = [];
+
+    for (let i = 0; i < buckets; ++i) {
+      this.histogramSeparators.push(low + i * bucketSize);
+    }
+
+    this.histogramData = new Array(buckets).fill(0);
+    let dataPoints = this.dataPoints.find(variable => variable.name == this.variable);
+    dataPoints.series.forEach(elem => {
+      this.histogramData[this.getBucketNumber(elem.value)] += 1;
+    });
+
+    this.histogramData = this.histogramData.map((elem, index) => {
+      return {
+        name: `[${this.histogramSeparators[index]}; ${((this.histogramSeparators[index + 1] - 1)  || high)}]`,
+        value: elem
+      }
+    });
+
+    if (this.histogramData.length < wantedBuckets) {
+      let length = this.histogramData.length;
+      for (let i = 0; i < wantedBuckets - length; i++) {
+        this.histogramData.push({
+          name: (' ').repeat(i),
+          value: 0
+        });
+      }
+    }
+  }
+
+  getBucketNumber(value) {
+    let low = 0;
+    let high = this.histogramSeparators.length;
+
+    while (low < high) {
+      let mid = (low + high) >>> 1;
+
+      if (value >= this.histogramSeparators[mid]) {
+        low = mid + 1;
+      } else {
+        high = mid;
+      }
+    }
+
+    return low - 1;
   }
 }

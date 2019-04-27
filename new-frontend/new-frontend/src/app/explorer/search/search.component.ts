@@ -61,7 +61,11 @@ export class SearchComponent {
       return;
     }
 
-    this.router.navigate([`/explorer/0x${contractHash}/graph`]);
+    if (!contractHash.startsWith('0x')) {
+      contractHash = '0x' + contractHash;
+    }
+
+    this.router.navigate([`/explorer/${contractHash}/graph`]);
   }
 
   private updateSelectedSearchResult(hash?: string): void {
