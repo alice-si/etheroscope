@@ -5,7 +5,6 @@ WORKDIR /app
 
 # Copy files
 COPY package.json ./package.json
-COPY package-lock.json ./package-lock.json
 
 RUN npm install && \
     ls && \
@@ -35,10 +34,10 @@ COPY ./ ./
 # Start microservice
 CMD echo "CMD start database initiator\n" && node ./database-initiator/setupNewDatabase.js
 
-# case node:alpine
-# Download add source
-#RUN apk add --no-cache --virtual .build-deps alpine-sdk python && \
-#    apk update && \
-#    apk upgrade && \
-#    apk --no-cache add git && \
-#    apk del .build-deps && \
+FROM node:8 AS processContractService
+WORKDIR /app
+# Copy files
+COPY --from=projectBase /app/node_modules ./node_modules
+COPY ./ ./
+# Start microservice
+CMD echo "CMD start processContractService\\n" && node ./process-contract-service/server.js

@@ -153,7 +153,7 @@ module.exports = function (db, log) {
 
         web3.eth.defaultBlock = '0x' + blockNumber.toString(16)
         let result = await variableFunction.call();
-        return parseInt((result.valueOf()))
+        return parseInt(result.valueOf())
     }
 
     /**
@@ -189,7 +189,7 @@ module.exports = function (db, log) {
      *
      * @return {Promise<number>} timestamp of block
      */
-    async function getBlockTime(blockNumber) {
+    parity.getBlockTime = async function(blockNumber) {
         log.debug(`parity.getBlockTime ${blockNumber}`)
 
         let timeStamp = await db.getBlockTime(blockNumber)
@@ -278,14 +278,53 @@ module.exports = function (db, log) {
     }
 
     /**
+     * Function responsible for processing events.
+     *
+     * Consists of 3 steps:
+     * Step 1 - filtering events, so we have unique blocks' numbers (reduces amount of requests to parity)
+     * Step 2 - converting event to tuple [timestamp_placeholder, value, blockNumber]
+     * Step 3 - sorting elements (ascending by blockNumber) and discarding consecutive elements with
+     *          the same value as predecessor
+     *
+     * @param events         events to be processed
+     * @param variableMethod
+     * @return {Promise<Array>} array of tuples [timestamp_placeholder, value, blockNumber]
+     */
+    parity.processEvents = async function (events, variableMethod) {
+        try {
+            events = events.map(event => event.blockNumber.valueOf())
+            events = events.filter((blockNumber, index, self) => self.indexOf(blockNumber) === index)
+
+            events = await Promise.map(events, blockNumber => {
+                return Promise.all(['timestamp_placeholder',
+                    valueAtBlock(variableMethod, blockNumber), blockNumber])
+            })
+
+            events = events.sort((a, b) => a[2] - b[2])
+
+            let prevElem = []
+            let results = []
+
+            events.forEach((elem, index) => {
+                if (index === 0 || elem[1].valueOf() !== prevElem[1].valueOf()) {
+                    prevElem = elem
+                    results.push(elem)
+                }
+            })
+
+            return results
+        } catch (err) {
+            errorHandler.errorHandleThrow(`parity.processHistory`, '')(err)
+        }
+    }
+
+    /**
      * Main function responsible for generating data points for variable in block range [from, upTo]
      *
-     * Consists of 4 steps:
-     * Step 1 - filtering events, so we have unique blocks' numbers (reduces amount of requests to parity)
-     * Step 2 - generating all events in given range (getHistory call)
-     * Step 3 - converting event to tuple [timestamp, value, blockNumber]
-     * Step 4 - sorting elements (ascending by timestamp) and discarding consecutive elements with
-     *          the same blockNumber or value as predecessor
+     * Consists of 3 steps:
+     * Step 1 - generating all events in given range (parity.getHistory call)
+     * Step 2 - calling parity.processEvents
+     * Step 3 - adding timestamp value in place of placeholder
      *
      * @param {Object} contractInfo
      * @param {string} variableName
@@ -301,34 +340,11 @@ module.exports = function (db, log) {
 
             let events = await parity.getHistory(address, from, upTo)
 
-            let methods = contractInfo.parsedContract.methods
+            events = parity.processEvents(events, contractInfo.parsedContract.methods[variableName])
 
-            events = events.map(event => event.blockNumber.valueOf())
-            events = events.filter((blockNumber, index, self) => self.indexOf(blockNumber) === index)
-
-            events = await Promise.map(events, blockNumber => {
-                return Promise.all([getBlockTime(blockNumber),
-                    valueAtBlock(methods[variableName], blockNumber), blockNumber])
-            })
-
-            events = events.sort((a, b) => a[0] - b[0])
-
-            let prevElem = []
-            let results = []
-
-            events.forEach((elem, index) => {
-                if (index === 0 || elem[1].valueOf() !== prevElem[1].valueOf()) {
-                    prevElem = elem
-                    results.push(elem)
-                }
-            })
-
-            if (results.length > 0 && this.curLastValue != null && results[0][1].valueOf() === this.curLastValue.valueOf())
-                results.shift()
-            if (results.length > 0)
-                this.curLastValue = results[results.length - 1][1]
-
-            return results
+            return await Promise.map(events, event =>
+                Promise.all([parity.getBlockTime(event[2]), event[1], event[2]])
+            )
         } catch (err) {
             errorHandler.errorHandleThrow(
                 `parity.generateDataPoints ${address} ${variableName} ${from} ${upTo}`

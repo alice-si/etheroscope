@@ -7,5 +7,14 @@ module.exports.server = {
 
 module.exports.dataPointsService = {
   cacheChunkSize: 10000,
-  socketPort: 8081
+  socketPort: 8081,
+  cachedFrom: 1,
+}
+
+module.exports.RABBITMQ = {
+  address: process.env.RABBITMQADDRESS || "localhost",
+  queue: 'address_queue',
+  user: process.env.RABBITMQUSER || "guest",
+  password: process.env.RABBITMQPASSWORD || "guest",
+  messageTtl: 2 ** 32 - 1,
 }

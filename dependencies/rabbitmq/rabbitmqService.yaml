@@ -1,0 +1,28 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: rabbitmq-service
+  labels:
+    app: rabbitmq
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+  - protocol: TCP
+    port: 5671
+    name: halo1
+    targetPort: 5671
+  - protocol: TCP
+    name: halo2
+    port: 5672
+    targetPort: 5672
+  - protocol: TCP
+    name: halo3
+    port: 4369
+    targetPort: 4369
+  - protocol: TCP
+    name: halo4
+    port: 25672
+    targetPort: 25672
+  type: NodePort
+#  type: LoadBalancer
