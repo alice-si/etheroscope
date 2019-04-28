@@ -35,11 +35,9 @@ async function getContract(contractHash) {
 /**
  * Create many Contracts in database.
  *
- * @param values - should be an array of contracts e.g:
+ * @param contract object e.g
  *      ```
- *      [{ hash: 'barfoohash1z', name: 'name1', abi: 'abisbiss'},
- *      { hash: 'barfohash2oz', name: 'name2', abi: 'abisbiss'},
- *      { hash: 'barfoozhash3', name: 'name 23', abi: '8aushiau'},]
+ *      { hash: 'barfoohash1z', name: 'name1', abi: 'abisbiss'}
  *      ```
  * @returns {Promise<Array<Model>>} - array of inserted instances.
  * Contract is a sequelizejs Model with 'hash', 'name', 'abi' fields,
@@ -77,7 +75,6 @@ async function addContractLookup(contractHash) {
         let lookup = await models.ContractLookup.build({date: new Date()});
         await lookup.setContract(contract, {save: false});
         return await lookup.save()
-        // return await contract.addContractLookup(lookup);
     } catch (e) {
         handler('[DB index.js] addContractLookup', 'Problem occurred in addContractLookup')(e);
     }
@@ -98,7 +95,7 @@ async function getPopularContracts(limit1, lastDays = 7) {
                 {raw: true, bind: [limit1, lastDays], type: sequelize.QueryTypes.SELECT}
             )
         } else {
-            res = await sequelize.query('SELECT hash as contractHash, name, Count(t2.id) as searches FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash group by t1.hash, t1.name having searches > 0  order by searches desc limit $1 ',
+            res = await sequelize.query('SELECT hash as contractHash, name, Count(t2.id) as searches FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash group by t1.hash, t1.name having searches > 0 order by searches desc limit $1 ',
                 {raw: true, bind: [limit1], type: sequelize.QueryTypes.SELECT}
             )
         }
@@ -128,24 +125,26 @@ async function addDataPoints(contractAddress, variableName, values, cachedUpTo) 
     try {
         let variable = await models.Variable.findOne({where: {ContractHash: contractAddress, name: variableName}});
         let bulkmap = [];
-        if (variable && values && values.length !== 0) {
-            let maxBlockNumber = await models.DataPoint.max('BlockNumber', {where: {VariableId: variable.id}})
-            if (isNaN(maxBlockNumber) === false) {
-                let lastDataPoint = await models.DataPoint.findOne({
-                    where: {
-                        BlockNumber: maxBlockNumber,
-                        VariableId: variable.id
-                    }
-                })
-                if (values.length > 0 && lastDataPoint.value === values[0][1])
-                    values.shift()
+        if (variable && cachedUpTo > variable.cachedUpTo) {
+            if (values && values.length !== 0) {
+                let maxBlockNumber = await models.DataPoint.max('BlockNumber', {where: {VariableId: variable.id}})
+                if (isNaN(maxBlockNumber) === false) {
+                    let lastDataPoint = await models.DataPoint.findOne({
+                        where: {
+                            BlockNumber: maxBlockNumber,
+                            VariableId: variable.id
+                        }
+                    })
+                    if (values.length > 0 && lastDataPoint.value === values[0][1])
+                        values.shift()
+                }
+                values.forEach((elem) => {
+                    bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
+                });
+                await models.DataPoint.bulkCreate(bulkmap);
             }
-            values.forEach((elem) => {
-                bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
-            });
-            await models.DataPoint.bulkCreate(bulkmap);
+            return await variable.update({cachedUpTo: cachedUpTo});
         }
-        return await variable.update({cachedUpTo: cachedUpTo});
     } catch (e) {
         handler('[DB index.js] addDataPoints', 'Problem occurred in addDataPoints')(e);
     }
@@ -192,7 +191,13 @@ async function getDataPoints(contractAddress, variableName) {
  */
 async function addVariables(values) {
     try {
-        return await models.Variable.bulkCreate(values);
+        return await sequelize.transaction(async (t) => {
+            for (let i = 0; i < values.length; i++) {
+                let is_any = await models.Variable.findOne({where: values[i], transaction: t});
+                if (is_any != null) throw new Error('One or more values already existed -> rollback initiated');
+            }
+            return await models.Variable.bulkCreate(values, {transaction: t});
+        });
     } catch (e) {
         handler('[DB index.js] addVariables', 'Problem occurred in addVariables')(e);
     }
