@@ -39,7 +39,7 @@ async function getContract(contractHash) {
  *      ```
  *      { hash: 'barfoohash1z', name: 'name1', abi: 'abisbiss'}
  *      ```
- * @returns {Promise<Array<Model>>} - array of inserted instances.
+ * @returns {Promise<Model>} - array of inserted instances.
  * Contract is a sequelizejs Model with 'hash', 'name', 'abi' fields,
  * and with hasMany(ContractLookup), hasMany(Variable) assotiations.
  * Model represents a table in the database. Instances of this class represent a database row.
@@ -187,7 +187,7 @@ async function getDataPoints(contractAddress, variableName) {
  *
  * Care Unit.js model is currently not used that's why u shouldn't set UnitId in values.
  *
- * @returns {Promise<Array<Model>>} - array of inserted instances.
+ * @returns {Promise<Model>} - array of inserted instances.
  */
 async function addVariables(values) {
     try {
@@ -236,12 +236,16 @@ async function getBlockTime(blockNumber) {
 /**
  * Create in db blocks for given values.
  *
- * @param   values    eq. [{ number: 34, timeStamp: Date.now()}, ... ]
- * @returns {Promise<Array<Model>>} - array of inserted instances.
+ * @param   block    eq. { number: 34, timeStamp: Date.now()}
+ * @returns {Promise<Model>} - array of inserted instances.
  */
-async function addBlocks(values) {
+async function addBlock(block) {
     try {
-        return await models.Block.bulkCreate(values);
+        return await sequelize.transaction(async (t) => {
+            let is_any = await models.Block.findOne({where: {number: block.number}, transaction: t});
+            if (is_any != null) throw new Error('Rollback initiated');
+            return await models.Block.create(block, {transaction: t});
+        });
     } catch (e) {
         handler('[DB index.js] addBlocks', 'Problem occurred in addBlocks')(e);
     }
@@ -352,7 +356,7 @@ module.exports.getVariables = getVariables;
 module.exports.addDataPoints = addDataPoints;
 module.exports.getDataPoints = getDataPoints;
 module.exports.getDataPointsInBlockNumberRange = getDataPointsInBlockNumberRange;
-module.exports.addBlocks = addBlocks;
+module.exports.addBlock = addBlock;
 module.exports.getBlockTime = getBlockTime;
 module.exports.getLatestCachedBlock = getLatestCachedBlock;
 module.exports.getCachedUpTo = getCachedUpTo;

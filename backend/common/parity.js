@@ -205,7 +205,7 @@ module.exports = function (db, log) {
                     }
 
                     let time = await parity.calculateBlockTime(blockNumber)
-                    await db.addBlocks([{number: blockNumber, timeStamp: time}])
+                    await db.addBlock({number: blockNumber, timeStamp: time})
 
                     release()
 

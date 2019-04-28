@@ -10,37 +10,45 @@ async function demo() {
     await sleep(2000);
     console.log('Two seconds later');
 
+
+
+
     // xd = await db.addContract({
     //     hash: "address.substr(2)",
     //     name: "contractName",
     //     abi: "JSON.stringify(parsedABI)"
     // })
-    xd = await db.addContract({
-        hash: "1",
-        name: "contractName",
-        abi: "JSON.stringify(parsedABI)"
+    let xd = await db.addBlock({
+        number: 1,
+        timeStamp: 3,
     })
-    xd = await db.addContract({
-        hash: "2",
-        name: "contractName",
-        abi: "JSON.stringify(parsedABI)"
+    console.log(xd)
+     xd = await db.addBlock({
+        number: 1,
+        timeStamp: 3,
     })
+    console.log(xd)
+    // xd = await db.addContract({
+    //     hash: "2",
+    //     name: "contractName",
+    //     abi: "JSON.stringify(parsedABI)"
+    // })
 
 
-    let result4 = await db.addVariables([{
-        ContractHash: '1',
-        name: 'namenameVariable',
-        cachedUpTo: '422',
-        // UnitId:'1',
-    }, {
-        ContractHash: '2',
-        name: 'namename22',
-        cachedUpTo: '422',
-        // UnitId:'1',
-    },
-
-    ]);
-    console.log("ok", result4)
+    // let result4 = await db.addVariables([{
+    //     ContractHash: '1',
+    //     name: 'namenameVariable',
+    //     cachedUpTo: '422',
+    //     // UnitId:'1',
+    // }, {
+    //     ContractHash: '2',
+    //     name: 'namename22',
+    //     cachedUpTo: '422',
+    //     // UnitId:'1',
+    // },
+    //
+    // ]);
+    // console.log("ok", result4)
 
     // await sleep(2000)
     //
@@ -61,10 +69,12 @@ async function demo() {
 
     //
     // xd = await db.getPopularContracts(10)
-    // console.log("ok", xd)
+    console.log("ok", xd)
     // await db.addContractLookup("address.substr(2)")
     // xd = await db.getPopularContracts(10)
     // console.log("ok", xd)
+
+
 }
 
 demo();
