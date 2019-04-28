@@ -7,30 +7,6 @@ const Op = Sequelize.Op;
 const handler = require("../common/errorHandlers").errorHandleThrow;
 
 /**
- * Get all Contracts from db.
- *
- * @returns {Promise<Array<Model>>} - array of Contract instances.
- * Contract is a sequelizejs Model with 'hash', 'name', 'abi' fields,
- * and with hasMany(ContractLookup), hasMany(Variable) associations.
- * Model represents a table in the database. Instances of this class represent a database row.
- * The values from dataValues can be accessed directly from the Instance, that is:
- *      ```
- *      instance.field
- *      // is the same as
- *      instance.get('field')
- *      // is the same as
- *      instance.getDataValue('field')
- *      ```
- */
-async function getContracts() {
-    try {
-        return await models.Contract.findAll();
-    } catch (e) {
-        handler('[DB index.js] getContracts', 'Problem occurred in getContracts')(e);
-    }
-}
-
-/**
  * Get Contract from db with hash = {@param contractHash}.
  *
  * @param contractHash - contract hash
