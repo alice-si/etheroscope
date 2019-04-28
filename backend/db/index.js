@@ -252,46 +252,6 @@ async function addBlock(block) {
 }
 
 /**
- * Gets dataPoints for a variable in block number <from, to> range.
- *
- * @param contractHash
- * @param variableName
- * @param from
- * @param to
- * @returns {Promise<Array<Model>>}
- */
-async function getDataPointsInBlockNumberRange(contractHash, variableName, from, to) {
-    try {
-        let variable = await models.Variable.findOne({where: {ContractHash: contractHash, name: variableName}});
-        return await models.DataPoint.findAll({
-            // include: [models.Block],
-            where: {
-                VariableId: variable.id,
-                BlockNumber: {
-                    [Op.between]: [from, to]
-                }
-            }
-        })
-            ;
-    } catch (e) {
-        handler('[DB index.js] getDataPointsInBlockNumberRange', 'Problem occurred in getDataPointsInBlockNumberRange')(e);
-    }
-}
-
-/**
- * Get the latest number of cached blocks.
- *
- * @returns {Promise<*>} - block number
- */
-async function getLatestCachedBlock() {
-    try {
-        return await models.Block.max('number')
-    } catch (e) {
-        handler('[DB index.js] getLatestCachedBlock', 'Problem occurred in getLatestCachedBlock')(e);
-    }
-}
-
-/**
  * Returns range of cached data in database for a given contract and variable.
  *
  * @param {string} contractHash
@@ -305,22 +265,6 @@ async function getCachedUpTo(contractHash, variableName) {
         return variable == null ? null : variable.cachedUpTo
     } catch (e) {
         handler('[DB index.js] getCachedUpTo', 'Problem occurred in getCachedUpTo')(e);
-    }
-}
-
-/**
- * Updates abi of given contract.
- *
- * @param contractHash      contract hash
- * @param contractABI       new abi
- * @returns {Promise<Model>}    updated instance
- */
-async function updateContractABI(contractHash, contractABI) {
-    try {
-        let contract = await models.Contract.findOne({where: {hash: [contractHash]}});
-        return await contract.update({abi: contractABI})
-    } catch (e) {
-        handler('[DB index.js] updateContractABI', 'Problem occurred in updateContractABI')(e);
     }
 }
 
@@ -346,7 +290,6 @@ async function searchContract(pattern) {
 }
 
 module.exports.addContract = addContract;
-module.exports.updateContractABI = updateContractABI;
 module.exports.searchContract = searchContract;
 module.exports.getContract = getContract;
 module.exports.addContractLookup = addContractLookup;
@@ -355,10 +298,8 @@ module.exports.addVariables = addVariables;
 module.exports.getVariables = getVariables;
 module.exports.addDataPoints = addDataPoints;
 module.exports.getDataPoints = getDataPoints;
-module.exports.getDataPointsInBlockNumberRange = getDataPointsInBlockNumberRange;
 module.exports.addBlock = addBlock;
 module.exports.getBlockTime = getBlockTime;
-module.exports.getLatestCachedBlock = getLatestCachedBlock;
 module.exports.getCachedUpTo = getCachedUpTo;
 
 (function initDB(force = false) {
