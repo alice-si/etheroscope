@@ -54,11 +54,16 @@ async function getContract(contractHash) {
  *      instance.getDataValue('field')
  *      ```
  */
-async function addContracts(values) {
+async function addContract(contract) {
     try {
-        return await models.Contract.bulkCreate(values, {returning: true});
+        return await sequelize.transaction(async (t) => {
+            let is_any = await models.Contract.findOne({where: {hash: contract.hash}, transaction: t});
+            if (is_any != null) throw new Error('contract exist -> Rollback initiated');
+            return await models.Contract.create(contract, {transaction: t});
+        });
     } catch (e) {
-        handler('[DB index.js] addContracts', 'Problem occurred in addContracts')(e);
+        // Rollback transaction if any errors were encountered
+        handler('[DB index.js] addContract', 'Problem occurred in addContract')(e);
     }
 }
 
@@ -90,11 +95,11 @@ async function getPopularContracts(limit1, lastDays = 7) {
     try {
         let res = [];
         if (process.env.NODE_ENV) { // if in production
-            res =  await sequelize.query('SELECT hash as contractHash, name, Count(t2.id) as searches FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash where t2.date >= DATE_SUB(NOW(), INTERVAL $2 DAY) group by t1.hash, t1.name order by searches desc limit $1 ',
+            res = await sequelize.query('SELECT hash as contractHash, name, Count(t2.id) as searches FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash where t2.date >= DATE_SUB(NOW(), INTERVAL $2 DAY) group by t1.hash, t1.name order by searches desc limit $1 ',
                 {raw: true, bind: [limit1, lastDays], type: sequelize.QueryTypes.SELECT}
             )
         } else {
-            res =  await sequelize.query('SELECT hash as contractHash, name, Count(t2.id) as searches FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash group by t1.hash, t1.name order by searches desc limit $1 ',
+            res = await sequelize.query('SELECT hash as contractHash, name, Count(t2.id) as searches FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash group by t1.hash, t1.name order by searches desc limit $1 ',
                 {raw: true, bind: [limit1], type: sequelize.QueryTypes.SELECT}
             )
         }
@@ -127,7 +132,12 @@ async function addDataPoints(contractAddress, variableName, values, cachedUpTo) 
         if (variable && values && values.length !== 0) {
             let maxBlockNumber = await models.DataPoint.max('BlockNumber', {where: {VariableId: variable.id}})
             if (isNaN(maxBlockNumber) === false) {
-                let lastDataPoint = await models.DataPoint.findOne({where: {BlockNumber: maxBlockNumber, VariableId: variable.id}})
+                let lastDataPoint = await models.DataPoint.findOne({
+                    where: {
+                        BlockNumber: maxBlockNumber,
+                        VariableId: variable.id
+                    }
+                })
                 if (values.length > 0 && lastDataPoint.value === values[0][1])
                     values.shift()
             }
@@ -327,8 +337,7 @@ async function searchContract(pattern) {
     }
 }
 
-module.exports.addContracts = addContracts;
-module.exports.getContracts = getContracts;
+module.exports.addContract = addContract;
 module.exports.updateContractABI = updateContractABI;
 module.exports.searchContract = searchContract;
 module.exports.getContract = getContract;

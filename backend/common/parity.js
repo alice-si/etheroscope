@@ -83,11 +83,11 @@ module.exports = function (db, log) {
                 let contractInstance = await getContractInfoFromEtherscan(address)
                 parsedABI = contractInstance.ABI
                 let contractName = contractInstance.contractName
-                await db.addContracts([{
+                await db.addContract({
                     hash: address.substr(2),
                     name: contractName,
                     abi: JSON.stringify(parsedABI)
-                }])
+                })
                 contractFromDB = await db.getContract(address.substr(2))
             }
 
