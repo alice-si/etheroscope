@@ -201,18 +201,18 @@ async function getDataPoints(contractAddress, variableName) {
 async function addVariables(values) {
     try {
         return await sequelize.transaction(async (t) => {
-            let res = [];
-            for (let i = 0; i < values.length; i++) {
-                let is_any = await models.Variable.findOne({where: values[i], transaction: t});
-                res.push(is_any)
+            if (values.length > 0) {
+                let res = await getVariables(values[0].contractHash)
+                if (res.length > 0)
+                    return res
             }
-            if (res.length > 0) return res;
-            return await models.Variable.bulkCreate(values, {transaction: t});
+            return await models.Variable.bulkCreate(values, {transaction: t})
         });
     } catch (e) {
         handler('[DB index.js] addVariables', 'Problem occurred in addVariables')(e);
     }
 }
+
 
 /**
  * Get all variables for contract.
