@@ -7,30 +7,6 @@ const Op = Sequelize.Op;
 const handler = require("../common/errorHandlers").errorHandleThrow;
 
 /**
- * Get all Contracts from db.
- *
- * @returns {Promise<Array<Model>>} - array of Contract instances.
- * Contract is a sequelizejs Model with 'hash', 'name', 'abi' fields,
- * and with hasMany(ContractLookup), hasMany(Variable) associations.
- * Model represents a table in the database. Instances of this class represent a database row.
- * The values from dataValues can be accessed directly from the Instance, that is:
- *      ```
- *      instance.field
- *      // is the same as
- *      instance.get('field')
- *      // is the same as
- *      instance.getDataValue('field')
- *      ```
- */
-async function getContracts() {
-    try {
-        return await models.Contract.findAll();
-    } catch (e) {
-        handler('[DB index.js] getContracts', 'Problem occurred in getContracts')(e);
-    }
-}
-
-/**
  * Get Contract from db with hash = {@param contractHash}.
  *
  * @param contractHash - contract hash
@@ -59,13 +35,11 @@ async function getContract(contractHash) {
 /**
  * Create many Contracts in database.
  *
- * @param values - should be an array of contracts e.g:
+ * @param contract object e.g
  *      ```
- *      [{ hash: 'barfoohash1z', name: 'name1', abi: 'abisbiss'},
- *      { hash: 'barfohash2oz', name: 'name2', abi: 'abisbiss'},
- *      { hash: 'barfoozhash3', name: 'name 23', abi: '8aushiau'},]
+ *      { hash: 'barfoohash1z', name: 'name1', abi: 'abisbiss'}
  *      ```
- * @returns {Promise<Array<Model>>} - array of inserted instances.
+ * @returns {Promise<Model>} - array of inserted instances.
  * Contract is a sequelizejs Model with 'hash', 'name', 'abi' fields,
  * and with hasMany(ContractLookup), hasMany(Variable) assotiations.
  * Model represents a table in the database. Instances of this class represent a database row.
@@ -78,11 +52,15 @@ async function getContract(contractHash) {
  *      instance.getDataValue('field')
  *      ```
  */
-async function addContracts(values) {
+async function addContract(contract) {
     try {
-        return await models.Contract.bulkCreate(values, {returning: true});
+        return await sequelize.transaction(async (t) => {
+            let is_any = await models.Contract.findOne({where: {hash: contract.hash}, transaction: t});
+            if (is_any != null) return is_any
+            return await models.Contract.create(contract, {transaction: t});
+        });
     } catch (e) {
-        handler('[DB index.js] addContracts', 'Problem occurred in addContracts')(e);
+        handler('[DB index.js] addContract', 'Problem occurred in addContract')(e);
     }
 }
 
@@ -97,7 +75,6 @@ async function addContractLookup(contractHash) {
         let lookup = await models.ContractLookup.build({date: new Date()});
         await lookup.setContract(contract, {save: false});
         return await lookup.save()
-        // return await contract.addContractLookup(lookup);
     } catch (e) {
         handler('[DB index.js] addContractLookup', 'Problem occurred in addContractLookup')(e);
     }
@@ -114,11 +91,11 @@ async function getPopularContracts(limit1, lastDays = 7) {
     try {
         let res = [];
         if (process.env.NODE_ENV) { // if in production
-            res =  await sequelize.query('SELECT hash as contractHash, name, Count(t2.id) as searches FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash where t2.date >= DATE_SUB(NOW(), INTERVAL $2 DAY) group by t1.hash, t1.name order by searches desc limit $1 ',
+            res = await sequelize.query('SELECT hash as contractHash, name, Count(t2.id) as searches FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash where t2.date >= DATE_SUB(NOW(), INTERVAL $2 DAY) group by t1.hash, t1.name having searches > 0 order by searches desc limit $1 ',
                 {raw: true, bind: [limit1, lastDays], type: sequelize.QueryTypes.SELECT}
             )
         } else {
-            res =  await sequelize.query('SELECT hash as contractHash, name, Count(t2.id) as searches FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash group by t1.hash, t1.name order by searches desc limit $1 ',
+            res = await sequelize.query('SELECT hash as contractHash, name, Count(t2.id) as searches FROM Contracts as t1 LEFT JOIN ContractLookups as t2 ON t1.hash = t2.ContractHash group by t1.hash, t1.name having searches > 0 order by searches desc limit $1 ',
                 {raw: true, bind: [limit1], type: sequelize.QueryTypes.SELECT}
             )
         }
@@ -145,22 +122,38 @@ async function getPopularContracts(limit1, lastDays = 7) {
  * @param {Number}   cachedUpTo      end of range of cached blocks
  */
 async function addDataPoints(contractAddress, variableName, values, cachedUpTo) {
+
     try {
-        let variable = await models.Variable.findOne({where: {ContractHash: contractAddress, name: variableName}});
-        let bulkmap = [];
-        if (variable && values && values.length !== 0) {
-            let maxBlockNumber = await models.DataPoint.max('BlockNumber', {where: {VariableId: variable.id}})
-            if (isNaN(maxBlockNumber) === false) {
-                let lastDataPoint = await models.DataPoint.findOne({where: {BlockNumber: maxBlockNumber, VariableId: variable.id}})
-                if (values.length > 0 && lastDataPoint.value === values[0][1])
-                    values.shift()
-            }
-            values.forEach((elem) => {
-                bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
+        return await sequelize.transaction(async (t) => {
+            let variable = await models.Variable.findOne({
+                where: {ContractHash: contractAddress, name: variableName},
+                transaction: t
             });
-            await models.DataPoint.bulkCreate(bulkmap);
-        }
-        return await variable.update({cachedUpTo: cachedUpTo});
+            let bulkmap = [];
+            if (variable && cachedUpTo > variable.cachedUpTo) {
+                if (values && values.length !== 0) {
+                    let maxBlockNumber = await models.DataPoint.max('BlockNumber', {
+                        where: {VariableId: variable.id},
+                        transaction: t
+                    });
+                    if (isNaN(maxBlockNumber) === false) {
+                        let lastDataPoint = await models.DataPoint.findOne({
+                            where: {
+                                BlockNumber: maxBlockNumber,
+                                VariableId: variable.id
+                            }, transaction: t
+                        });
+                        if (values.length > 0 && lastDataPoint.value === values[0][1])
+                            values.shift()
+                    }
+                    values.forEach((elem) => {
+                        bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
+                    });
+                    await models.DataPoint.bulkCreate(bulkmap, {transaction: t});
+                }
+                return await variable.update({cachedUpTo: cachedUpTo}, {transaction: t});
+            }
+        });
     } catch (e) {
         handler('[DB index.js] addDataPoints', 'Problem occurred in addDataPoints')(e);
     }
@@ -207,11 +200,19 @@ async function getDataPoints(contractAddress, variableName) {
  */
 async function addVariables(values) {
     try {
-        return await models.Variable.bulkCreate(values);
+        return await sequelize.transaction(async (t) => {
+            if (values.length > 0) {
+                let res = await getVariables(values[0].contractHash)
+                if (res.length > 0)
+                    return res
+            }
+            return await models.Variable.bulkCreate(values, {transaction: t})
+        });
     } catch (e) {
         handler('[DB index.js] addVariables', 'Problem occurred in addVariables')(e);
     }
 }
+
 
 /**
  * Get all variables for contract.
@@ -246,54 +247,18 @@ async function getBlockTime(blockNumber) {
 /**
  * Create in db blocks for given values.
  *
- * @param   values    eq. [{ number: 34, timeStamp: Date.now()}, ... ]
- * @returns {Promise<Array<Model>>} - array of inserted instances.
+ * @param   block    eq. { number: 34, timeStamp: Date.now()}
+ * @returns {Promise<Model>} - array of inserted instances.
  */
-async function addBlocks(values) {
+async function addBlock(block) {
     try {
-        return await models.Block.bulkCreate(values);
+        return await sequelize.transaction(async (t) => {
+            let is_any = await models.Block.findOne({where: {number: block.number}, transaction: t});
+            if (is_any != null) return is_any;
+            return await models.Block.create(block, {transaction: t});
+        });
     } catch (e) {
         handler('[DB index.js] addBlocks', 'Problem occurred in addBlocks')(e);
-    }
-}
-
-/**
- * Gets dataPoints for a variable in block number <from, to> range.
- *
- * @param contractHash
- * @param variableName
- * @param from
- * @param to
- * @returns {Promise<Array<Model>>}
- */
-async function getDataPointsInBlockNumberRange(contractHash, variableName, from, to) {
-    try {
-        let variable = await models.Variable.findOne({where: {ContractHash: contractHash, name: variableName}});
-        return await models.DataPoint.findAll({
-            // include: [models.Block],
-            where: {
-                VariableId: variable.id,
-                BlockNumber: {
-                    [Op.between]: [from, to]
-                }
-            }
-        })
-            ;
-    } catch (e) {
-        handler('[DB index.js] getDataPointsInBlockNumberRange', 'Problem occurred in getDataPointsInBlockNumberRange')(e);
-    }
-}
-
-/**
- * Get the latest number of cached blocks.
- *
- * @returns {Promise<*>} - block number
- */
-async function getLatestCachedBlock() {
-    try {
-        return await models.Block.max('number')
-    } catch (e) {
-        handler('[DB index.js] getLatestCachedBlock', 'Problem occurred in getLatestCachedBlock')(e);
     }
 }
 
@@ -311,22 +276,6 @@ async function getCachedUpTo(contractHash, variableName) {
         return variable == null ? null : variable.cachedUpTo
     } catch (e) {
         handler('[DB index.js] getCachedUpTo', 'Problem occurred in getCachedUpTo')(e);
-    }
-}
-
-/**
- * Updates abi of given contract.
- *
- * @param contractHash      contract hash
- * @param contractABI       new abi
- * @returns {Promise<Model>}    updated instance
- */
-async function updateContractABI(contractHash, contractABI) {
-    try {
-        let contract = await models.Contract.findOne({where: {hash: [contractHash]}});
-        return await contract.update({abi: contractABI})
-    } catch (e) {
-        handler('[DB index.js] updateContractABI', 'Problem occurred in updateContractABI')(e);
     }
 }
 
@@ -351,9 +300,7 @@ async function searchContract(pattern) {
     }
 }
 
-module.exports.addContracts = addContracts;
-module.exports.getContracts = getContracts;
-module.exports.updateContractABI = updateContractABI;
+module.exports.addContract = addContract;
 module.exports.searchContract = searchContract;
 module.exports.getContract = getContract;
 module.exports.addContractLookup = addContractLookup;
@@ -362,10 +309,8 @@ module.exports.addVariables = addVariables;
 module.exports.getVariables = getVariables;
 module.exports.addDataPoints = addDataPoints;
 module.exports.getDataPoints = getDataPoints;
-module.exports.getDataPointsInBlockNumberRange = getDataPointsInBlockNumberRange;
-module.exports.addBlocks = addBlocks;
+module.exports.addBlock = addBlock;
 module.exports.getBlockTime = getBlockTime;
-module.exports.getLatestCachedBlock = getLatestCachedBlock;
 module.exports.getCachedUpTo = getCachedUpTo;
 
 (function initDB(force = false) {

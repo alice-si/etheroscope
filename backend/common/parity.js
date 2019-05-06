@@ -83,12 +83,11 @@ module.exports = function (db, log) {
                 let contractInstance = await getContractInfoFromEtherscan(address)
                 parsedABI = contractInstance.ABI
                 let contractName = contractInstance.contractName
-                await db.addContracts([{
+                contractFromDB = await db.addContract({
                     hash: address.substr(2),
                     name: contractName,
                     abi: JSON.stringify(parsedABI)
-                }])
-                contractFromDB = await db.getContract(address.substr(2))
+                })
             }
 
             parsedABI = JSON.parse(contractFromDB.abi)
@@ -205,7 +204,7 @@ module.exports = function (db, log) {
                     }
 
                     let time = await parity.calculateBlockTime(blockNumber)
-                    await db.addBlocks([{number: blockNumber, timeStamp: time}])
+                    await db.addBlock({number: blockNumber, timeStamp: time})
 
                     release()
 

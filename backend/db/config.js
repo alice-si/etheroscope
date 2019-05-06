@@ -3,14 +3,19 @@ module.exports = {
         dialect: "sqlite",
         storage: "data.sqlite3",
         operatorsAliases: false,
-        logging: false
-
+        logging: false,
+        retry: {
+            max: 10
+        }
     },
     test: {
         dialect: "sqlite",
         storage: ":memory:",
         operatorsAliases: false,
-        logging: false
+        logging: false,
+        retry: {
+            max: 10
+        }
     },
     production: {
         username: process.env.DB_USERNAME,
@@ -19,6 +24,9 @@ module.exports = {
         host: process.env.DB_HOSTNAME,
         dialect: 'mysql',
         operatorsAliases: false,
-        logging: false
+        logging: false,
+        retry: {
+            max: 10
+        }
     },
 };
