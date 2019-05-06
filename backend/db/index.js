@@ -56,7 +56,7 @@ async function addContract(contract) {
     try {
         return await sequelize.transaction(async (t) => {
             let is_any = await models.Contract.findOne({where: {hash: contract.hash}, transaction: t});
-            if (is_any != null) throw new Error('Rollback initiated');
+            if (is_any != null) return is_any
             return await models.Contract.create(contract, {transaction: t});
         });
     } catch (e) {
@@ -122,29 +122,38 @@ async function getPopularContracts(limit1, lastDays = 7) {
  * @param {Number}   cachedUpTo      end of range of cached blocks
  */
 async function addDataPoints(contractAddress, variableName, values, cachedUpTo) {
+
     try {
-        let variable = await models.Variable.findOne({where: {ContractHash: contractAddress, name: variableName}});
-        let bulkmap = [];
-        if (variable && cachedUpTo > variable.cachedUpTo) {
-            if (values && values.length !== 0) {
-                let maxBlockNumber = await models.DataPoint.max('BlockNumber', {where: {VariableId: variable.id}})
-                if (isNaN(maxBlockNumber) === false) {
-                    let lastDataPoint = await models.DataPoint.findOne({
-                        where: {
-                            BlockNumber: maxBlockNumber,
-                            VariableId: variable.id
-                        }
-                    })
-                    if (values.length > 0 && lastDataPoint.value === values[0][1])
-                        values.shift()
+        return await sequelize.transaction(async (t) => {
+            let variable = await models.Variable.findOne({
+                where: {ContractHash: contractAddress, name: variableName},
+                transaction: t
+            });
+            let bulkmap = [];
+            if (variable && cachedUpTo > variable.cachedUpTo) {
+                if (values && values.length !== 0) {
+                    let maxBlockNumber = await models.DataPoint.max('BlockNumber', {
+                        where: {VariableId: variable.id},
+                        transaction: t
+                    });
+                    if (isNaN(maxBlockNumber) === false) {
+                        let lastDataPoint = await models.DataPoint.findOne({
+                            where: {
+                                BlockNumber: maxBlockNumber,
+                                VariableId: variable.id
+                            }, transaction: t
+                        });
+                        if (values.length > 0 && lastDataPoint.value === values[0][1])
+                            values.shift()
+                    }
+                    values.forEach((elem) => {
+                        bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
+                    });
+                    await models.DataPoint.bulkCreate(bulkmap, {transaction: t});
                 }
-                values.forEach((elem) => {
-                    bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
-                });
-                await models.DataPoint.bulkCreate(bulkmap);
+                return await variable.update({cachedUpTo: cachedUpTo}, {transaction: t});
             }
-            return await variable.update({cachedUpTo: cachedUpTo});
-        }
+        });
     } catch (e) {
         handler('[DB index.js] addDataPoints', 'Problem occurred in addDataPoints')(e);
     }
@@ -187,15 +196,17 @@ async function getDataPoints(contractAddress, variableName) {
  *
  * Care Unit.js model is currently not used that's why u shouldn't set UnitId in values.
  *
- * @returns {Promise<Model>} - array of inserted instances.
+ * @returns {Promise<Array<Model>>} - array of inserted instances.
  */
 async function addVariables(values) {
     try {
         return await sequelize.transaction(async (t) => {
+            let res = [];
             for (let i = 0; i < values.length; i++) {
                 let is_any = await models.Variable.findOne({where: values[i], transaction: t});
-                if (is_any != null) throw new Error('One or more values already existed -> rollback initiated');
+                res.push(is_any)
             }
+            if (res.length > 0) return res;
             return await models.Variable.bulkCreate(values, {transaction: t});
         });
     } catch (e) {
@@ -243,7 +254,7 @@ async function addBlock(block) {
     try {
         return await sequelize.transaction(async (t) => {
             let is_any = await models.Block.findOne({where: {number: block.number}, transaction: t});
-            if (is_any != null) throw new Error('Rollback initiated');
+            if (is_any != null) return is_any;
             return await models.Block.create(block, {transaction: t});
         });
     } catch (e) {
