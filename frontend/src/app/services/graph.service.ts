@@ -23,6 +23,7 @@ export class GraphService {
   constructor(private logger: LoggerService, private socketService: SocketService) {}
 
   init(contractAddress: string, variable: string) {
+    this.logger.info(`Datapoints generating initialized`);
     this.leave();
     this.contractAddress = contractAddress;
     this.variable = variable;

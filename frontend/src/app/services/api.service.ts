@@ -15,22 +15,22 @@ export class ApiService {
   }
 
   getPopularContracts(): Observable<any[]> {
-    this.logger.info(`Obtaining popular contracts`);
+    this.logger.info(`API call: popular contracts`);
     return this.httpClient.get<any[]>(`${this.apiUrl}/api/popular/`);
   }
 
   exploreContract(contract: string) {
-    this.logger.info(`Exploring contract ${contract}`);
+    this.logger.info(`API call: explore contract ${contract}`);
     return this.httpClient.get(`${this.apiUrl}/api/explore/${contract}`);
   }
 
   searchContracts(keyword: string, advancedConstraints: { variables: any, transactions: any }) {
-    this.logger.info(`Searching for contracts. Keyword: ${keyword} and constraints: ${advancedConstraints}`);
+    this.logger.info(`API call: search for contracts. Keyword: "${keyword}" and constraints: "${advancedConstraints}"`);
     return this.httpClient.post(`${this.apiUrl}/api/search/${keyword}`, advancedConstraints);
   }
 
   getTransactionsHistory(contract: string, start: number, end: number) {
-    this.logger.info(`Getting transactions history of: ${contract} from ${start} to ${end}`);
+    this.logger.info(`API call: transactions history of: ${contract} from ${start} to ${end}`);
     let params = new HttpParams().set('start', start.toString()).set('end', end.toString());
     return this.httpClient.get(`${this.apiUrl}/api/transactions/${contract}`, { params: params });
   }

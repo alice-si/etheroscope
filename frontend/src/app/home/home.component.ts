@@ -1,13 +1,15 @@
-import { Component } from "@angular/core";
-import { GraphService } from '../_services/graph.service';
+import { Component, OnInit } from '@angular/core';
 
 @Component({
-    styleUrls: ['./home.component.scss'],
-    templateUrl: './home.component.html',
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.less']
 })
+export class HomeComponent implements OnInit {
 
-export class HomeComponent {
-  constructor(private gs: GraphService) {
-    gs.curDisplayState = gs.DisplayState.noContract;
+  constructor() { }
+
+  ngOnInit() {
   }
+
 }
