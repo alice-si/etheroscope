@@ -14,31 +14,18 @@ spec:
         app: etheroscope-micro-service
     spec:
       terminationGracePeriodSeconds: 30
-#      volumes:
-#      - name: ethereum-geth-volume
-#        gcePersistentDisk:
-#          pdName: ethereum-geth-disk2
-#          fsType: ext4
       containers:
       - name: etheroscope-micro-service-container
         image: gcr.io/etheroscope/etheroscope-micro-service:latest
         env:
-        - name: ETHEROSCOPEPARITYMAINNET
-          value: "35.230.140.68:8545"
-        - name: ETHEROSCOPEGETHHOST
-#          value: "10.3.255.188:8545" # rinkeby
-          value: "10.3.240.197:8545"
-        - name: ETHEROSCOPEMARIADB
-          value: "10.3.240.97:8083"
-        - name: ETHEROSCOPEMICROSERVICE
-          value: "35.246.65.214:80"
-        - name: ETHEROSCOPESERVER
-          value: "35.246.120.150:8080"
-        - name: ETHEROSCOPEFRONTEND
-          value: "35.242.161.116:80"
-        - name: ETHEROSCOPEBLOCKCHAIN
-          value: "/blockchain/geth/chaindata"
+        - name: NODE_ENV
+          value: "production"
+        - name: DB_USERNAME
+          value: "zppuser"
+        - name: DB_PASSWORD
+          value: "T6yt1rLPYv25"
+        - name: DB_NAME
+          value: "mysqldb"
+        - name: DB_HOSTNAME
+          value: "10.43.145.3"
         imagePullPolicy: "Always"
-#        volumeMounts:
-#        - name: ethereum-geth-volume
-#          mountPath: /blockchain/

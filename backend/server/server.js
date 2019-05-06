@@ -17,10 +17,10 @@ log.setLevel('trace')
 log.enableAll()
 
 console.log('server.js: Starting server.js')
-console.log('server.js: Will require db.js')
+console.log('server.js: Will require db')
 
 try {
-    var db = require('../common/db.js')(log)
+    var db = require('../db')
 
     var Promise = require('bluebird')
     Promise.config({
@@ -52,11 +52,8 @@ try {
 // add query handler API
     require('./api.js')(app, db, log, validator) // configure our routes
 
-// add test query handler API
-    require('../tester/testerApi.js')(app, db, log, validator) // configure our routes
-
 // Set port to 8080
-    var port = settings.ETHEROSCOPESERVER.slice(-4)
+    var port = settings.server.port
 
 // Start application
     log.info('server.js: Starting server at: ' + port)    // shoutout to the user
