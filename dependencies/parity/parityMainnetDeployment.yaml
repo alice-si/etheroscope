@@ -22,17 +22,65 @@ spec:
         fsGroup: 1000
       containers:
       - name: parity-mainnet
-        image: gcr.io/etheroscope/myparity:stable
-        env:
-        - name: PATH
-          value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-        - name: TARGET
-          value: "parity"
-        - name: RUST_BACKTRACE
-          value: "1"
-        command: ["/home/parity/bin/parity"]
-        args: ["-d", "/ethereum-data", "--no-warp", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all",
-               "--jsonrpc-interface", "all", "--allow-ips=public", "--no-discovery"]
+        image: gcr.io/etheroscope/myparity:v2.4.5
+#        env:
+#        - name: PATH
+#          value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+#        - name: TARGET
+#          value: "parity"
+#        - name: RUST_BACKTRACE
+#          value: "1"
+#        command: ["parity"]
+#        args: ["-d", "/ethereum-data", "--no-warp", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all",
+#               "--jsonrpc-interface", "all", "--allow-ips=public", "--no-discovery"]
+        args: ["-d", "/ethereum-data",
+               "--no-warp", "--tracing", "on", "--pruning", "archive",
+               "--jsonrpc-hosts", "all",
+               "--jsonrpc-interface", "all",
+               "--no-serve-light",
+               "--max-peers",
+               "250",
+               "--snapshot-peers",
+               "50",
+               "--min-peers",
+               "50",
+               "--mode",
+               "active",
+               "--cache-size",
+               "4096",
+               "--db-compaction",
+               "hdd",
+               "--allow-ips=public", "--no-discovery"]
+#        Alex version
+#        args: [
+#          "--no-serve-light",
+#          "--max-peers",
+#          "250",
+#          "--snapshot-peers",
+#          "50",
+#          "--min-peers",
+#          "50",
+#          "--mode",
+#          "active",
+#          "--tracing",
+#          "off",
+#          "--pruning",
+#          "fast",
+#          "--db-compaction",
+#          "ssd",
+#          "--cache-size",
+#          "4096",
+#          "--jsonrpc-port",
+#          "8545",
+#          "--jsonrpc-hosts",
+#          "all",
+#          "--jsonrpc-interface",
+#          "all",
+#          "--jsonrpc-apis",
+#          "all",
+#          "-d",
+#          "/ethereum-data"
+#        ]
         ports:
         - containerPort: 8545
           name: port1mainnet

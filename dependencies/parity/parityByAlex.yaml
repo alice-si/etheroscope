@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: statuful-parity-fast-ss
+spec:
+  serviceName: "statuful-parity-fast"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: statuful-parity-fast
+  template:
+    metadata:
+      labels:
+        app: statuful-parity-fast
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: statuful-parity-fast
+        image: parity/parity:stable
+        args: [
+          "--warp",
+          "--no-ancient-blocks",
+          "--no-serve-light",
+          "--max-peers",
+          "250",
+          "--snapshot-peers",
+          "50",
+          "--min-peers",
+          "50",
+          "--mode",
+          "active",
+          "--tracing",
+          "off",
+          "--pruning",
+          "fast",
+          "--db-compaction",
+          "ssd",
+          "--cache-size",
+          "4096",
+          "--jsonrpc-port",
+          "8545",
+          "--jsonrpc-hosts",
+          "all",
+          "--jsonrpc-interface",
+          "all",
+          "--jsonrpc-apis",
+          "all",
+          "-d",
+          "/ethereum-data"
+        ]
+        ports:
+        - containerPort: 8545
+          name: rpc
+        - containerPort: 30303
+          name: default
+        volumeMounts:
+        - name: vct
+          mountPath: /ethereum-data
+  volumeClaimTemplates:
+  - metadata:
+      name: vct
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 400Gi
