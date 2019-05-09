@@ -54,8 +54,10 @@ async function getContract(contractHash) {
  */
 async function addContract(contract) {
     try {
-        return await sequelize.transaction(async (t) => {
-            let is_any = await models.Contract.findOne({where: {hash: contract.hash}, transaction: t});
+        return await sequelize.transaction({
+            isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
+        }, async (t) => {
+            let is_any = await models.Contract.findOne({where: {hash: contract.hash}, transaction: t, lock: t.LOCK.UPDATE});
             if (is_any != null) return is_any
             return await models.Contract.create(contract, {transaction: t});
         });
@@ -124,10 +126,13 @@ async function getPopularContracts(limit1, lastDays = 7) {
 async function addDataPoints(contractAddress, variableName, values, cachedUpTo) {
 
     try {
-        return await sequelize.transaction(async (t) => {
+        return await sequelize.transaction({
+            isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
+        },async (t) => {
             let variable = await models.Variable.findOne({
                 where: {ContractHash: contractAddress, name: variableName},
-                transaction: t
+                transaction: t,
+                lock: t.LOCK.UPDATE
             });
             let bulkmap = [];
             if (variable && cachedUpTo > variable.cachedUpTo) {
@@ -141,7 +146,7 @@ async function addDataPoints(contractAddress, variableName, values, cachedUpTo) 
                             where: {
                                 BlockNumber: maxBlockNumber,
                                 VariableId: variable.id
-                            }, transaction: t
+                            }, transaction: t,
                         });
                         if (values.length > 0 && lastDataPoint.value === values[0][1])
                             values.shift()
@@ -200,9 +205,11 @@ async function getDataPoints(contractAddress, variableName) {
  */
 async function addVariables(values) {
     try {
-        return await sequelize.transaction(async (t) => {
+        return await sequelize.transaction({
+            isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
+        },async (t) => {
             if (values.length > 0) {
-                let res = await getVariables(values[0].contractHash)
+                let res = await models.Variable.findAll({where: {ContractHash: values[0].contractHash}, transaction: t, lock: t.LOCK.UPDATE});
                 if (res.length > 0)
                     return res
             }
@@ -252,8 +259,10 @@ async function getBlockTime(blockNumber) {
  */
 async function addBlock(block) {
     try {
-        return await sequelize.transaction(async (t) => {
-            let is_any = await models.Block.findOne({where: {number: block.number}, transaction: t});
+        return await sequelize.transaction({
+            isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
+        },async (t) => {
+            let is_any = await models.Block.findOne({where: {number: block.number}, transaction: t, lock: t.LOCK.UPDATE});
             if (is_any != null) return is_any;
             return await models.Block.create(block, {transaction: t});
         });
