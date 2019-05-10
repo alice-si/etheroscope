@@ -129,7 +129,7 @@ module.exports = function (io, log) {
                 // TODO method to index
 
                 let dataPoints = await parityClient.generateDataPoints(contractInfo, variableName, from, upTo)
-
+                await parityClient.getBlockTime(upTo)
                 await db.addDataPoints(address.substr(2), variableName, dataPoints, upTo)
 
                 io.sockets.in(address + variableName).emit('getHistoryResponse', {

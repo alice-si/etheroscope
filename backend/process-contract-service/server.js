@@ -41,6 +41,7 @@ async function cacheDataPoints(contractInfo, variables, from, upTo) {
         await Promise.each(variables, async variable => {
             if (variable.cachedUpTo < upTo) {
                 let datapoints = await parity.processEvents(events, methods[variable.variableName])
+                await parity.getBlockTime(upTo)
                 await db.addDataPoints(address.substr(2), variable.variableName, datapoints, upTo)
                 variables.cachedUpTo = upTo
             }

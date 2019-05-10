@@ -113,10 +113,7 @@ module.exports = function (db, log) {
         })
 
         let values = variableNames.map(variable => {
-            // after that in database values another values are
-            //        cachedFrom: 'NULL',
-            //        cachedUpTo: 'NULL',
-            //        UnitId:'NULL',
+            //        UnitId:'NULL', bcs unused
             return {ContractHash: address, name: variable}
         })
 
