@@ -1,21 +1,24 @@
 module.exports = {
+    // development: {
+    //     username: "root",
+    //     password: "root",
+    //     database: "zpp_dev",
+    //     host: "127.0.0.1",
+    //     dialect: 'mysql',
+    //     operatorsAliases: false,
+    //     logging: false
+    // },
     development: {
         dialect: "sqlite",
-        storage: "data.sqlite3",
+        storage: "db.sqlite",
         operatorsAliases: false,
         logging: false,
-        retry: {
-            max: 10
-        }
     },
     test: {
         dialect: "sqlite",
         storage: ":memory:",
         operatorsAliases: false,
         logging: false,
-        retry: {
-            max: 10
-        }
     },
     production: {
         username: process.env.DB_USERNAME,
@@ -25,8 +28,5 @@ module.exports = {
         dialect: 'mysql',
         operatorsAliases: false,
         logging: false,
-        retry: {
-            max: 10
-        }
     },
 };

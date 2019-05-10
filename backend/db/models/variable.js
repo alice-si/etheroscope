@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS `Variables` (
     `id` INTEGER NOT NULL auto_increment ,
     `ContractHash` VARCHAR(40) NOT NULL,
     `name` VARCHAR(50) NOT NULL,
-    `cachedUpTo` BIGINT NOT NULL,
     `UnitId` INTEGER,
     UNIQUE `uniqueTag` (`ContractHash`, `name`),
     PRIMARY KEY (`id`),
@@ -19,7 +18,6 @@ module.exports = (sequelize, DataTypes) => {
     const Variable = sequelize.define('Variable', {
             ContractHash: {type: DataTypes.STRING(40), allowNull: false, unique: 'uniqueTag'},
             name: {type: DataTypes.STRING(50), allowNull: false, unique: 'uniqueTag'},
-            cachedUpTo: {type: DataTypes.BIGINT, allowNull: true},
         },
         {
             // don't add the timestamp attributes (updatedAt, createdAt)
