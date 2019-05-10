@@ -44,7 +44,7 @@ async function getContract(contractHash) {
  */
 async function addContract(contract) {
     try {
-        await models.Contract.findOrCreate(contract);
+        await models.Contract.findOrCreate({where: contract});
     } catch (e) {
         handler('[DB index.js] addContract', 'Problem occurred in addContract')(e);
     }
@@ -108,7 +108,6 @@ async function getPopularContracts(limit1, lastDays = 7) {
  * @param {Number}   cachedUpTo      end of range of cached blocks
  */
 async function addDataPoints(contractAddress, variableName, values, cachedUpTo) {
-
     try {
         if (values && values.length !== 0) {
             let variable = await models.Variable.findOne({
@@ -116,7 +115,7 @@ async function addDataPoints(contractAddress, variableName, values, cachedUpTo) 
             });
 
             let bulkmap = [];
-            if (variable && cachedUpTo > variable.cachedUpTo) {
+            if (variable) {
                 values.forEach((elem) => {
                     bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
                 });
@@ -225,7 +224,7 @@ async function getBlockTime(blockNumber) {
  */
 async function addBlock(block) {
     try {
-        await models.Block.create(block);
+        await models.Block.findOrCreate({where: block});
     } catch (e) {
         handler('[DB index.js] addBlocks', 'Problem occurred in addBlocks')(e);
     }
@@ -242,9 +241,10 @@ async function addBlock(block) {
 async function getCachedUpTo(contractHash, variableName) {
     try {
         let variable = await models.Variable.findOne({where: {ContractHash: contractHash, name: variableName}});
-        return await models.DataPoint.max('BlockNumber', {
+        let dataPoint = await models.DataPoint.max('BlockNumber', {
             where: {VariableId: variable.id},
         })
+        return dataPoint.BlockNumber
     } catch (e) {
         handler('[DB index.js] getCachedUpTo', 'Problem occurred in getCachedUpTo')(e);
     }

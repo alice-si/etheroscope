@@ -98,7 +98,7 @@ module.exports = function (io, log) {
             try {
                 log.debug(`dataPointsSender.cacheMorePoints ${address} ${variableName} ${upTo}`)
 
-                let totalUpTo = upTo, from
+                let totalUpTo = upTo
                 let chunkSize = settings.dataPointsService.cacheChunkSize
 
                 while (totalUpTo < latestBlock) {
@@ -107,7 +107,7 @@ module.exports = function (io, log) {
                 }
             } catch (err) {
                 errorHandler.errorHandleThrow(
-                    `dataPointsSender.cacheMorePoints ${address} ${variableName} ${from} ${upTo}`,
+                    `dataPointsSender.cacheMorePoints ${address} ${variableName} ${upTo}`,
                     '')(err)
             }
         }
