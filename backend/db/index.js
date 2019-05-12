@@ -251,21 +251,30 @@ async function getCachedUpTo(contractHash, variableName) {
 }
 
 /**
- * Temp. implementation looking for exact hash or name match.
- * fixme
+ * Looking  in db for hash or name interpmatch
  *
  * @param pattern
- * @returns {Promise<Model>}
+ * @returns {Promise<Array<Model>>}
  */
 async function searchContract(pattern) {
-    // todo function (pattern, variables, transactions) - advanced search
     try {
-        if (pattern[0] === '0' && (pattern[1] === 'x' || pattern[1] === 'X')) {
-            pattern = pattern.substr(2)
-            return await models.Contract.findOne({where: {hash: [pattern]}})
-        } else {
-            return await models.Contract.findOne({where: {name: [pattern]}})
-        }
+        pattern = "%" + Array.from(pattern).join("%") + "%";
+        return await models.Contract.findAll({
+            where: {
+                [Op.or]: [
+                    {
+                        hash: {
+                            [Op.like]: pattern
+                        }
+                    },
+                    {
+                        name: {
+                            [Op.like]: pattern
+                        }
+                    }
+                ]
+            }
+        })
     } catch (e) {
         handler('[DB index.js] searchContract', 'Problem occurred in searchContract')(e);
     }

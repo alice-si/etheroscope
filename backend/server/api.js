@@ -139,10 +139,15 @@ module.exports = function (app, db, log, validator) {
         if (typeof req.body.transactions !== 'undefined') {
             transactions = req.body.transactions
         }
-        db.searchContract(searchStr/* todo , variables, transactions*/).then(contract => {
+        db.searchContract(searchStr).then(contracts => {
                 let results = []
-                if (contract !== null) {
-                    results.push({contractHash: contract.hash, name: contract.name, abi: contract.abi})
+                if (contracts !== null) {
+                    contracts.forEach(contract => results.push({
+                        contractHash: contract.hash,
+                        name: contract.name,
+                        abi: contract.abi
+                    }))
+
                 }
                 return res.status(200).json(results)
             }
