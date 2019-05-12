@@ -7,7 +7,7 @@ import {Component, Input, OnInit} from '@angular/core';
 })
 export class SubNavigationComponent implements OnInit {
   @Input() contractHash: string;
-  @Input() contractInfo: string;
+  @Input() contractInfo: any;
 
   constructor() { }
 
