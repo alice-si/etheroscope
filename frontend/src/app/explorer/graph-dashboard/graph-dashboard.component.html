@@ -1,0 +1,18 @@
+<div class="graph-dashboard" *ngIf="!chosenVariable">
+  <h2 class="graph-dashboard__headline">
+    Choose variable
+  </h2>
+  <p class="graph-dashboard__description">
+    A smart contract may come with certain publicly exposed variables.
+    For example, a charity might make public the amount of money it has donated.
+    Choose a variable you want to see the history of.
+  </p>
+  <ul class="graph-dashboard__variables">
+    <span *ngFor="let variable of variables" class="graph-dashboard__variables__variable-wrapper">
+      <li class="graph-dashboard__variables__variable"
+        routerLink="/explorer/{{contractAddress}}/graph/{{variable.variableName}}">
+      {{variable.variableName}}
+      </li>
+    </span>
+  </ul>
+</div>

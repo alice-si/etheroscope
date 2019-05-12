@@ -1,30 +1,23 @@
-import { Component } from "@angular/core";
-import { GraphService } from '../_services/graph.service';
-import { ContractService} from '../_services/contract.service';
+import { Component, OnInit } from '@angular/core';
+import {PopularService} from "../services/popular.service";
 
 @Component({
-  styleUrls: ['./popular.component.scss'],
+  selector: 'app-popular',
   templateUrl: './popular.component.html',
+  styleUrls: ['./popular.component.less']
 })
+export class PopularComponent implements OnInit {
+  public popularContracts: Array<object>;
+  constructor(private popularService: PopularService) { }
 
-export class PopularComponent {
-  popularContracts: any;
-  contractService: any;
-  constructor(private cs: ContractService, private gs: GraphService) {
-    gs.curDisplayState = gs.DisplayState.noContract;
-    this.popularContracts = [];
-    this.contractService = cs;
-    this.contractService.getPopularContracts().subscribe(
-      (contracts) => {
-        this.popularContracts = contracts;
-      },
-      (error) => {
-        if (error.status === 400) {
-          console.log('Error in retrieving popular contracts');
-        }
-      },
-      () => {
-      }
-    );
+  ngOnInit(): void {
+    this.getPopularContracts();
+  }
+
+  getPopularContracts(): void {
+    this.popularService.getPopularContracts().subscribe(data => {
+      this.popularContracts = data;
+      console.log(data);
+    });
   }
 }

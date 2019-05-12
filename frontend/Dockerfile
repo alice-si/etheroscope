@@ -17,4 +17,3 @@ COPY --from=frontendBase /app/node_modules ./node_modules
 COPY ./ ./
 # Start frontend
 CMD ./node_modules/@angular/cli/bin/ng serve --prod --host 0.0.0.0 --port 8090 --disable-host-check
-

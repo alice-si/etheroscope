@@ -6,7 +6,7 @@ spec:
   selector:
     app: etheroscope-frontend
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8090
-  type: LoadBalancer
+    - protocol: TCP
+      port: 80
+      targetPort: 8090
+type: LoadBalancer

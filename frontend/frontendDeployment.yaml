@@ -14,5 +14,5 @@ spec:
         app: etheroscope-frontend
     spec:
       containers:
-      - name: etheroscope-frontend-container
-        image: gcr.io/etheroscope/etheroscope-frontend
+        - name: etheroscope-frontend-container
+image: gcr.io/etheroscope/etheroscope-frontend

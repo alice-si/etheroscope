@@ -33,4 +33,4 @@ deploy:
     - killall -q node || true
     - ((parity --tracing on --pruning archive --jsonrpc-port=8545) & disown) &> /dev/null
     - ./node_modules/.bin/ng build --prod
-    - (npm run deploy & disown) &> /dev/null
+  - (npm run deploy & disown) &> /dev/null

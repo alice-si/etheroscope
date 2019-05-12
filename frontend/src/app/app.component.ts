@@ -1,16 +1,10 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
 
 @Component({
-  selector: 'my-app',
+  selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.less']
 })
-
 export class AppComponent {
-  helpModal: boolean = false;
-
-  constructor(private router: Router) {
-    this.helpModal = false;
-  }
+  title = 'new-frontend';
 }

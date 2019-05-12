@@ -1,59 +1,56 @@
 import { Component, OnInit } from '@angular/core';
-import { ContractService } from "../../_services/contract.service";
-import {Clipboard} from "ts-clipboard";
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
+import {TransactionsService} from "../../services/transactions.service";
+import {combineLatest, forkJoin, iif, of, pipe} from "rxjs";
+import { Clipboard } from "ts-clipboard";
+import {concat, filter, map, merge, switchMap, tap} from "rxjs/operators";
 
 @Component({
-  selector: 'transactions-comp',
+  selector: 'app-transactions',
   templateUrl: './transactions.component.html',
-  styleUrls: ['./transactions.component.scss']
+  styleUrls: ['./transactions.component.less'],
 })
 export class TransactionsComponent implements OnInit {
-  public contractAddress: string;
-  public transactions: any;
+  public contractId: string;
   public page: number;
-  public _MAX_HASH_LEN = 20;
-  public TRANSACTIONS_PER_PAGE = 10;
+  public transactions: any;
+  public error: boolean;
 
-  constructor(private contractService: ContractService, private currentRoute: ActivatedRoute) {
-      this.transactions = [];
-      this.page = 1;
+  constructor(private route: ActivatedRoute, private transactionsService: TransactionsService,
+              private router: Router) { }
+
+  ngOnInit() {
+    this.getTransactionsHistory();
   }
 
-  ngOnInit(): void {
-      this.contractAddress = this.currentRoute.snapshot.paramMap.get('contractAddress');
-      if (this.contractAddress !== null) {
-          this.getTransactionsHistory(this.page);
-          this.getTransactionsHistory(this.page + 1);
-      }
-  }
+  private getTransactionsHistory() {
+    combineLatest(
+      this.route.parent.paramMap,
+      this.route.paramMap
+    ).pipe(
+      switchMap(([parentParams, params]) => {
+        this.transactions = null;
+        this.contractId = parentParams.get("contractAddress");
+        this.page = parseInt(params.get("page"));
 
-  getTransactionsHistory(page): void {
-    if (this.transactions[page]) {
-        return;
-    }
-    let startNumber = (page - 1) * this.TRANSACTIONS_PER_PAGE;
-    let endNumber = page * this.TRANSACTIONS_PER_PAGE;
+        if (isNaN(this.page)) {
+          return this.router.navigate([`/explorer/${this.contractId}/transactions/1`]);
+        }
 
-    console.log('Getting transactions history of contract: ' + this.contractAddress + ' from ' + startNumber + ' to ' + endNumber);
-    this.contractService.getTransactionsHistory(this.contractAddress, startNumber, endNumber)
-        .subscribe((transactionsData) => {
-            if (transactionsData) {
-                this.transactions[page] = transactionsData;
-            }
-        })
-  }
-
-  changePage(page: number) {
-    this.page = page;
-    this.getTransactionsHistory(this.page + 1);
+        return this.transactionsService.getTransactionsHistory(this.contractId, this.page)
+      })
+    ).subscribe(data => {
+      this.transactions = data;
+    }, error => {
+      this.error = true;
+    });
   }
 
   truncate(str: string) {
-    if (str.length > this._MAX_HASH_LEN) {
-        return str.substr(0, this._MAX_HASH_LEN) + '...';
+    if (str.length > 20) {
+      return str.substr(0, 20) + '...';
     } else {
-        return str;
+      return str;
     }
   }
 
@@ -61,7 +58,22 @@ export class TransactionsComponent implements OnInit {
     return new Date(timestamp).toUTCString();
   }
 
-  copyToClipboard(str: string) {
-      Clipboard.copy(str);
+  copy(value: string) {
+    Clipboard.copy(value);
+  }
+
+  get message() {
+    if (this.error) {
+      return "Error occured. Try again later";
+    }
+    if (this.transactions && !this.transactions.length) {
+      return "No transactions found for this contract.";
+    }
+
+    return "Obtaining transactions list...";
+  }
+
+  get noTransactions() {
+    return this.transactions && !this.transactions.length;
   }
 }
