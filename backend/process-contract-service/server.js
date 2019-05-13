@@ -132,8 +132,12 @@ amqp.connect(`amqp://${settings.RABBITMQ.address}`, opt, (err, conn) => {
         ch.assertQueue(settings.RABBITMQ.queue, { durable: true, messageTtl: settings.RABBITMQ.messageTtl })
 
         ch.consume(settings.RABBITMQ.queue, async msg => {
-            await processContract(msg.content.toString())
-            ch.ack(msg)
+            try {
+                await processContract(msg.content.toString())
+                ch.ack(msg)
+            } catch (err) {
+                log.error('[ERROR] error during processing contract, did not ACK message', err)
+            }
         }, { noAck: false })
     })
 })
