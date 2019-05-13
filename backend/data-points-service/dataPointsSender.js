@@ -98,7 +98,7 @@ module.exports = function (io, log) {
             try {
                 log.debug(`dataPointsSender.cacheMorePoints ${address} ${variableName} ${upTo}`)
 
-                let totalUpTo = upTo, from
+                let totalUpTo = upTo
                 let chunkSize = settings.dataPointsService.cacheChunkSize
 
                 while (totalUpTo < latestBlock) {
@@ -107,7 +107,7 @@ module.exports = function (io, log) {
                 }
             } catch (err) {
                 errorHandler.errorHandleThrow(
-                    `dataPointsSender.cacheMorePoints ${address} ${variableName} ${from} ${upTo}`,
+                    `dataPointsSender.cacheMorePoints ${address} ${variableName} ${upTo}`,
                     '')(err)
             }
         }
@@ -129,7 +129,7 @@ module.exports = function (io, log) {
                 // TODO method to index
 
                 let dataPoints = await parityClient.generateDataPoints(contractInfo, variableName, from, upTo)
-
+                await parityClient.getBlockTime(upTo)
                 await db.addDataPoints(address.substr(2), variableName, dataPoints, upTo)
 
                 io.sockets.in(address + variableName).emit('getHistoryResponse', {

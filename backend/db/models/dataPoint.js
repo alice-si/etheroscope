@@ -3,7 +3,7 @@
 /*
 CREATE TABLE IF NOT EXISTS `DataPoints` (
     `id`            INTEGER NOT NULL auto_increment ,
-    `value`         VARCHAR(80) NOT NULL,
+    `value`         VARCHAR(80),
     `BlockNumber`   BIGINT,
     `VariableId`    INTEGER NOT NULL,
     PRIMARY KEY (`id`),
@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS `DataPoints` (
 
 module.exports = (sequelize, DataTypes) => {
     const DataPoint = sequelize.define('DataPoint', {
-            value: {type: DataTypes.BIGINT(80), allowNull: false},
+            value: {type: DataTypes.BIGINT(80), allowNull: true}, // if null then it is a delimiter -> fake datapoint
+            // that means this variable is cached up to this block
         },
         {
             // don't add the timestamp attributes (updatedAt, createdAt)
