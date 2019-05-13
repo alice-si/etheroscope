@@ -350,8 +350,8 @@ module.exports = function (db, log) {
                     to: transactionData.to,
                     value: parity.convertValue(transactionData.value, 'ether'),
                 }
-
-                await db.addTransaction(transaction)
+                if (transactionData.from === address || transactionData.to === address)
+                    await db.addTransaction(transaction)
             }
         } catch (err) {
             errorHandler.errorHandleThrow(`parity.cacheTransactionRange ${address}`, '')(err)
@@ -388,11 +388,11 @@ module.exports = function (db, log) {
                     await cacheTransactionRange(address, events)
                     actEnd -= cacheChunkSize
                 }
+                let minStoredBlock = await db.getAddressTransactionsMinBlock(address)
+                actEnd = minStoredBlock - 1
             }
 
             let transactionsCount = await db.getAddressTransactionsCount(address)
-            let minStoredBlock = await db.getAddressTransactionsMinBlock(address)
-            actEnd = minStoredBlock - 1
 
             while (actEnd > 0 && transactionsCount < endIndex) {
                 let actBegin = Math.max(actEnd - cacheChunkSize, 1)
@@ -402,7 +402,7 @@ module.exports = function (db, log) {
                 transactionsCount = await db.getAddressTransactionsCount(address)
             }
 
-            await parity.getBlockTime(actEnd)
+            await parity.getBlockTime(latestBlock)
             await db.addTransaction({
                 transactionHash: null,
                 BlockNumber: latestBlock,
