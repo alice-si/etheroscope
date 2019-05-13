@@ -96,11 +96,9 @@ async function getPopularContracts(limit1, lastDays = 7) {
  * Caches information about value of a given variable in a given block.
  * Timestamps are currently ignored.
  *
- * Consists of 3 steps:
+ * Consists of 2 steps:
  * Step 1 adds values into database.
- * Step 2 checks if last value in values is the same as the latest value in database
- *        (we want to omit having the same consecutive values in database)
- * Step 3 updates  cached range for this variable.
+ * Step 2 updates  cached range for this variable (by adding delimiter).
  *
  * @param {string}   contractAddress
  * @param {string}   variableName
@@ -109,19 +107,17 @@ async function getPopularContracts(limit1, lastDays = 7) {
  */
 async function addDataPoints(contractAddress, variableName, values, cachedUpTo) {
     try {
-        if (values && values.length !== 0) {
-            let variable = await models.Variable.findOne({
-                where: {ContractHash: contractAddress, name: variableName},
-            });
+        let variable = await models.Variable.findOne({
+            where: {ContractHash: contractAddress, name: variableName},
+        });
 
-            let bulkmap = [];
-            if (variable) {
-                values.forEach((elem) => {
-                    bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
-                });
-                bulkmap.push({value: null, BlockNumber: cachedUpTo, VariableId: variable.id}); // delimiter
-                await models.DataPoint.bulkCreate(bulkmap);
-            }
+        let bulkmap = [];
+        if (variable) {
+            values.forEach((elem) => {
+                bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
+            });
+            bulkmap.push({value: null, BlockNumber: cachedUpTo, VariableId: variable.id}); // delimiter
+            await models.DataPoint.bulkCreate(bulkmap);
         }
     } catch (e) {
         handler('[DB index.js] addDataPoints', 'Problem occurred in addDataPoints')(e);

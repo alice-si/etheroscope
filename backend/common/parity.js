@@ -337,8 +337,10 @@ module.exports = function (db, log) {
      * @param events  events to be processed
      * @return {Promise<void>}
      */
-    async function cacheTransactionRange(address, events) {
+    parity.cacheTransactionRange = async function(address, events) {
         try {
+            log.debug(`parity.cacheTransactionRange ${address}`)
+
             for (let event of events) {
                 let transactionData = await parity.getTransaction(event.transactionHash)
                 await parity.getBlockTime(event.blockNumber)
@@ -376,6 +378,7 @@ module.exports = function (db, log) {
      */
     parity.generateTransactions = async function(address, startIndex, endIndex) {
         try {
+            log.debug(`parity.generateTransactions ${address} ${startIndex} ${endIndex}`)
             let cacheChunkSize = settings.server.cacheChunkSize
             let latestBlock = await parity.getLatestBlock()
 
@@ -385,7 +388,7 @@ module.exports = function (db, log) {
                 while (actEnd > maxStoredBlock) {
                     let actBegin = Math.max(actEnd - cacheChunkSize, maxStoredBlock + 1)
                     let events = await parity.getHistory(address, actBegin, actEnd)
-                    await cacheTransactionRange(address, events)
+                    await parity.cacheTransactionRange(address, events)
                     actEnd -= cacheChunkSize
                 }
                 let minStoredBlock = await db.getAddressTransactionsMinBlock(address)
@@ -397,7 +400,7 @@ module.exports = function (db, log) {
             while (actEnd > 0 && transactionsCount < endIndex) {
                 let actBegin = Math.max(actEnd - cacheChunkSize, 1)
                 let events = await parity.getHistory(address, actBegin, actEnd)
-                await cacheTransactionRange(address, events)
+                await parity.cacheTransactionRange(address, events)
                 actEnd -= cacheChunkSize
                 transactionsCount = await db.getAddressTransactionsCount(address)
             }
