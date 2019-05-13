@@ -258,6 +258,9 @@ async function getCachedUpTo(contractHash, variableName) {
  */
 async function searchContract(pattern) {
     try {
+        if (pattern[0] === '0' && (pattern[1] === 'x' || pattern[1] === 'X')) {
+            pattern = pattern.substr(2)
+        }
         pattern = "%" + Array.from(pattern).join("%") + "%";
         return await models.Contract.findAll({
             where: {
