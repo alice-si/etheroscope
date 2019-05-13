@@ -283,6 +283,123 @@ async function searchContract(pattern) {
     }
 }
 
+/**
+ * Adds transaction to database.
+ * In case of "normal" transactions make sure there are no transactions with the same transactionHash.
+ * Before adding "delimiter" checks if transaction with such BlockNumber already exists.
+ *
+ * @param transaction
+ * @return {Promise<void>}
+ */
+async function addTransaction(transaction) {
+    try {
+        if (transaction.transactionHash === null)
+            await models.Transaction.findOrCreate({ where: {BlockNumber: transaction.BlockNumber},
+                                                            defaults: transaction })
+        else
+            await models.Transaction.findOrCreate({ where: {transactionHash: transaction.transactionHash },
+                                                                    defaults: transaction })
+    } catch (e) {
+        handler('[DB index.js] addTransaction', 'Problem occurred in addTransaction')(e);
+    }
+}
+
+/**
+ * Returns maximum BlockNumber for transactions associated with given address.
+ *
+ * @param address
+ * @return {Promise<Number>}
+ */
+async function getAddressTransactionsMaxBlock(address) {
+    try {
+        return await models.Transaction.max('BlockNumber', {
+            where: {
+                [Op.or]: [
+                    { from: address },
+                    { to: address }
+                ]
+            },
+        });
+    } catch (e) {
+        handler('[DB index.js] getAddressTransactionsMaxBlock', 'Problem occurred in getAddressTransactionsMaxBlock')(e);
+    }
+}
+
+/**
+ * Returns minimum BlockNumber for transactions associated with given address.
+ *
+ * @param address
+ * @return {Promise<Number>}
+ */
+async function getAddressTransactionsMinBlock(address) {
+    try {
+        return await models.Transaction.min('BlockNumber', {
+            where: {
+                [Op.or]: [
+                    { from: address },
+                    { to: address }
+                ]
+            },
+        });
+    } catch (e) {
+        handler('[DB index.js] getAddressTransactionsMinBlock', 'Problem occurred in getAddressTransactionsMinBlock')(e);
+    }
+}
+
+/**
+ * Returns number of "normal" transactions associated with given address.
+ *
+ * @param address
+ * @return {Promise<Number>} Array of Transaction models
+ */
+async function getAddressTransactionsCount(address) {
+    try {
+        return await models.Transaction.count({where: {
+            [Op.and]: [
+                {
+                    [Op.or]: [
+                        { from: address },
+                        { to: address },
+                    ]
+                },
+                {
+                    transactionHash: { [Op.ne]: null}
+                }
+            ]
+        } })
+    } catch (e) {
+        handler('[DB index.js] getAddressTransactionsCount', 'Problem occurred in getAddressTransactionsCount')(e);
+    }
+}
+
+/**
+ * Returns specific number of "normal" transactions associated with given address.
+ *
+ * @param address
+ * @param offset
+ * @param limit
+ * @return {Promise<Array>} Array of Transaction models, sorted in descending order
+ */
+async function getAddressTransactions(address, offset, limit) {
+    try {
+        return await models.Transaction.findAll({include: [models.Block], where: {
+            [Op.and]: [
+                {
+                    [Op.or]: [
+                        { from: address },
+                        { to: address },
+                    ]
+                },
+                {
+                    transactionHash: { [Op.ne]: null }
+                }
+            ]
+            }, offset: offset, limit: limit, order: [ ['Block', 'number', 'DESC'] ]});
+    } catch (e) {
+        handler('[DB index.js] getAddressTransactions', 'Problem occurred in getAddressTransactions')(e);
+    }
+}
+
 module.exports.addContract = addContract;
 module.exports.searchContract = searchContract;
 module.exports.getContract = getContract;
@@ -295,6 +412,11 @@ module.exports.getDataPoints = getDataPoints;
 module.exports.addBlock = addBlock;
 module.exports.getBlockTime = getBlockTime;
 module.exports.getCachedUpTo = getCachedUpTo;
+module.exports.addTransaction = addTransaction;
+module.exports.getAddressTransactionsMaxBlock = getAddressTransactionsMaxBlock;
+module.exports.getAddressTransactionsMinBlock =  getAddressTransactionsMinBlock;
+module.exports.getAddressTransactionsCount = getAddressTransactionsCount;
+module.exports.getAddressTransactions = getAddressTransactions;
 
 (function initDB(force = false) {
     // If force is true, each Model will run `DROP TABLE IF EXISTS`, before it tries to create its own table

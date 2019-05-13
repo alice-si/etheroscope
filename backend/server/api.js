@@ -1,10 +1,8 @@
 let axios = require('axios')
 // var Web3Client = require('../contract-info/web3Client')
 var Web3Client = require('../common/parity.js')
-var ContractInfoService = require('../contract-info-service/contractInfoService')
 module.exports = function (app, db, log, validator) {
     let web3Client = new Web3Client(db, log, validator)
-    let contractInfoService = new ContractInfoService(db, log, validator)
 
     function validAddress(address) {
         return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
@@ -115,8 +113,20 @@ module.exports = function (app, db, log, validator) {
         log.debug('Getting transactions of contract: ' + contractAddress + ' from index ' + startIndex +
             ' to index ' + endIndex + ' from block ' + fromBlock + ' to block ' + toBlock)
 
-        return contractInfoService.getTransactions(contractAddress, fromBlock, toBlock, startIndex, endIndex)
+        return web3Client.generateTransactions(contractAddress, startIndex, endIndex)
             .then(transactionsHistory => {
+                transactionsHistory = transactionsHistory.map(t => {
+                    return {
+                        transactionHash: t.transactionHash,
+                        blockNumber: t.Block.number,
+                        timestamp: t.Block.timeStamp,
+                        value: t.value,
+                        transaction: {
+                            from: t.from,
+                            to: t.to,
+                        }
+                    }
+                })
                 res.status(200).json(transactionsHistory)
             })
             .catch((err) => {
