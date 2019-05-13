@@ -1,12 +1,10 @@
 const axios = require('axios')
 const Web3 = require('web3')
 const Promise = require('bluebird')
-const ReadWriteLock = require('rwlock')
 
 const settings = require('./settings.js')
 const errorHandler = require('../common/errorHandlers')
 
-const lock = new ReadWriteLock()
 const parityUrl = "http://" + settings.ETHEROSCOPEPARITYMAINNET
 const web3 = new Web3(new Web3.providers.HttpProvider(parityUrl))
 
@@ -187,32 +185,19 @@ module.exports = function (db, log) {
      * @return {Promise<number>} timestamp of block
      */
     parity.getBlockTime = async function(blockNumber) {
-        log.debug(`parity.getBlockTime ${blockNumber}`)
+        try {
+            log.debug(`parity.getBlockTime ${blockNumber}`)
 
-        let timeStamp = await db.getBlockTime(blockNumber)
-        if (timeStamp !== null)
+            let timeStamp = await db.getBlockTime(blockNumber)
+            if (timeStamp !== null)
+                return timeStamp
+            timeStamp = await parity.calculateBlockTime(blockNumber)
+            await db.addBlock({number: blockNumber, timeStamp: timeStamp})
             return timeStamp
-        return new Promise((resolve, reject) => {
-            try {
-                lock.writeLock(blockNumber, async (release) => {
-                    let timeStamp = await db.getBlockTime(blockNumber)
-                    if (timeStamp !== null) {
-                        release()
-                        return resolve(timeStamp)
-                    }
 
-                    let time = await parity.calculateBlockTime(blockNumber)
-                    await db.addBlock({number: blockNumber, timeStamp: time})
-
-                    release()
-
-                    return resolve(time)
-                })
-            } catch (err) {
-                log.error(`ERROR - parity.getBlockTime ${blockNumber}`, err)
-                reject(err)
-            }
-        })
+        } catch (err) {
+            errorHandler.errorHandleThrow(`parity.getBlockTime ${blockNumber}`, '')(err)
+        }
     }
 
     /**
@@ -280,8 +265,7 @@ module.exports = function (db, log) {
      * Consists of 3 steps:
      * Step 1 - filtering events, so we have unique blocks' numbers (reduces amount of requests to parity)
      * Step 2 - converting event to tuple [timestamp_placeholder, value, blockNumber]
-     * Step 3 - sorting elements (ascending by blockNumber) and discarding consecutive elements with
-     *          the same value as predecessor
+     * Step 3 - sorting elements (ascending by blockNumber)
      *
      * @param events         events to be processed
      * @param variableMethod
@@ -299,17 +283,7 @@ module.exports = function (db, log) {
 
             events = events.sort((a, b) => a[2] - b[2])
 
-            let prevElem = []
-            let results = []
-
-            events.forEach((elem, index) => {
-                if (index === 0 || elem[1].valueOf() !== prevElem[1].valueOf()) {
-                    prevElem = elem
-                    results.push(elem)
-                }
-            })
-
-            return results
+            return events
         } catch (err) {
             errorHandler.errorHandleThrow(`parity.processHistory`, '')(err)
         }
@@ -337,11 +311,16 @@ module.exports = function (db, log) {
 
             let events = await parity.getHistory(address, from, upTo)
 
-            events = parity.processEvents(events, contractInfo.parsedContract.methods[variableName])
+            events = await parity.processEvents(events, contractInfo.parsedContract.methods[variableName])
 
-            return await Promise.map(events, event =>
-                Promise.all([parity.getBlockTime(event[2]), event[1], event[2]])
-            )
+            let results = []
+
+            for (let event of events) {
+                let blockTime = await parity.getBlockTime(event[2])
+                results.push([blockTime, event[1], event[2]])
+            }
+
+            return results
         } catch (err) {
             errorHandler.errorHandleThrow(
                 `parity.generateDataPoints ${address} ${variableName} ${from} ${upTo}`
