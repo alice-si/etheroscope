@@ -31,7 +31,7 @@ module.exports = function (io, log) {
                 let curLatestBlock = await streamedSet.addChannel(address, variableName, latestBlock)
 
                 let cachedUpTo = await db.getCachedUpTo(address.substring(2), variableName)
-                cachedUpTo = cachedUpTo == null ? settings.dataPointsService.cachedFrom - 1 : cachedUpTo
+                cachedUpTo = isNaN(cachedUpTo) ? settings.dataPointsService.cachedFrom - 1 : cachedUpTo
 
                 if (curLatestBlock) {
                     io.sockets.in(address + variableName).emit('latestBlock', {latestBlock: curLatestBlock})

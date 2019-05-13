@@ -241,10 +241,9 @@ async function addBlock(block) {
 async function getCachedUpTo(contractHash, variableName) {
     try {
         let variable = await models.Variable.findOne({where: {ContractHash: contractHash, name: variableName}});
-        let dataPoint = await models.DataPoint.max('BlockNumber', {
+        return await models.DataPoint.max('BlockNumber', {
             where: {VariableId: variable.id},
         })
-        return dataPoint.BlockNumber
     } catch (e) {
         handler('[DB index.js] getCachedUpTo', 'Problem occurred in getCachedUpTo')(e);
     }
