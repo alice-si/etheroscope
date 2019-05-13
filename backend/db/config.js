@@ -1,13 +1,4 @@
 module.exports = {
-    // development: {
-    //     username: "root",
-    //     password: "root",
-    //     database: "zpp_dev",
-    //     host: "127.0.0.1",
-    //     dialect: 'mysql',
-    //     operatorsAliases: false,
-    //     logging: false
-    // },
     development: {
         dialect: "sqlite",
         storage: "db.sqlite",
