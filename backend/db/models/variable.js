@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `Variables` (
 
 module.exports = (sequelize, DataTypes) => {
     const Variable = sequelize.define('Variable', {
-            ContractHash: {type: DataTypes.STRING(40), allowNull: false, unique: 'uniqueTag'},
+            ContractHash: {type: DataTypes.STRING(42), allowNull: false, unique: 'uniqueTag'},
             name: {type: DataTypes.STRING(50), allowNull: false, unique: 'uniqueTag'},
         },
         {

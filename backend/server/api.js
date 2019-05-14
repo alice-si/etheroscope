@@ -1,5 +1,6 @@
 const Parity = require('../common/parity.js')
 const settings = require('../common/settings')
+const handler = require('../common/errorHandlers').errorHandle
 
 module.exports = function (app, db, log, validator) {
     let parityClient = new Parity(db, log, validator)
@@ -28,7 +29,7 @@ module.exports = function (app, db, log, validator) {
                 return res.status(200).json(result)
             })
             .catch(err => {
-                log.error(`[/popular] Error occured, ${err}`)
+                handler(`[/popular] Error occured`)(err)
                 return res.status(500).json('Internal error occured')
             })
     })
@@ -48,15 +49,15 @@ module.exports = function (app, db, log, validator) {
             .then((contract) => {
                 if (contract === null)
                     return null
-                db.addContractLookup(address.substr(2))
-                    .catch(err => log.error(`[/explore] Could not add lookup for address ${address}, ${err}`))
+                db.addContractLookup(address)
+                    .catch(err => handler(`[/explore] Could not add lookup for address ${address}`)(err))
                 return parityClient.getContractVariables(contract)
             })
             .then((contractInfo) => {
                 return res.status(200).json(contractInfo)
             })
             .catch((err) => {
-                log.error(`[/explore] Error occured for contract ${address}, ${err}`)
+                handler(`[/explore] Error occured for contract ${address}`)(err)
                 return res.status(500).json('Internal error occured')
             })
     })
@@ -111,7 +112,7 @@ module.exports = function (app, db, log, validator) {
                 res.status(200).json(transactionsHistory)
             })
             .catch((err) => {
-                log.error(`[/transactions] error occured for contract ${address}, ${err}`)
+                handler(`[/transactions] error occured for contract ${address}`)(err)
                 return res.status(500).json('Internal error occured')
             })
     })
@@ -134,7 +135,7 @@ module.exports = function (app, db, log, validator) {
                 return res.status(200).json(results)
             })
             .catch((err) => {
-                log.error(`[/search] error occured for search ${searchStr}, ${err}`)
+                handler(`[/search] error occured for search ${searchStr}`)(err)
                 return res.status(500).json('Internal error occured')
             })
     })

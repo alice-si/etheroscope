@@ -2,7 +2,7 @@
 
 /*
 CREATE TABLE IF NOT EXISTS `Contracts` (
-    `hash`      VARCHAR(40) NOT NULL ,
+    `hash`      VARCHAR(42) NOT NULL ,
     `name`      VARCHAR(255),
     `abi`       TEXT,
     PRIMARY KEY (`hash`)
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     const Contract = sequelize.define(
         'Contract',
         {
-            hash: {type: DataTypes.STRING(40), allowNull: false, primaryKey: true},
+            hash: {type: DataTypes.STRING(42), allowNull: false, primaryKey: true},
             name: DataTypes.STRING,
             abi: DataTypes.TEXT // not sure
         },

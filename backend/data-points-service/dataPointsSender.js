@@ -30,7 +30,7 @@ module.exports = function (io, log) {
                 let latestBlock = await parityClient.getLatestBlock()
                 let curLatestBlock = await streamedSet.addChannel(address, variableName, latestBlock)
 
-                let cachedUpTo = await db.getCachedUpTo(address.substring(2), variableName)
+                let cachedUpTo = await db.getCachedUpTo(address, variableName)
                 cachedUpTo = isNaN(cachedUpTo) ? settings.dataPointsService.cachedFrom - 1 : cachedUpTo
 
                 if (curLatestBlock) {
@@ -67,7 +67,7 @@ module.exports = function (io, log) {
             try {
                 log.debug(`dataPointsSender.sendAllDataPointsFromDB ${address} ${variableName} ${to}`)
 
-                let dataPoints = await db.getDataPoints(address.substr(2), variableName)
+                let dataPoints = await db.getDataPoints(address, variableName)
                 dataPoints = dataPoints == null ? [] : dataPoints
                 let new_dataPoints = dataPoints.map(dataPoint =>
                     [dataPoint.Block.timeStamp, dataPoint.value, dataPoint.Block.number])
@@ -130,7 +130,7 @@ module.exports = function (io, log) {
 
                 let dataPoints = await parityClient.generateDataPoints(contractInfo, variableName, from, upTo)
                 await parityClient.getBlockTime(upTo)
-                await db.addDataPoints(address.substr(2), variableName, dataPoints, upTo)
+                await db.addDataPoints(address, variableName, dataPoints, upTo)
 
                 io.sockets.in(address + variableName).emit('getHistoryResponse', {
                     error: false,

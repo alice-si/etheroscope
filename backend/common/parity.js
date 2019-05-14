@@ -76,7 +76,7 @@ module.exports = function (db, log) {
         try {
             log.debug(`parity.getContract ${address}`)
 
-            let contractFromDB = await db.getContract(address.substr(2))
+            let contractFromDB = await db.getContract(address)
 
             let parsedABI = contractFromDB === null ? null : contractFromDB.abi
 
@@ -88,7 +88,7 @@ module.exports = function (db, log) {
                     return null
                 let contractName = contractInstance.contractName
                 contractFromDB = {
-                    hash: address.substr(2),
+                    hash: address,
                     name: contractName,
                     abi: JSON.stringify(parsedABI)
                 };
@@ -145,7 +145,7 @@ module.exports = function (db, log) {
      */
     parity.getContractVariables = async function (contractInfo) {
         let parsedContract = await contractInfo.parsedContract
-        let address = await parsedContract.options.address.substr(2)
+        let address = await parsedContract.options.address
         let contractName = contractInfo.contractName
         let parsedAbi = contractInfo.parsedABI;
 
