@@ -111,8 +111,7 @@ async function processContract(address) {
 
         log.debug(`Finished processing contract ${address}`)
     } catch (err) {
-        errorHandler.errorHandle(`processContract ${address}`)(err)
-        process.exit(1)
+        errorHandler.errorHandleThrow(`processContract ${address}`, '')(err)
     }
 }
 
@@ -136,7 +135,8 @@ amqp.connect(`amqp://${settings.RABBITMQ.address}`, opt, (err, conn) => {
                 await processContract(msg.content.toString())
                 ch.ack(msg)
             } catch (err) {
-                log.error('[ERROR] error during processing contract, did not ACK message', err)
+                errorHandler.errorHandle(`[ERROR] Error during processing contract ${msg.content.toString()},
+                                                did not ACK message.`)(err)
             }
         }, { noAck: false })
     })
