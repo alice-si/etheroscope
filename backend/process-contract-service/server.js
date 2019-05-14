@@ -16,10 +16,11 @@ const opt = { credentials: require('amqplib').credentials.plain(settings.RABBITM
 /**
  * Function responsible for caching all variables' values in a given range [from, upTo]
  *
- * Consists of 3 steps
+ * Consists of 4 steps
  * Step 1 - parity,getHistory call (getting events in a given range)
  * Step 2 - caching blocks' timestamps
- * Step 3 - caching values for each variable
+ * Step 3 - caching transactions
+ * Step 4 - caching values for each variable
  *
  * @param contractInfo
  * @param variables
@@ -35,13 +36,16 @@ async function cacheDataPoints(contractInfo, variables, from, upTo) {
         let events = await parity.getHistory(address, from, upTo)
 
         for (let event of events) {
-            await parity.getBlockTime(event.blockNumber.valueOf())
+            await parity.getBlockTime(event.blockNumber)
         }
+
+        await parity.cacheTransactionRange(address, events)
+
+        await parity.getBlockTime(upTo)
 
         await Promise.each(variables, async variable => {
             if (variable.cachedUpTo < upTo) {
                 let datapoints = await parity.processEvents(events, methods[variable.variableName])
-                await parity.getBlockTime(upTo)
                 await db.addDataPoints(address.substr(2), variable.variableName, datapoints, upTo)
                 variables.cachedUpTo = upTo
             }
@@ -55,10 +59,11 @@ async function cacheDataPoints(contractInfo, variables, from, upTo) {
 /**
  * Main function responsible for processing and caching contract's data in database.
  *
- * Consists of _ steps
+ * Consists of 4 steps
  * Step 1 - preparing data (latestBlock, contractInfo, variables)
- * Step 2 - adding cachedUpTo for each variable and sorting variables by cachedUpTo in ascending order
- * Step 3 - iterating over block ranges and calling cacheDataPoints for each of them
+ * Step 2 - adding cachedUpTo for each variable
+ * Step 3 - iterating over block ranges and calling cacheDataPoints and transactions for each of them
+ * Step 4 - adding transactions' delimiters (in the same way as in parity.generateTransactions)
  *
  * @param address
  */
@@ -73,20 +78,36 @@ async function processContract(address) {
             let cachedUpTo = await db.getCachedUpTo(address.substring(2), variable.variableName)
             return {
                 variableName: variable.variableName,
-                cachedUpTo: cachedUpTo == null ? settings.dataPointsService.cachedFrom - 1 : cachedUpTo
+                cachedUpTo: isNaN(cachedUpTo) ? settings.dataPointsService.cachedFrom - 1 : cachedUpTo
             }
         }))
 
-        variables.sort((v1, v2) => v1.cachedUpTo - v2.cachedUpTo)
+        let actUpTo = settings.dataPointsService.cachedFrom - 1
 
-        if (variables.length > 0) {
-            let actUpTo = variables[0].cachedUpTo
-            while (actUpTo < latestBlock) {
-                let actFrom = actUpTo + 1
-                actUpTo = Math.min(latestBlock, actFrom + settings.dataPointsService.cacheChunkSize)
-                await cacheDataPoints(contractInfo, variables, actFrom, actUpTo)
-            }
+        while (actUpTo < latestBlock) {
+            let actFrom = actUpTo + 1
+            actUpTo = Math.min(latestBlock, actFrom + settings.dataPointsService.cacheChunkSize)
+            await cacheDataPoints(contractInfo, variables, actFrom, actUpTo)
         }
+
+        await parity.getBlockTime(latestBlock)
+        await db.addTransaction({
+            transactionHash: null,
+            BlockNumber: latestBlock,
+            from: address,
+            to: address,
+        })
+
+
+        await parity.getBlockTime(1)
+        await db.addTransaction({
+            transactionHash: null,
+            BlockNumber: 1,
+            from: address,
+            to: address,
+        })
+
+
 
         log.debug(`Finished processing contract ${address}`)
     } catch (err) {
@@ -111,8 +132,12 @@ amqp.connect(`amqp://${settings.RABBITMQ.address}`, opt, (err, conn) => {
         ch.assertQueue(settings.RABBITMQ.queue, { durable: true, messageTtl: settings.RABBITMQ.messageTtl })
 
         ch.consume(settings.RABBITMQ.queue, async msg => {
-            await processContract(msg.content.toString())
-            ch.ack(msg)
+            try {
+                await processContract(msg.content.toString())
+                ch.ack(msg)
+            } catch (err) {
+                log.error('[ERROR] error during processing contract, did not ACK message', err)
+            }
         }, { noAck: false })
     })
 })

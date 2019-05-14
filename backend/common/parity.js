@@ -328,6 +328,107 @@ module.exports = function (db, log) {
         }
     }
 
+
+    /**
+     * Function responsible for caching info about transactions.
+     * Stores transactions' data in database.
+     *
+     * @param address contract's address
+     * @param events  events to be processed
+     * @return {Promise<void>}
+     */
+    parity.cacheTransactionRange = async function(address, events) {
+        try {
+            log.debug(`parity.cacheTransactionRange ${address}`)
+
+            for (let event of events) {
+                let transactionData = await parity.getTransaction(event.transactionHash)
+                await parity.getBlockTime(event.blockNumber)
+
+                let transaction = {
+                    transactionHash: event.transactionHash,
+                    BlockNumber: event.blockNumber,
+                    from: transactionData.from,
+                    to: transactionData.to,
+                    value: parity.convertValue(transactionData.value, 'ether'),
+                }
+                if (transactionData.from === address || transactionData.to === address)
+                    await db.addTransaction(transaction)
+            }
+        } catch (err) {
+            errorHandler.errorHandleThrow(`parity.cacheTransactionRange ${address}`, '')(err)
+        }
+    }
+
+    /**
+     * Function responsible for generating contract's transaction in range [startIndex, endIndex - 1].
+     *
+     * Consists of 4 steps:
+     * Step 1 - caching range [latestBlock, maxStoredBlock + 1] - in order to have one consistent range in database
+     * Step 2 - caching until there is enough records in database (or prorgam reaches beginning of blockchain), starting
+     *          from minStoredBlock - 1
+     * Step 3 - adding 2 records (delimiters) with null transactionHash values, they only meaning is to mark
+     *          current cachedRange (so program does not process "empty blocks" more than once
+     * Step 4 - returning transaction with indexes in desired range
+     *
+     * @param address
+     * @param startIndex
+     * @param endIndex
+     * @return {Promise<Array>} array of Transaction models
+     */
+    parity.generateTransactions = async function(address, startIndex, endIndex) {
+        try {
+            log.debug(`parity.generateTransactions ${address} ${startIndex} ${endIndex}`)
+            let cacheChunkSize = settings.server.cacheChunkSize
+            let latestBlock = await parity.getLatestBlock()
+
+            let maxStoredBlock = await db.getAddressTransactionsMaxBlock(address)
+            let actEnd = latestBlock
+            if (isNaN(maxStoredBlock) === false) {
+                while (actEnd > maxStoredBlock) {
+                    let actBegin = Math.max(actEnd - cacheChunkSize, maxStoredBlock + 1)
+                    let events = await parity.getHistory(address, actBegin, actEnd)
+                    await parity.cacheTransactionRange(address, events)
+                    actEnd -= cacheChunkSize
+                }
+                let minStoredBlock = await db.getAddressTransactionsMinBlock(address)
+                actEnd = minStoredBlock - 1
+            }
+
+            let transactionsCount = await db.getAddressTransactionsCount(address)
+
+            while (actEnd > 0 && transactionsCount < endIndex) {
+                let actBegin = Math.max(actEnd - cacheChunkSize, 1)
+                let events = await parity.getHistory(address, actBegin, actEnd)
+                await parity.cacheTransactionRange(address, events)
+                actEnd -= cacheChunkSize
+                transactionsCount = await db.getAddressTransactionsCount(address)
+            }
+
+            await parity.getBlockTime(latestBlock)
+            await db.addTransaction({
+                transactionHash: null,
+                BlockNumber: latestBlock,
+                from: address,
+                to: address,
+            })
+
+
+            actEnd = Math.max(actEnd, 1)
+            await parity.getBlockTime(actEnd)
+            await db.addTransaction({
+                transactionHash: null,
+                BlockNumber: actEnd,
+                from: address,
+                to: address,
+            })
+
+            return await db.getAddressTransactions(address, startIndex, endIndex - startIndex)
+        } catch (err) {
+            errorHandler.errorHandleThrow(`parity.generateTransactions ${address} ${startIndex} ${endIndex}`, '')(err)
+        }
+    }
+
     return parity
 }
 

@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
 
     Block.associate = function (models) {
         models.Block.hasMany(models.DataPoint);
+        models.Block.hasMany(models.Transaction);
     };
     return Block;
 };
