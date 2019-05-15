@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {ActivatedRoute} from "@angular/router";
-import {ApiService} from "../../services/api.service";
 import { filter, map, switchMap} from "rxjs/operators";
+import {ContractService} from "../../services/contract.service";
 
 @Component({
   selector: 'app-explorer',
@@ -14,7 +14,7 @@ export class ExplorerComponent implements OnInit {
   public error: boolean;
   public contractInformation: object;
 
-  constructor(private route: ActivatedRoute, private contractService: ApiService) { }
+  constructor(private route: ActivatedRoute, private contractService: ContractService) { }
 
   ngOnInit() {
     this.getContractInformation();
@@ -24,7 +24,7 @@ export class ExplorerComponent implements OnInit {
     this.route.paramMap.pipe(
       map(params => this.contractId = params.get("contractAddress")),
       filter(_ => !!this.contractId),
-      switchMap(_ => this.contractService.exploreContract(this.contractId))
+      switchMap(_ => this.contractService.getContractInformation(this.contractId))
     ).subscribe(data => {
       if (!data) {
         this.notFound = true;
