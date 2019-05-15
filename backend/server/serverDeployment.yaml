@@ -28,4 +28,6 @@ spec:
           value: "mysqldb"
         - name: DB_HOSTNAME
           value: "10.43.145.3"
+        - name: FRONTEND_IP
+          value: "35.242.160.198"
         imagePullPolicy: "Always"

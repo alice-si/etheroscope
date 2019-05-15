@@ -11,6 +11,7 @@ import { filter, map, switchMap} from "rxjs/operators";
 export class ExplorerComponent implements OnInit {
   public contractId: string;
   public notFound: boolean;
+  public error: boolean;
   public contractInformation: object;
 
   constructor(private route: ActivatedRoute, private contractService: ApiService) { }
@@ -25,10 +26,13 @@ export class ExplorerComponent implements OnInit {
       filter(_ => !!this.contractId),
       switchMap(_ => this.contractService.exploreContract(this.contractId))
     ).subscribe(data => {
-      console.log(data);
+      if (!data) {
+        this.notFound = true;
+        return;
+      }
       this.contractInformation = data;
     }, error => {
-      this.notFound = true;
+      this.error = true;
     });
   }
 }

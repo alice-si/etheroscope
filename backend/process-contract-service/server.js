@@ -46,7 +46,7 @@ async function cacheDataPoints(contractInfo, variables, from, upTo) {
         await Promise.each(variables, async variable => {
             if (variable.cachedUpTo < upTo) {
                 let datapoints = await parity.processEvents(events, methods[variable.variableName])
-                await db.addDataPoints(address.substr(2), variable.variableName, datapoints, upTo)
+                await db.addDataPoints(address, variable.variableName, datapoints, upTo)
                 variables.cachedUpTo = upTo
             }
         })
@@ -75,7 +75,7 @@ async function processContract(address) {
         let contractInfo = await parity.getContract(address)
         let variables = await parity.getContractVariables(contractInfo)
         variables = await Promise.all(variables.variables.map(async variable => {
-            let cachedUpTo = await db.getCachedUpTo(address.substring(2), variable.variableName)
+            let cachedUpTo = await db.getCachedUpTo(address, variable.variableName)
             return {
                 variableName: variable.variableName,
                 cachedUpTo: isNaN(cachedUpTo) ? settings.dataPointsService.cachedFrom - 1 : cachedUpTo

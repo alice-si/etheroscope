@@ -20,7 +20,7 @@ export class SearchComponent {
       return;
     }
     this.keyword = keyword;
-    this.contractService.searchContracts(keyword, null).subscribe(
+    this.contractService.searchContracts(keyword).subscribe(
       (searchResults) => {
         console.log(searchResults);
         this.searchResults = searchResults;

@@ -24,9 +24,9 @@ export class ApiService {
     return this.httpClient.get(`${this.apiUrl}/api/explore/${contract}`);
   }
 
-  searchContracts(keyword: string, advancedConstraints: { variables: any, transactions: any }) {
-    this.logger.info(`API call: search for contracts. Keyword: "${keyword}" and constraints: "${advancedConstraints}"`);
-    return this.httpClient.post(`${this.apiUrl}/api/search/${keyword}`, advancedConstraints);
+  searchContracts(keyword: string) {
+    this.logger.info(`API call: search for contracts. Keyword: "${keyword}"`);
+    return this.httpClient.get(`${this.apiUrl}/api/search/${keyword}`);
   }
 
   getTransactionsHistory(contract: string, start: number, end: number) {

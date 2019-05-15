@@ -28,7 +28,7 @@
             [ngClass]="{'selected': result.contractHash === selectedResultHash}"
             (click)="showContract(result.contractHash)">
           <div class="search-autocomplete__results__result__name">{{result.name}}</div>
-          <div class="search-autocomplete__results__result__hash">0x{{result.contractHash }}</div>
+          <div class="search-autocomplete__results__result__hash">{{result.contractHash }}</div>
         </li>
       </ul>
     </div>

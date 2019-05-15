@@ -43,6 +43,7 @@ module.exports = function (db, log) {
 
     /**
      * Function responsible for fetching contract's information from etherscan API.
+     * Returns ABI = null, when contract is not verified on Etherscan.
      *
      * @param {string} address
      * @param {string} [network=mainnet] specifies ethereum's network we currently use
@@ -55,6 +56,8 @@ module.exports = function (db, log) {
 
         let response = await axios.get(axiosGET)
         let contractInstance = response.data.result[0]
+        if (contractInstance.ABI === settings.server.contractNotVerified)
+            contractInstance.ABI = null
         return { contractName: contractInstance.ContractName, ABI: JSON.parse(contractInstance.ABI) }
     }
 
@@ -63,6 +66,7 @@ module.exports = function (db, log) {
      *
      * If information is already stored in database we simply take it from there.
      * Otherwise, we retrieve data from etherscan and cache it in database for future use.
+     * Returns null, when contract is not verified on Etherscan.
      *
      * @param {string} address
      *
@@ -72,7 +76,7 @@ module.exports = function (db, log) {
         try {
             log.debug(`parity.getContract ${address}`)
 
-            let contractFromDB = await db.getContract(address.substr(2))
+            let contractFromDB = await db.getContract(address)
 
             let parsedABI = contractFromDB === null ? null : contractFromDB.abi
 
@@ -80,9 +84,11 @@ module.exports = function (db, log) {
             if (parsedABI === null) {
                 let contractInstance = await getContractInfoFromEtherscan(address)
                 parsedABI = contractInstance.ABI
+                if (parsedABI === null)
+                    return null
                 let contractName = contractInstance.contractName
                 contractFromDB = {
-                    hash: address.substr(2),
+                    hash: address,
                     name: contractName,
                     abi: JSON.stringify(parsedABI)
                 };
@@ -98,12 +104,26 @@ module.exports = function (db, log) {
         }
     }
 
+    /**
+     * Checks if item is a variable.
+     *
+     * @param item
+     * @return {*|boolean}
+     */
     function isVariable(item) {
         return (item.outputs && item.outputs.length === 1 &&
             item.outputs[0].type.indexOf('uint') === 0 &&
             item.inputs.length === 0)
     }
 
+
+    /**
+     * Function responsible for caching contract's variables in database.
+     *
+     * @param address
+     * @param parsedAbi
+     * @return {Promise<void>}
+     */
     async function cacheContractVariables(address, parsedAbi) {
         let variableNames = []
         await Promise.each(parsedAbi, (item) => {
@@ -111,16 +131,21 @@ module.exports = function (db, log) {
         })
 
         let values = variableNames.map(variable => {
-            //        UnitId:'NULL', bcs unused
             return {ContractHash: address, name: variable}
         })
 
         await db.addVariables(values)
     }
 
+    /**
+     * Returns contract's info (variables' names and contract's name).
+     *
+     * @param contractInfo
+     * @return {Promise<{variables: {variableName}[], contractName: Model.name}>}
+     */
     parity.getContractVariables = async function (contractInfo) {
         let parsedContract = await contractInfo.parsedContract
-        let address = await parsedContract.options.address.substr(2)
+        let address = await parsedContract.options.address
         let contractName = contractInfo.contractName
         let parsedAbi = contractInfo.parsedABI;
 
@@ -131,7 +156,7 @@ module.exports = function (db, log) {
         }
 
         let variableNames = variables.map(variable => {
-            return {variableName: variable.name, unit: null, description: null}
+            return {variableName: variable.name}
         })
         return {variables: variableNames, contractName: contractName}
     }
