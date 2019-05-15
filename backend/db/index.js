@@ -278,7 +278,7 @@ async function searchContract(pattern) {
 /**
  * Adds transaction to database.
  * In case of "normal" transactions make sure there are no transactions with the same transactionHash.
- * Before adding "delimiter" checks if transaction with such BlockNumber already exists.
+ * In other scenario we add delimiter.
  *
  * @param transaction
  * @return {Promise<void>}
@@ -286,11 +286,10 @@ async function searchContract(pattern) {
 async function addTransaction(transaction) {
     try {
         if (transaction.transactionHash === null)
-            await models.Transaction.findOrCreate({ where: {BlockNumber: transaction.BlockNumber},
-                                                            defaults: transaction })
+            await models.Transaction.findOrCreate({ where: transaction })
         else
             await models.Transaction.findOrCreate({ where: {transactionHash: transaction.transactionHash },
-                                                                    defaults: transaction })
+                defaults: transaction })
     } catch (e) {
         handler('[DB index.js] addTransaction', 'Problem occurred in addTransaction')(e);
     }
