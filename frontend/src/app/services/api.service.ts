@@ -20,8 +20,8 @@ export class ApiService {
   }
 
   exploreContract(contract: string) {
-    this.logger.info(`API call: explore contract ${contract}`);
-    return this.httpClient.get(`${this.apiUrl}/api/explore/${contract}`);
+    this.logger.info(`API call: explore contract ${contract.toLowerCase()}`);
+    return this.httpClient.get(`${this.apiUrl}/api/explore/${contract.toLowerCase()}`);
   }
 
   searchContracts(keyword: string) {
@@ -30,8 +30,8 @@ export class ApiService {
   }
 
   getTransactionsHistory(contract: string, start: number, end: number) {
-    this.logger.info(`API call: transactions history of: ${contract} from ${start} to ${end}`);
+    this.logger.info(`API call: transactions history of: ${contract.toLowerCase()} from ${start} to ${end}`);
     let params = new HttpParams().set('start', start.toString()).set('end', end.toString());
-    return this.httpClient.get(`${this.apiUrl}/api/transactions/${contract}`, { params: params });
+    return this.httpClient.get(`${this.apiUrl}/api/transactions/${contract.toLowerCase()}`, { params: params });
   }
 }

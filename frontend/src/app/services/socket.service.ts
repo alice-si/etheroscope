@@ -12,13 +12,13 @@ export class SocketService {
   constructor(private socket: Socket, private logger: LoggerService) { }
 
   generateDatapoints(contract: string, method: string) {
-    this.logger.info(`Subscribing to variable: ${method} of contract: ${contract}`);
-    this.socket.emit('getHistory', [contract, method]);
+    this.logger.info(`Subscribing to variable: ${method} of contract: ${contract.toLowerCase()}`);
+    this.socket.emit('getHistory', [contract.toLowerCase(), method]);
   }
 
   leaveMethod(contract: string, method: string) {
-    this.logger.info(`Unsubscribing from variable: ${method} of contract: ${contract}`);
-    this.socket.emit('unsubscribe', [contract, method]);
+    this.logger.info(`Unsubscribing from variable: ${method} of contract: ${contract.toLowerCase()}`);
+    this.socket.emit('unsubscribe', [contract.toLowerCase(), method]);
   }
 
   getHistoryEvent(): Observable<any> {

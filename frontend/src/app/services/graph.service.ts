@@ -38,7 +38,9 @@ export class GraphService {
   }
 
   leave() {
-    this.socketService.leaveMethod(this.contractAddress, this.variable);
+    if (this.contractAddress && this.variable) {
+      this.socketService.leaveMethod(this.contractAddress, this.variable);
+    }
   }
 
   getLatestBlock(): Observable<any> {

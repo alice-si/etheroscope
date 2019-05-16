@@ -373,11 +373,11 @@ module.exports = function (db, log) {
                 let transaction = {
                     transactionHash: event.transactionHash,
                     BlockNumber: event.blockNumber,
-                    from: transactionData.from,
-                    to: transactionData.to,
+                    from: transactionData.from.toLowerCase(),
+                    to: transactionData.to.toLowerCase(),
                     value: parity.convertValue(transactionData.value, 'ether'),
                 }
-                if (transactionData.from === address || transactionData.to === address)
+                if (transaction.from === address || transaction.to === address)
                     await db.addTransaction(transaction)
             }
         } catch (err) {

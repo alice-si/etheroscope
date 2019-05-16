@@ -2,6 +2,7 @@ const errorHandler = require('../common/errorHandlers')
 const Parity = require('../common/parity')
 const streamedSet = require('./streamedSet')()
 const settings = require('../common/settings.js')
+const validator = require('validator')
 
 module.exports = function (io, log) {
     try {
@@ -10,6 +11,10 @@ module.exports = function (io, log) {
         const db = require('../db')
 
         const parityClient = Parity(db, log)
+
+        function validAddress(address) {
+            return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
+        }
 
         /**
          * Main function responsible for sending data through socket.
@@ -27,24 +32,29 @@ module.exports = function (io, log) {
             try {
                 log.debug(`dataPointsSender.sendHistory ${address} ${variableName}`)
 
-                let latestBlock = await parityClient.getLatestBlock()
-                let curLatestBlock = await streamedSet.addChannel(address, variableName, latestBlock)
+                if (validAddress(address)) {
+                    let latestBlock = await parityClient.getLatestBlock()
+                    let curLatestBlock = await streamedSet.addChannel(address, variableName, latestBlock)
 
-                let cachedUpTo = await db.getCachedUpTo(address, variableName)
-                cachedUpTo = isNaN(cachedUpTo) ? settings.dataPointsService.cachedFrom - 1 : cachedUpTo
+                    let cachedUpTo = await db.getCachedUpTo(address, variableName)
+                    cachedUpTo = isNaN(cachedUpTo) ? settings.dataPointsService.cachedFrom - 1 : cachedUpTo
 
-                if (curLatestBlock) {
-                    io.sockets.in(address + variableName).emit('latestBlock', {latestBlock: curLatestBlock})
+                    if (curLatestBlock) {
+                        io.sockets.in(address + variableName).emit('latestBlock', {latestBlock: curLatestBlock})
 
-                    await sendAllDataPointsFromDB(address, variableName, cachedUpTo, socketId)
+                        await sendAllDataPointsFromDB(address, variableName, cachedUpTo, socketId)
+                    } else {
+                        io.sockets.in(address + variableName).emit('latestBlock', {latestBlock: latestBlock})
+
+                        await sendAllDataPointsFromDB(address, variableName, cachedUpTo, socketId)
+
+                        let contractInfo = await parityClient.getContract(address)
+
+                        await cacheMorePoints(contractInfo, variableName, cachedUpTo, latestBlock)
+                    }
                 } else {
-                    io.sockets.in(address + variableName).emit('latestBlock', {latestBlock: latestBlock})
-
-                    await sendAllDataPointsFromDB(address, variableName, cachedUpTo, socketId)
-
-                    let contractInfo = await parityClient.getContract(address)
-
-                    await cacheMorePoints(contractInfo, variableName, cachedUpTo, latestBlock)
+                    log.debug(`datapointsSender.sendHistory ${address} is not a valid address`)
+                    io.sockets.in(address + variableName).emit('getHistoryResponse', { error: true })
                 }
 
             } catch (err) {
