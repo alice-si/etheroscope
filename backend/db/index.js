@@ -94,18 +94,13 @@ async function getPopularContracts(limit1, lastDays = 7) {
 
 /**
  * Caches information about value of a given variable in a given block.
- * Timestamps are currently ignored.
- *
- * Consists of 2 steps:
- * Step 1 adds values into database.
- * Step 2 updates  cached range for this variable (by adding delimiter).
+ * Timestamps are currently ignored. Adds values into database
  *
  * @param {string}   contractAddress
  * @param {string}   variableName
  * @param {Object[]} values          elements are [timestamp, value, blockNumber]
- * @param {Number}   cachedUpTo      end of range of cached blocks
  */
-async function addDataPoints(contractAddress, variableName, values, cachedUpTo) {
+async function addDataPoints(contractAddress, variableName, values) {
     try {
         let variable = await models.Variable.findOne({
             where: {ContractHash: contractAddress, name: variableName},
@@ -116,7 +111,6 @@ async function addDataPoints(contractAddress, variableName, values, cachedUpTo) 
             values.forEach((elem) => {
                 bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
             });
-            bulkmap.push({value: null, BlockNumber: cachedUpTo, VariableId: variable.id}); // delimiter
             await models.DataPoint.bulkCreate(bulkmap);
         }
     } catch (e) {

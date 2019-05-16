@@ -97,6 +97,7 @@ module.exports = function (io, log) {
          * Function responsible for caching all the blocks that have not been cached yet.
          *
          * Generates all points in range (upTo, latestBlock].
+         * Next we add delimiter (in order to `mark` range we processed).
          *
          * @param {Object} contractInfo
          * @param {string} variableName
@@ -115,6 +116,9 @@ module.exports = function (io, log) {
                     [from, totalUpTo] = [totalUpTo + 1, Math.min(totalUpTo + chunkSize, latestBlock)]
                     await generateAndSendDataPoints(contractInfo, variableName, from, totalUpTo)
                 }
+                // adding delimiter
+                await parityClient.getBlockTime(latestBlock)
+                await db.addDataPoints(address, variableName, [['timestamp_placholder', null, latestBlock]])
             } catch (err) {
                 errorHandler.errorHandleThrow(
                     `dataPointsSender.cacheMorePoints ${address} ${variableName} ${upTo}`,
@@ -136,11 +140,8 @@ module.exports = function (io, log) {
             try {
                 log.debug(`dataPointsSender.generateAndSendDataPoints ${address} ${variableName} ${from} ${upTo}`)
 
-                // TODO method to index
-
                 let dataPoints = await parityClient.generateDataPoints(contractInfo, variableName, from, upTo)
-                await parityClient.getBlockTime(upTo)
-                await db.addDataPoints(address, variableName, dataPoints, upTo)
+                await db.addDataPoints(address, variableName, dataPoints)
 
                 io.sockets.in(address + variableName).emit('getHistoryResponse', {
                     error: false,
