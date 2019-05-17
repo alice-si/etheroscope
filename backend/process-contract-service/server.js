@@ -56,7 +56,7 @@ async function cacheDataPoints(contractInfo, variables, from, upTo) {
 /**
  * Main function responsible for processing and caching contract's data in database.
  *
- * Consists of 4 steps
+ * Consists of 5 steps
  * Step 1 - preparing data (latestBlock, contractInfo, variables)
  * Step 2 - adding cachedUpTo for each variable
  * Step 3 - iterating over block ranges and calling cacheDataPoints and transactions for each of them

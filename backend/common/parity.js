@@ -287,14 +287,13 @@ module.exports = function (db, log) {
     /**
      * Function responsible for processing events.
      *
-     * Consists of 3 steps:
+     * Consists of 2 steps:
      * Step 1 - filtering events, so we have unique blocks' numbers (reduces amount of requests to parity)
-     * Step 2 - converting event to tuple [timestamp_placeholder, value, blockNumber]
-     * Step 3 - sorting elements (ascending by blockNumber)
+     * Step 2 - converting event to tuple [timestamp, value, blockNumber]
      *
      * @param events         events to be processed
      * @param variableMethod
-     * @return {Promise<Array>} array of tuples [timestamp_placeholder, value, blockNumber]
+     * @return {Promise<Array>} array of tuples [timestamp, value, blockNumber]
      */
     parity.processEvents = async function (events, variableMethod) {
         try {
@@ -302,13 +301,17 @@ module.exports = function (db, log) {
             events = events.filter((blockNumber, index, self) => self.indexOf(blockNumber) === index)
 
             events = await Promise.map(events, blockNumber => {
-                return Promise.all(['timestamp_placeholder',
-                    valueAtBlock(variableMethod, blockNumber), blockNumber])
+                return Promise.all([valueAtBlock(variableMethod, blockNumber), blockNumber])
             })
 
-            events = events.sort((a, b) => a[2] - b[2])
+            let results = []
 
-            return events
+            for (let event of events) {
+                let blockTime = await parity.getBlockTime(event[1])
+                results.push([blockTime, event[0], event[1]])
+            }
+
+            return results
         } catch (err) {
             errorHandler.errorHandleThrow(`parity.processHistory`, '')(err)
         }
@@ -336,16 +339,7 @@ module.exports = function (db, log) {
 
             let events = await parity.getHistory(address, from, upTo)
 
-            events = await parity.processEvents(events, contractInfo.parsedContract.methods[variableName])
-
-            let results = []
-
-            for (let event of events) {
-                let blockTime = await parity.getBlockTime(event[2])
-                results.push([blockTime, event[1], event[2]])
-            }
-
-            return results
+            return await parity.processEvents(events, contractInfo.parsedContract.methods[variableName])
         } catch (err) {
             errorHandler.errorHandleThrow(
                 `parity.generateDataPoints ${address} ${variableName} ${from} ${upTo}`

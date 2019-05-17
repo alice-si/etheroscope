@@ -79,6 +79,7 @@ module.exports = function (io, log) {
 
         /**
          * Function responsible for sending already cached data through socket.
+         * Checks if other 'thread' is already processing this variable, in order to send proper 'to' value.
          *
          * @param {string} address
          * @param {string} variableName
@@ -92,26 +93,17 @@ module.exports = function (io, log) {
                 let dataPoints = await db.getDataPoints(address, variableName)
                 dataPoints = dataPoints == null ? [] : dataPoints
                 let actProcessedTo = processedToMap.get(address + variableName)
-                actProcessedTo = actProcessedTo ? actProcessedTo : settings.dataPointsService.cachedFrom - 1
+                to = actProcessedTo ? actProcessedTo : to
 
-                if (dataPoints.length > 0) {
-                    let new_dataPoints = dataPoints.map(dataPoint =>
-                        [dataPoint.Block.timeStamp, dataPoint.value, dataPoint.Block.number])
+                let new_dataPoints = dataPoints.map(dataPoint =>
+                    [dataPoint.Block.timeStamp, dataPoint.value, dataPoint.Block.number])
 
-                    io.to(socketId).emit('getHistoryResponse', {
-                        error: false,
-                        from: settings.dataPointsService.cachedFrom,
-                        to: actProcessedTo,
-                        results: new_dataPoints
-                    })
-                } else {
-                    io.to(socketId).emit('getHistoryResponse', {
-                        error: false,
-                        from: settings.dataPointsService.cachedFrom,
-                        to: actProcessedTo,
-                        results: []
-                    })
-                }
+                io.to(socketId).emit('getHistoryResponse', {
+                    error: false,
+                    from: settings.dataPointsService.cachedFrom,
+                    to: to,
+                    results: new_dataPoints
+                })
             } catch (err) {
                 errorHandler.errorHandleThrow("dataPointsSender sendAllDataPointsFromDB", '')(err)
             }
