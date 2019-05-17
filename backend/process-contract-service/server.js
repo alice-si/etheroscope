@@ -41,13 +41,10 @@ async function cacheDataPoints(contractInfo, variables, from, upTo) {
 
         await parity.cacheTransactionRange(address, events)
 
-        await parity.getBlockTime(upTo)
-
         await Promise.each(variables, async variable => {
             if (variable.cachedUpTo < upTo) {
                 let datapoints = await parity.processEvents(events, methods[variable.variableName])
-                await db.addDataPoints(address, variable.variableName, datapoints, upTo)
-                variables.cachedUpTo = upTo
+                await db.addDataPoints(address, variable.variableName, datapoints)
             }
         })
     } catch (err) {
@@ -63,7 +60,8 @@ async function cacheDataPoints(contractInfo, variables, from, upTo) {
  * Step 1 - preparing data (latestBlock, contractInfo, variables)
  * Step 2 - adding cachedUpTo for each variable
  * Step 3 - iterating over block ranges and calling cacheDataPoints and transactions for each of them
- * Step 4 - adding transactions' delimiters (in the same way as in parity.generateTransactions)
+ * Step 4 - adding transactions delimiters (in the same way as in parity.generateTransactions)
+ * Step 5 - adding datapoints delimiter for each variable (in the same way as in parity,cacheMorePoints)
  *
  * @param address
  */
@@ -90,6 +88,8 @@ async function processContract(address) {
             await cacheDataPoints(contractInfo, variables, actFrom, actUpTo)
         }
 
+
+        // transactions delimiters
         await parity.getBlockTime(latestBlock)
         await db.addTransaction({
             transactionHash: null,
@@ -107,7 +107,9 @@ async function processContract(address) {
             to: address,
         })
 
-
+        // datapoints delimiters for each variable
+        for (let variable of variables)
+            await db.addDataPoints(address, variable.variableName, [['timestamp_placholder', null, latestBlock]])
 
         log.debug(`Finished processing contract ${address}`)
     } catch (err) {
