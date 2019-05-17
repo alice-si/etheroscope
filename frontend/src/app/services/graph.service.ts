@@ -70,6 +70,10 @@ export class GraphService {
         return of(null);
       }
 
+      if (!this.latestBlock) {
+        return of([this.dataPoints, this.histogramData]);
+      }
+
       this.processedBlocks += (parseInt(data.to) - parseInt(data.from) + 1);
       let timeValues = data.results.map(([timestamp, val]) => {
         return {

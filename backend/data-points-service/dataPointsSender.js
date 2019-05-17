@@ -3,6 +3,9 @@ const Parity = require('../common/parity')
 const streamedSet = require('./streamedSet')()
 const settings = require('../common/settings.js')
 const validator = require('validator')
+const ReadWriteLock = require('rwlock')
+
+const lock = new ReadWriteLock()
 
 module.exports = function (io, log) {
     try {
@@ -16,19 +19,21 @@ module.exports = function (io, log) {
             return address.length === 42 && validator.isHexadecimal(address.substr(2)) && address.substr(0, 2) === '0x'
         }
 
+        let processedToMap = new Map()
+
         /**
          * Main function responsible for sending data through socket.
          *
          * First step is sending all the data stored in database.
          * Next, all data that is not stored in our database is retrieved from ethereum.
          * Information gained in that process is saved in database for future use.
-         * Currently address and variableName sent from frontend are not validated in any way.
          *
          * @param {string} address
          * @param {string} variableName
          * @param {string} socketId
          */
         dataPointsSender.sendHistory = async function (address, variableName, socketId) {
+            let didCreateChannel = false
             try {
                 log.debug(`dataPointsSender.sendHistory ${address} ${variableName}`)
 
@@ -40,11 +45,15 @@ module.exports = function (io, log) {
                     cachedUpTo = isNaN(cachedUpTo) ? settings.dataPointsService.cachedFrom - 1 : cachedUpTo
 
                     if (curLatestBlock) {
-                        io.sockets.in(address + variableName).emit('latestBlock', {latestBlock: curLatestBlock})
+                        await lock.async.writeLock(`DataPoints lock ${address + variableName}`, async (err, release) => {
+                            io.to(socketId).emit('latestBlock', {latestBlock: curLatestBlock})
 
-                        await sendAllDataPointsFromDB(address, variableName, cachedUpTo, socketId)
+                            await sendAllDataPointsFromDB(address, variableName, cachedUpTo, socketId)
+                            release()
+                        })
                     } else {
-                        io.sockets.in(address + variableName).emit('latestBlock', {latestBlock: latestBlock})
+                        didCreateChannel = true
+                        io.to(socketId).emit('latestBlock', {latestBlock: latestBlock})
 
                         await sendAllDataPointsFromDB(address, variableName, cachedUpTo, socketId)
 
@@ -54,14 +63,17 @@ module.exports = function (io, log) {
                     }
                 } else {
                     log.debug(`datapointsSender.sendHistory ${address} is not a valid address`)
-                    io.sockets.in(address + variableName).emit('getHistoryResponse', { error: true })
+                    io.to(address + variableName).emit('getHistoryResponse', { error: true })
                 }
 
             } catch (err) {
                 errorHandler.errorHandle(`dataPointsSender.sendHistory ${address} ${variableName}`)(err)
-                io.sockets.in(address + variableName).emit('getHistoryResponse', { error: true })
+                io.to(address + variableName).emit('getHistoryResponse', { error: true })
             } finally {
-                streamedSet.deleteChannel(address, variableName)
+                if (didCreateChannel) {
+                    processedToMap.delete(address + variableName)
+                    streamedSet.deleteChannel(address, variableName)
+                }
             }
         }
 
@@ -79,15 +91,27 @@ module.exports = function (io, log) {
 
                 let dataPoints = await db.getDataPoints(address, variableName)
                 dataPoints = dataPoints == null ? [] : dataPoints
-                let new_dataPoints = dataPoints.map(dataPoint =>
-                    [dataPoint.Block.timeStamp, dataPoint.value, dataPoint.Block.number])
+                let actProcessedTo = processedToMap.get(address + variableName)
+                actProcessedTo = actProcessedTo ? actProcessedTo : settings.dataPointsService.cachedFrom - 1
 
-                io.to(socketId).emit('getHistoryResponse', {
-                    error: false,
-                    from: settings.dataPointsService.cachedFrom,
-                    to: to,
-                    results: new_dataPoints
-                })
+                if (dataPoints.length > 0) {
+                    let new_dataPoints = dataPoints.map(dataPoint =>
+                        [dataPoint.Block.timeStamp, dataPoint.value, dataPoint.Block.number])
+
+                    io.to(socketId).emit('getHistoryResponse', {
+                        error: false,
+                        from: settings.dataPointsService.cachedFrom,
+                        to: actProcessedTo,
+                        results: new_dataPoints
+                    })
+                } else {
+                    io.to(socketId).emit('getHistoryResponse', {
+                        error: false,
+                        from: settings.dataPointsService.cachedFrom,
+                        to: actProcessedTo,
+                        results: []
+                    })
+                }
             } catch (err) {
                 errorHandler.errorHandleThrow("dataPointsSender sendAllDataPointsFromDB", '')(err)
             }
@@ -141,13 +165,17 @@ module.exports = function (io, log) {
                 log.debug(`dataPointsSender.generateAndSendDataPoints ${address} ${variableName} ${from} ${upTo}`)
 
                 let dataPoints = await parityClient.generateDataPoints(contractInfo, variableName, from, upTo)
-                await db.addDataPoints(address, variableName, dataPoints)
+                await lock.async.writeLock(`DataPoints lock ${address + variableName}`, async (err, release) => {
+                    await db.addDataPoints(address, variableName, dataPoints)
 
-                io.sockets.in(address + variableName).emit('getHistoryResponse', {
-                    error: false,
-                    from: from,
-                    to: upTo,
-                    results: dataPoints
+                    io.to(address + variableName).emit('getHistoryResponse', {
+                        error: false,
+                        from: from,
+                        to: upTo,
+                        results: dataPoints
+                    })
+                    processedToMap.set(address + variableName, upTo)
+                    release()
                 })
             } catch (err) {
                 errorHandler.errorHandleThrow(
