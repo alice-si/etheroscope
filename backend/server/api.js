@@ -106,13 +106,13 @@ module.exports = function (app, db, log, validator) {
                         transaction: {
                             from: t.from,
                             to: t.to,
-                        }
+                        },
                     }
                 })
                 res.status(200).json(transactionsHistory)
             })
             .catch((err) => {
-                handler(`[/transactions] error occured for contract ${address}`)(err)
+                handler(`[/transactions] error occured for contract ${contractAddress}`)(err)
                 return res.status(500).json('Internal error occured')
             })
     })

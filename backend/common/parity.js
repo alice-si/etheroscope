@@ -226,25 +226,6 @@ module.exports = function (db, log) {
     }
 
     /**
-     * Function responsible for retrieving basic transaction information
-     *
-     * @param {String} transactionHash hash of contract transaction
-     *
-     * @return {Promise} transaction object
-     */
-    parity.getTransaction = async function (transactionHash) {
-        return new Promise((resolve, reject) => {
-            web3.eth.getTransaction(transactionHash, (err, res) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(res)
-                }
-            })
-        })
-    }
-
-    /**
      * Function responsible for converting value of transaction to another unit.
      *
      * @param {number|BigNumber|string} value wei value of transaction
@@ -279,7 +260,7 @@ module.exports = function (db, log) {
                     log.error(`ERROR - parity.getHistory ${address} ${startBlock} ${endBlock}`)
                     return reject(err)
                 }
-                return resolve(res)
+                return resolve(res.filter(e => e.blockNumber !== null))
             })
         })
     }
@@ -320,10 +301,9 @@ module.exports = function (db, log) {
     /**
      * Main function responsible for generating data points for variable in block range [from, upTo]
      *
-     * Consists of 3 steps:
+     * Consists of 2 steps:
      * Step 1 - generating all events in given range (parity.getHistory call)
      * Step 2 - calling parity.processEvents
-     * Step 3 - adding timestamp value in place of placeholder
      *
      * @param {Object} contractInfo
      * @param {string} variableName
@@ -361,7 +341,7 @@ module.exports = function (db, log) {
             log.debug(`parity.cacheTransactionRange ${address}`)
 
             for (let event of events) {
-                let transactionData = await parity.getTransaction(event.transactionHash)
+                let transactionData = await web3.eth.getTransaction(event.transactionHash)
                 await parity.getBlockTime(event.blockNumber)
 
                 let transaction = {
