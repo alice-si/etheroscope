@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pv-claim-ethereum-data
+spec:
+  storageClassName: ""
+  volumeName: pv-ethereum-data
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 2800G
