@@ -122,7 +122,7 @@ module.exports = function (app, db, log, validator) {
      */
     app.get('/api/search/:string', (req, res) => {
         let searchStr = req.params.string
-        db.searchContract(searchStr)
+        db.searchContract(searchStr, settings.server.searchContractsLimit)
             .then(contracts => {
                 let results = []
                 if (contracts !== null) {

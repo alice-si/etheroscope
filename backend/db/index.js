@@ -167,8 +167,9 @@ async function getDataPoints(contractAddress, variableName) {
 async function addVariables(values) {
     try {
         // We assume that variables are added only once
-        let res = await models.Variable.findAll({where: {ContractHash: values[0].contractHash}});
-        if (res.length === 0)
+        if (values[0] !== undefined)
+            var res = await models.Variable.findAll({where: {ContractHash: values[0].contractHash}});
+        if (res !== undefined && res.length === 0)
             await models.Variable.bulkCreate(values)
     } catch (e) {
         handler('[DB index.js] addVariables', 'Problem occurred in addVariables')(e);
@@ -245,10 +246,11 @@ async function getCachedUpTo(contractHash, variableName) {
  * @param pattern
  * @returns {Promise<Array<Model>>}
  */
-async function searchContract(pattern) {
+async function searchContract(pattern, limit) {
     try {
         pattern = "%" + Array.from(pattern).join("%") + "%";
         return await models.Contract.findAll({
+            limit: limit,
             where: {
                 [Op.or]: [
                     {

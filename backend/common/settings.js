@@ -7,6 +7,7 @@ module.exports.server = {
   cacheChunkSize: 10000,
   popularContractsDays: 7,
   popularContractsLimit: 10,
+  searchContractsLimit: 60,
   contractNotVerified: 'Contract source code not verified',
 }
 
