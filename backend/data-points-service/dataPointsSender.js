@@ -96,7 +96,7 @@ module.exports = function (io, log) {
                 to = actProcessedTo ? actProcessedTo : to
 
                 let new_dataPoints = dataPoints.map(dataPoint =>
-                    [dataPoint.Block.timeStamp, dataPoint.value, dataPoint.Block.number])
+                    [dataPoint.Block.timeStamp, parseInt(dataPoint.value), dataPoint.Block.number])
 
                 io.to(socketId).emit('getHistoryResponse', {
                     error: false,
