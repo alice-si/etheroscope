@@ -1,17 +1,17 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: parity-mainnet
+  name: parity-mainnet-5th
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: parity-mainnet
+      app: parity-mainnet-5th
   template:
     metadata:
       labels:
-        app: parity-mainnet
+        app: parity-mainnet-5th
     spec:
       volumes:
       - name: ethereum-parity-volume
@@ -21,20 +21,20 @@ spec:
       securityContext:
         fsGroup: 1000
       containers:
-      - name: parity-mainnet
+      - name: parity-mainnet-5th
         image: gcr.io/etheroscope/myparity:v2.4.5
         args: ["-d",
-               "/ethereum-data",
+               "/ethereum-data/ethereum-5th-chance",
                "--no-warp", "--tracing", "on", "--pruning", "archive",
                "--jsonrpc-hosts", "all",
                "--jsonrpc-interface", "all",
                "--no-serve-light",
                "--max-peers",
                "250",
-#               "--snapshot-peers",
-#               "50",
+               "--snapshot-peers",
+               "50",
                "--min-peers",
-               "10",
+               "50",
                "--mode",
                "active",
                "--cache-size",

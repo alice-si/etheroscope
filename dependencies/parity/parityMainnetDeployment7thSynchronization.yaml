@@ -1,17 +1,17 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: parity-mainnet
+  name: parity-mainnet-7th
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: parity-mainnet
+      app: parity-mainnet-7th
   template:
     metadata:
       labels:
-        app: parity-mainnet
+        app: parity-mainnet-7th
     spec:
       volumes:
       - name: ethereum-parity-volume
@@ -21,27 +21,29 @@ spec:
       securityContext:
         fsGroup: 1000
       containers:
-      - name: parity-mainnet
+      - name: parity-mainnet-7th
         image: gcr.io/etheroscope/myparity:v2.4.5
         args: ["-d",
-               "/ethereum-data",
+               "/ethereum-data/ethereum-7th-chance",
                "--no-warp", "--tracing", "on", "--pruning", "archive",
                "--jsonrpc-hosts", "all",
                "--jsonrpc-interface", "all",
                "--no-serve-light",
                "--max-peers",
                "250",
-#               "--snapshot-peers",
-#               "50",
+               "--snapshot-peers",
+               "25",
                "--min-peers",
-               "10",
+               "25",
                "--mode",
                "active",
                "--cache-size",
                "4096",
                "--db-compaction",
                "hdd",
-               "--allow-ips=public", "--no-discovery"]
+               "--allow-ips=public",
+#               "--no-discovery"
+        ]
         ports:
         - containerPort: 8545
           name: port1mainnet

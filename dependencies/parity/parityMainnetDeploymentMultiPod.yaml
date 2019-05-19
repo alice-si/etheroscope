@@ -1,0 +1,116 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: parity-mainnet-8th
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parity-mainnet-8th
+  template:
+    metadata:
+      labels:
+        app: parity-mainnet-8th
+    spec:
+      volumes:
+      - name: ethereum-parity-volume
+        persistentVolumeClaim:
+          claimName: pv-claim-ethereum-data
+          readOnly: false
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: parity-mainnet-8th
+        image: gcr.io/etheroscope/myparity:v2.4.5
+        args: ["-d",
+               "/ethereum-data/ethereum-8th-chance",
+               "--no-warp", "--tracing", "on", "--pruning", "archive",
+               "--jsonrpc-hosts", "all",
+               "--jsonrpc-interface", "all",
+               "--no-serve-light",
+               "--max-peers",
+               "250",
+#               "--snapshot-peers",
+#               "50",
+               "--min-peers",
+               "25",
+               "--mode",
+               "active",
+               "--cache-size",
+               "4096",
+               "--db-compaction",
+               "hdd",
+               "--allow-ips=public", "--no-discovery"]
+        ports:
+        - containerPort: 8545
+          name: port1mainnet
+        - containerPort: 8546
+          name: port2mainnet
+        - containerPort: 30303
+          name: port3mainnet
+        volumeMounts:
+        - name: ethereum-parity-volume
+          mountPath: /ethereum-data/
+      - name: parity-mainnet-8th
+        image: gcr.io/etheroscope/myparity:v2.4.5
+        args: ["-d",
+               "/ethereum-data/ethereum-8th-chance",
+               "--no-warp", "--tracing", "on", "--pruning", "archive",
+               "--jsonrpc-hosts", "all",
+               "--jsonrpc-interface", "all",
+               "--no-serve-light",
+               "--max-peers",
+               "250",
+          #               "--snapshot-peers",
+          #               "50",
+               "--min-peers",
+               "25",
+               "--mode",
+               "active",
+               "--cache-size",
+               "4096",
+               "--db-compaction",
+               "hdd",
+               "--allow-ips=public", "--no-discovery"]
+        ports:
+        - containerPort: 8545
+          name: port1mainnet
+        - containerPort: 8546
+          name: port2mainnet
+        - containerPort: 30303
+          name: port3mainnet
+        volumeMounts:
+        - name: ethereum-parity-volume
+          mountPath: /ethereum-data/
+      - name: parity-mainnet-8th
+        image: gcr.io/etheroscope/myparity:v2.4.5
+        args: ["-d",
+               "/ethereum-data/ethereum-8th-chance",
+               "--no-warp", "--tracing", "on", "--pruning", "archive",
+               "--jsonrpc-hosts", "all",
+               "--jsonrpc-interface", "all",
+               "--no-serve-light",
+               "--max-peers",
+               "250",
+          #               "--snapshot-peers",
+          #               "50",
+               "--min-peers",
+               "25",
+               "--mode",
+               "active",
+               "--cache-size",
+               "4096",
+               "--db-compaction",
+               "hdd",
+               "--allow-ips=public", "--no-discovery"]
+        ports:
+        - containerPort: 8545
+          name: port1mainnet
+        - containerPort: 8546
+          name: port2mainnet
+        - containerPort: 30303
+          name: port3mainnet
+        volumeMounts:
+        - name: ethereum-parity-volume
+          mountPath: /ethereum-data/
