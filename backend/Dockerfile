@@ -48,4 +48,4 @@ WORKDIR /app
 COPY --from=projectBase /app/node_modules ./node_modules
 COPY ./ ./
 # Start microservice
-CMD echo "CMD start delegateContractService\\n" && cd delegate-contract-service && ./range-delagotor.sh
+CMD echo "CMD start delegateContractService\\n" && cd delegate-contract-service && ./range-delegator.sh
