@@ -173,7 +173,7 @@ module.exports = function (db, log) {
 
         web3.eth.defaultBlock = '0x' + blockNumber.toString(16)
         let result = await variableFunction.call();
-        return parseInt(result.valueOf())
+        return result !== null ? parseInt(result.valueOf()) : null
     }
 
     /**
@@ -284,6 +284,8 @@ module.exports = function (db, log) {
             events = await Promise.map(events, blockNumber => {
                 return Promise.all([valueAtBlock(variableMethod, blockNumber), blockNumber])
             })
+
+            events = await Promise.filter(events, event => {return event[0]});
 
             let results = []
 
