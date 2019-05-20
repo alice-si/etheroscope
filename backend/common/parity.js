@@ -169,11 +169,16 @@ module.exports = function (db, log) {
      * @return {Promise<number>} value of variable
      */
     async function valueAtBlock(variableFunction, blockNumber) {
-        log.debug(`parity.valueAtBlock ${blockNumber}`)
+        try {
+            log.debug(`parity.valueAtBlock ${blockNumber}`)
 
-        web3.eth.defaultBlock = '0x' + blockNumber.toString(16)
-        let result = await variableFunction.call();
-        return result !== null ? parseInt(result.valueOf()) : null
+            web3.eth.defaultBlock = '0x' + blockNumber.toString(16)
+            let result = await variableFunction.call();
+            return result !== null ? parseInt(result.valueOf()) : null
+        } catch (err) {
+            log.debug(`parity.valueAtBlock caught error ${err}, returning null`)
+            return null
+        }
     }
 
     /**
