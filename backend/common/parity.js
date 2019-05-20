@@ -285,7 +285,7 @@ module.exports = function (db, log) {
                 return Promise.all([valueAtBlock(variableMethod, blockNumber), blockNumber])
             })
 
-            events = await Promise.filter(events, event => {return event[0] != null});
+            events = events.filter( event => {return event[0] != null});
 
             let results = []
 
