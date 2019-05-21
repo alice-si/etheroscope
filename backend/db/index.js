@@ -301,12 +301,7 @@ async function addTransaction(transaction) {
 async function getAddressTransactionsMaxBlock(address) {
     try {
         return await models.Transaction.max('BlockNumber', {
-            where: {
-                [Op.or]: [
-                    { from: address },
-                    { to: address }
-                ]
-            },
+            where: { address: address },
         });
     } catch (e) {
         handler('[DB index.js] getAddressTransactionsMaxBlock', 'Problem occurred in getAddressTransactionsMaxBlock')(e);
@@ -322,12 +317,7 @@ async function getAddressTransactionsMaxBlock(address) {
 async function getAddressTransactionsMinBlock(address) {
     try {
         return await models.Transaction.min('BlockNumber', {
-            where: {
-                [Op.or]: [
-                    { from: address },
-                    { to: address }
-                ]
-            },
+            where: { address: address },
         });
     } catch (e) {
         handler('[DB index.js] getAddressTransactionsMinBlock', 'Problem occurred in getAddressTransactionsMinBlock')(e);
@@ -344,15 +334,8 @@ async function getAddressTransactionsCount(address) {
     try {
         return await models.Transaction.count({where: {
             [Op.and]: [
-                {
-                    [Op.or]: [
-                        { from: address },
-                        { to: address },
-                    ]
-                },
-                {
-                    transactionHash: { [Op.ne]: null}
-                }
+                { address: address },
+                { transactionHash: { [Op.ne]: null} }
             ]
         } })
     } catch (e) {
@@ -372,15 +355,8 @@ async function getAddressTransactions(address, offset, limit) {
     try {
         return await models.Transaction.findAll({include: [models.Block], where: {
             [Op.and]: [
-                {
-                    [Op.or]: [
-                        { from: address },
-                        { to: address },
-                    ]
-                },
-                {
-                    transactionHash: { [Op.ne]: null }
-                }
+                { address: address },
+                { transactionHash: { [Op.ne]: null } }
             ]
             }, offset: offset, limit: limit, order: [ ['Block', 'number', 'DESC'] ]});
     } catch (e) {

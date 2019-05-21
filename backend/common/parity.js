@@ -355,10 +355,11 @@ module.exports = function (db, log) {
                     transactionHash: event.transactionHash,
                     BlockNumber: event.blockNumber,
                     from: transactionData.from.toLowerCase(),
-                    to: transactionData.to.toLowerCase(),
+                    to: transactionData.to === null ? null : transactionData.to.toLowerCase(),
+                    address: address,
                     value: parity.convertValue(transactionData.value, 'ether'),
                 }
-                if (transaction.from === address || transaction.to === address)
+                if (transaction.from === address || transaction.to === address || transaction.to === null)
                     await db.addTransaction(transaction)
             }
         } catch (err) {
@@ -413,20 +414,16 @@ module.exports = function (db, log) {
 
             await parity.getBlockTime(latestBlock)
             await db.addTransaction({
-                transactionHash: null,
                 BlockNumber: latestBlock,
-                from: address,
-                to: address,
+                address: address,
             })
 
 
             actEnd = Math.max(actEnd, 1)
             await parity.getBlockTime(actEnd)
             await db.addTransaction({
-                transactionHash: null,
                 BlockNumber: actEnd,
-                from: address,
-                to: address,
+                address: address,
             })
 
             return await db.getAddressTransactions(address, startIndex, endIndex - startIndex)

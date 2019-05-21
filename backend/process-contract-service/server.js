@@ -92,19 +92,15 @@ async function processContract(address) {
         // transactions delimiters
         await parity.getBlockTime(latestBlock)
         await db.addTransaction({
-            transactionHash: null,
             BlockNumber: latestBlock,
-            from: address,
-            to: address,
+            address: address,
         })
 
 
         await parity.getBlockTime(1)
         await db.addTransaction({
-            transactionHash: null,
             BlockNumber: 1,
-            from: address,
-            to: address,
+            address: address,
         })
 
         // datapoints delimiters for each variable
