@@ -34,7 +34,6 @@ export class GraphComponent implements OnInit, OnDestroy {
   public datapoints: any[] = [];
   public histogramData: any[] = [];
   public curve = shape.curveStepAfter;
-  public timeNow: any = new Date(Date.now());
 
   @ViewChild(CustomGraphComponent)
   private customGraph: CustomGraphComponent;
@@ -48,12 +47,14 @@ export class GraphComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.getContractVariables();
     this.initGeneratingDatapoints();
-    this.dateFrom = this.timeNow;
-    this.boundFrom = this.timeNow;
-    this.dateTo = this.timeNow;
-    this.boundTo = this.timeNow;
     this.selectedGraph = 'linear';
-    this.latestBlockSubscription = this.graphService.getLatestBlock().subscribe();
+    this.latestBlockSubscription = this.graphService.getLatestBlock().subscribe(data => {
+      const latestBlockDate = new Date(parseInt(data.timestamp) * 1000);
+      this.dateFrom = latestBlockDate;
+      this.dateTo = latestBlockDate;
+      this.boundFrom = latestBlockDate;
+      this.boundTo = latestBlockDate;
+    });
     this.datapointsSubscription = this.graphService.getDatapoints().subscribe(([[data], histogram]) => {
       if (this.error) {
         return;

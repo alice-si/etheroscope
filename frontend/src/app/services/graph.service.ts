@@ -14,6 +14,7 @@ export class GraphService {
 
   private processedBlocks: number;
   private latestBlock: number;
+  private latestBlockTimestamp: number;
 
   private dataPoints: any;
 
@@ -46,6 +47,7 @@ export class GraphService {
   getLatestBlock(): Observable<any> {
     return this.socketService.latestBlockEvent().pipe(tap(data => {
       this.latestBlock = parseInt(data.latestBlock);
+      this.latestBlockTimestamp = parseInt((data.timestamp));
     }));
   }
 
@@ -56,9 +58,9 @@ export class GraphService {
   getLatestDatapointValue(series): any {
     if (series && series.length > 0) {
       return [{
-        name: new Date(Date.now()), //TODO : Change to timestamp of latest block
+        name: new Date(this.latestBlockTimestamp * 1000),
         value: series.reduce((datapoint, other) => (datapoint.name > other.name) ? datapoint : other).value
-      }]
+      }];
     }
 
     return [];

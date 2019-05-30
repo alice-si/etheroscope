@@ -4,7 +4,7 @@ metadata:
   name: etheroscope-process-contract-service
   namespace: default
 spec:
-  replicas: 5
+  replicas: 7
   selector:
     matchLabels:
       app: etheroscope-process-contract-service

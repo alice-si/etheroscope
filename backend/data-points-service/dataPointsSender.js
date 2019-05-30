@@ -46,14 +46,16 @@ module.exports = function (io, log) {
 
                     if (curLatestBlock) {
                         await lock.async.writeLock(`DataPoints lock ${address + variableName}`, async (err, release) => {
-                            io.to(socketId).emit('latestBlock', {latestBlock: curLatestBlock})
+                            let timestamp = await  parityClient.getBlockTime(curLatestBlock)
+                            io.to(socketId).emit('latestBlock', {latestBlock: curLatestBlock, timestamp: timestamp})
 
                             await sendAllDataPointsFromDB(address, variableName, cachedUpTo, socketId)
                             release()
                         })
                     } else {
                         didCreateChannel = true
-                        io.to(socketId).emit('latestBlock', {latestBlock: latestBlock})
+                        let timestamp = await parityClient.getBlockTime(latestBlock)
+                        io.to(socketId).emit('latestBlock', {latestBlock: latestBlock, timestamp: timestamp})
 
                         await sendAllDataPointsFromDB(address, variableName, cachedUpTo, socketId)
 
