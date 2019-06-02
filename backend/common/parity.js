@@ -169,11 +169,16 @@ module.exports = function (db, log) {
      * @return {Promise<number>} value of variable
      */
     async function valueAtBlock(variableFunction, blockNumber) {
-        log.debug(`parity.valueAtBlock ${blockNumber}`)
+        try {
+            log.debug(`parity.valueAtBlock ${blockNumber}`)
 
-        web3.eth.defaultBlock = '0x' + blockNumber.toString(16)
-        let result = await variableFunction.call();
-        return parseInt(result.valueOf())
+            web3.eth.defaultBlock = '0x' + blockNumber.toString(16)
+            let result = await variableFunction.call();
+            return result !== null ? parseInt(result.valueOf()) : null
+        } catch (err) {
+            log.debug(`parity.valueAtBlock caught error ${err}, returning null`)
+            return null
+        }
     }
 
     /**
@@ -226,25 +231,6 @@ module.exports = function (db, log) {
     }
 
     /**
-     * Function responsible for retrieving basic transaction information
-     *
-     * @param {String} transactionHash hash of contract transaction
-     *
-     * @return {Promise} transaction object
-     */
-    parity.getTransaction = async function (transactionHash) {
-        return new Promise((resolve, reject) => {
-            web3.eth.getTransaction(transactionHash, (err, res) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(res)
-                }
-            })
-        })
-    }
-
-    /**
      * Function responsible for converting value of transaction to another unit.
      *
      * @param {number|BigNumber|string} value wei value of transaction
@@ -279,7 +265,7 @@ module.exports = function (db, log) {
                     log.error(`ERROR - parity.getHistory ${address} ${startBlock} ${endBlock}`)
                     return reject(err)
                 }
-                return resolve(res)
+                return resolve(res.filter(e => e.blockNumber !== null))
             })
         })
     }
@@ -287,14 +273,13 @@ module.exports = function (db, log) {
     /**
      * Function responsible for processing events.
      *
-     * Consists of 3 steps:
+     * Consists of 2 steps:
      * Step 1 - filtering events, so we have unique blocks' numbers (reduces amount of requests to parity)
-     * Step 2 - converting event to tuple [timestamp_placeholder, value, blockNumber]
-     * Step 3 - sorting elements (ascending by blockNumber)
+     * Step 2 - converting event to tuple [timestamp, value, blockNumber]
      *
      * @param events         events to be processed
      * @param variableMethod
-     * @return {Promise<Array>} array of tuples [timestamp_placeholder, value, blockNumber]
+     * @return {Promise<Array>} array of tuples [timestamp, value, blockNumber]
      */
     parity.processEvents = async function (events, variableMethod) {
         try {
@@ -302,13 +287,19 @@ module.exports = function (db, log) {
             events = events.filter((blockNumber, index, self) => self.indexOf(blockNumber) === index)
 
             events = await Promise.map(events, blockNumber => {
-                return Promise.all(['timestamp_placeholder',
-                    valueAtBlock(variableMethod, blockNumber), blockNumber])
+                return Promise.all([valueAtBlock(variableMethod, blockNumber), blockNumber])
             })
 
-            events = events.sort((a, b) => a[2] - b[2])
+            events = events.filter( event => {return event[0] != null});
 
-            return events
+            let results = []
+
+            for (let event of events) {
+                let blockTime = await parity.getBlockTime(event[1])
+                results.push([blockTime, event[0], event[1]])
+            }
+
+            return results
         } catch (err) {
             errorHandler.errorHandleThrow(`parity.processHistory`, '')(err)
         }
@@ -317,10 +308,9 @@ module.exports = function (db, log) {
     /**
      * Main function responsible for generating data points for variable in block range [from, upTo]
      *
-     * Consists of 3 steps:
+     * Consists of 2 steps:
      * Step 1 - generating all events in given range (parity.getHistory call)
      * Step 2 - calling parity.processEvents
-     * Step 3 - adding timestamp value in place of placeholder
      *
      * @param {Object} contractInfo
      * @param {string} variableName
@@ -336,16 +326,7 @@ module.exports = function (db, log) {
 
             let events = await parity.getHistory(address, from, upTo)
 
-            events = await parity.processEvents(events, contractInfo.parsedContract.methods[variableName])
-
-            let results = []
-
-            for (let event of events) {
-                let blockTime = await parity.getBlockTime(event[2])
-                results.push([blockTime, event[1], event[2]])
-            }
-
-            return results
+            return await parity.processEvents(events, contractInfo.parsedContract.methods[variableName])
         } catch (err) {
             errorHandler.errorHandleThrow(
                 `parity.generateDataPoints ${address} ${variableName} ${from} ${upTo}`
@@ -367,17 +348,18 @@ module.exports = function (db, log) {
             log.debug(`parity.cacheTransactionRange ${address}`)
 
             for (let event of events) {
-                let transactionData = await parity.getTransaction(event.transactionHash)
+                let transactionData = await web3.eth.getTransaction(event.transactionHash)
                 await parity.getBlockTime(event.blockNumber)
 
                 let transaction = {
                     transactionHash: event.transactionHash,
                     BlockNumber: event.blockNumber,
-                    from: transactionData.from,
-                    to: transactionData.to,
+                    from: transactionData.from.toLowerCase(),
+                    to: transactionData.to === null ? null : transactionData.to.toLowerCase(),
+                    address: address,
                     value: parity.convertValue(transactionData.value, 'ether'),
                 }
-                if (transactionData.from === address || transactionData.to === address)
+                if (transaction.from === address || transaction.to === address || transaction.to === null)
                     await db.addTransaction(transaction)
             }
         } catch (err) {
@@ -432,20 +414,16 @@ module.exports = function (db, log) {
 
             await parity.getBlockTime(latestBlock)
             await db.addTransaction({
-                transactionHash: null,
                 BlockNumber: latestBlock,
-                from: address,
-                to: address,
+                address: address,
             })
 
 
             actEnd = Math.max(actEnd, 1)
             await parity.getBlockTime(actEnd)
             await db.addTransaction({
-                transactionHash: null,
                 BlockNumber: actEnd,
-                from: address,
-                to: address,
+                address: address,
             })
 
             return await db.getAddressTransactions(address, startIndex, endIndex - startIndex)

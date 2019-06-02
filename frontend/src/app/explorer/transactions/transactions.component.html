@@ -1,7 +1,7 @@
 <div class="transactions-app">
   <div class="waiting" *ngIf="!transactions || noTransactions">
     <div class="headline" [ngClass]="{'error': error}"> {{ message }} </div>
-    <div class="description" [ngClass]="{'error': error, 'complete': noTransactions}">Some of the contracts have transactions associated with them. Trying to obtain the transactions list for this contract.</div>
+    <div class="description" [ngClass]="{'error': error, 'complete': noTransactions}">Some of the contracts have transactions associated with them. Trying to obtain the transactions that emitted logs.</div>
     <div class="loader" [ngClass]="{'complete': noTransactions}">
       <div class="positive" [ngClass]="{'error': error}"></div>
     </div>

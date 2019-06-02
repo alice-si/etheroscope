@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `DataPoints` (
 
 module.exports = (sequelize, DataTypes) => {
     const DataPoint = sequelize.define('DataPoint', {
-            value: {type: DataTypes.BIGINT(80), allowNull: true}, // if null then it is a delimiter -> fake datapoint
+            value: {type: DataTypes.STRING, allowNull: true}, // if null then it is a delimiter -> fake datapoint
             // that means this variable is cached up to this block
         },
         {

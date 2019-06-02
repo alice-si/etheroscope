@@ -94,18 +94,13 @@ async function getPopularContracts(limit1, lastDays = 7) {
 
 /**
  * Caches information about value of a given variable in a given block.
- * Timestamps are currently ignored.
- *
- * Consists of 2 steps:
- * Step 1 adds values into database.
- * Step 2 updates  cached range for this variable (by adding delimiter).
+ * Timestamps are currently ignored. Adds values into database
  *
  * @param {string}   contractAddress
  * @param {string}   variableName
  * @param {Object[]} values          elements are [timestamp, value, blockNumber]
- * @param {Number}   cachedUpTo      end of range of cached blocks
  */
-async function addDataPoints(contractAddress, variableName, values, cachedUpTo) {
+async function addDataPoints(contractAddress, variableName, values) {
     try {
         let variable = await models.Variable.findOne({
             where: {ContractHash: contractAddress, name: variableName},
@@ -116,7 +111,6 @@ async function addDataPoints(contractAddress, variableName, values, cachedUpTo) 
             values.forEach((elem) => {
                 bulkmap.push({value: elem[1], BlockNumber: elem[2], VariableId: variable.id})
             });
-            bulkmap.push({value: null, BlockNumber: cachedUpTo, VariableId: variable.id}); // delimiter
             await models.DataPoint.bulkCreate(bulkmap);
         }
     } catch (e) {
@@ -173,9 +167,11 @@ async function getDataPoints(contractAddress, variableName) {
 async function addVariables(values) {
     try {
         // We assume that variables are added only once
-        let res = await models.Variable.findAll({where: {ContractHash: values[0].contractHash}});
-        if (res.length === 0)
-            await models.Variable.bulkCreate(values)
+        if (values.length > 0) {
+            let res = await models.Variable.findAll({where: {ContractHash: values[0].contractHash}});
+            if (res.length === 0)
+                await models.Variable.bulkCreate(values)
+        }
     } catch (e) {
         handler('[DB index.js] addVariables', 'Problem occurred in addVariables')(e);
     }
@@ -251,10 +247,11 @@ async function getCachedUpTo(contractHash, variableName) {
  * @param pattern
  * @returns {Promise<Array<Model>>}
  */
-async function searchContract(pattern) {
+async function searchContract(pattern, limit) {
     try {
         pattern = "%" + Array.from(pattern).join("%") + "%";
         return await models.Contract.findAll({
+            limit: limit,
             where: {
                 [Op.or]: [
                     {
@@ -304,12 +301,7 @@ async function addTransaction(transaction) {
 async function getAddressTransactionsMaxBlock(address) {
     try {
         return await models.Transaction.max('BlockNumber', {
-            where: {
-                [Op.or]: [
-                    { from: address },
-                    { to: address }
-                ]
-            },
+            where: { address: address },
         });
     } catch (e) {
         handler('[DB index.js] getAddressTransactionsMaxBlock', 'Problem occurred in getAddressTransactionsMaxBlock')(e);
@@ -325,12 +317,7 @@ async function getAddressTransactionsMaxBlock(address) {
 async function getAddressTransactionsMinBlock(address) {
     try {
         return await models.Transaction.min('BlockNumber', {
-            where: {
-                [Op.or]: [
-                    { from: address },
-                    { to: address }
-                ]
-            },
+            where: { address: address },
         });
     } catch (e) {
         handler('[DB index.js] getAddressTransactionsMinBlock', 'Problem occurred in getAddressTransactionsMinBlock')(e);
@@ -347,15 +334,8 @@ async function getAddressTransactionsCount(address) {
     try {
         return await models.Transaction.count({where: {
             [Op.and]: [
-                {
-                    [Op.or]: [
-                        { from: address },
-                        { to: address },
-                    ]
-                },
-                {
-                    transactionHash: { [Op.ne]: null}
-                }
+                { address: address },
+                { transactionHash: { [Op.ne]: null} }
             ]
         } })
     } catch (e) {
@@ -375,15 +355,8 @@ async function getAddressTransactions(address, offset, limit) {
     try {
         return await models.Transaction.findAll({include: [models.Block], where: {
             [Op.and]: [
-                {
-                    [Op.or]: [
-                        { from: address },
-                        { to: address },
-                    ]
-                },
-                {
-                    transactionHash: { [Op.ne]: null }
-                }
+                { address: address },
+                { transactionHash: { [Op.ne]: null } }
             ]
             }, offset: offset, limit: limit, order: [ ['Block', 'number', 'DESC'] ]});
     } catch (e) {

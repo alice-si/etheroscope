@@ -41,3 +41,11 @@ COPY --from=projectBase /app/node_modules ./node_modules
 COPY ./ ./
 # Start microservice
 CMD echo "CMD start processContractService\\n" && node ./process-contract-service/server.js
+
+FROM node:8 AS delegateContractService
+WORKDIR /app
+# Copy files
+COPY --from=projectBase /app/node_modules ./node_modules
+COPY ./ ./
+# Start microservice
+CMD echo "CMD start delegateContractService\\n" && cd delegate-contract-service && ./range-delegator.sh

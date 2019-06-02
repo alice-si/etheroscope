@@ -23,6 +23,9 @@ then
     docker push gcr.io/etheroscope/rabbitmq_test_user
     echo "script done"
     exit 0
+elif [ $1 = "delegate-contract-service" ]
+then
+    docker build -t etheroscope-$1 ../../backend/ --target delegateContractService
 else
     echo "docker image unrecognized, got: $1"
     exit 1

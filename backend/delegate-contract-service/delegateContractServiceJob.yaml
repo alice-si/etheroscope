@@ -1,22 +1,13 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: etheroscope-process-contract-service
-  namespace: default
+  name: etheroscope-delegate-contract-service
 spec:
-  replicas: 7
-  selector:
-    matchLabels:
-      app: etheroscope-process-contract-service
   template:
-    metadata:
-      labels:
-        app: etheroscope-process-contract-service
     spec:
-      terminationGracePeriodSeconds: 30
       containers:
-        - name: etheroscope-process-contract-service
-          image: gcr.io/etheroscope/etheroscope-process-contract-service:latest
+        - name: etheroscope-delegate-contract-service
+          image: gcr.io/etheroscope/etheroscope-delegate-contract-service:latest
           env:
             - name: NODE_ENV
               value: "production"
@@ -34,4 +25,12 @@ spec:
               value: "test"
             - name: RABBITMQPASSWORD
               value: "test"
-          imagePullPolicy: "Always"
+            - name: FIRST_BLOCK
+              value: "1"
+            - name: LAST_BLOCK
+              value: "5000000"
+            - name: PROCESS_NUMBER
+              value: "50"
+      restartPolicy: Never
+  backoffLimit: 4
+
