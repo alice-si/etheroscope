@@ -43,7 +43,7 @@ module.exports = function (app, db, log, validator) {
         let address = req.params.contractAddress
         if (!validAddress(address)) {
             log.debug(`[/transactions] ${address} is not a valid address`)
-            return res.status(400).json('Error - invalid contract hash')
+            return res.status(200).json(null)
         }
         return parityClient.getContract(address)
             .then((contract) => {

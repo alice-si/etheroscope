@@ -9,7 +9,7 @@ export class LoggerService {
   private readonly noOperation: any;
 
   constructor() {
-    this.isDebugMode = environment.production;
+    this.isDebugMode = !environment.production;
     this.noOperation = () => undefined;
   }
 
