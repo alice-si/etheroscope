@@ -1,4 +1,4 @@
-module.exports.ETHEROSCOPEPARITYMAINNET="35.246.67.158:8545"
+module.exports.ETHEROSCOPEPARITYMAINNET="35.246.8.29:8545"
 module.exports.allowedOrigin = process.env.FRONTEND_IP || "*"
 
 module.exports.server = {
