@@ -1,0 +1,46 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: parity-kovan
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parity-kovan
+  template:
+    metadata:
+      labels:
+        app: parity-kovan
+    spec:
+      volumes:
+      - name: kovan-parity-volume
+        gcePersistentDisk:
+          pdName: kovan-parity-disk
+          fsType: ext4
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: parity-kovan
+        image: gcr.io/etheroscope/myparity:stable
+        env:
+        - name: PATH
+          value: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        - name: TARGET
+          value: "parity"
+        - name: RUST_BACKTRACE
+          value: "1"
+        command: ["/home/parity/bin/parity"]
+        args: ["-d", "/kovan-data", "--chain", "kovan", "--no-warp", "--tracing", "on", "--pruning", "archive",
+               "--jsonrpc-hosts", "all", "--jsonrpc-interface", "all", "--allow-ips=public", "--no-discovery"]
+        ports:
+        - containerPort: 8545
+          name: port1kovan
+        - containerPort: 8546
+          name: port2kovan
+        - containerPort: 30303
+          name: port3kovan
+        volumeMounts:
+        - name: kovan-parity-volume
+          mountPath: /kovan-data/
+

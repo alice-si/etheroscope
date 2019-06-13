@@ -1,0 +1,20 @@
+<app-search *ngIf="!contractId"></app-search>
+
+<div class="not-found" *ngIf="notFound">
+  <div class="headline">Could not explore the contract</div>
+  <div class="description">This contract either does not exist or its ABI is not publicly available
+    Upload your ABI <a href="https://etherscan.io/verifyContract2">here</a> to view more details. </div>
+</div>
+
+<div class="not-found error" *ngIf="error">
+  <div class="headline">Could not explore the contract</div>
+  <div class="description">An internal error occured. Try again later. </div>
+</div>
+
+<div class="explore-contract" *ngIf="!!contractInformation">
+  <app-sub-navigation [contractHash]="contractId" [contractInfo]="contractInformation"></app-sub-navigation>
+  <main class="container">
+    <router-outlet></router-outlet>
+  </main>
+</div>
+

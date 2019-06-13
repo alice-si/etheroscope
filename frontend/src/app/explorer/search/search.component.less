@@ -1,0 +1,127 @@
+.search-slide {
+  margin-top: 70px;
+
+  &__headline {
+    text-align: center;
+    font-size: 3.125rem;
+    font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+    letter-spacing: -0.0055em;
+    font-weight: normal;
+    color: #1998a2;
+    margin: 20px 0;
+  }
+
+  &__description {
+    text-align: center;
+    max-width: 50%;
+    margin: 0 auto;
+    color: #565656;
+    font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+    font-size: 1.2em;
+    letter-spacing: 0.02em;
+  }
+
+  .search-container {
+    width: 80%;
+    margin: 30px auto 0;
+    display: flex;
+    flex-wrap: wrap;
+    background: white;
+    box-shadow: 0 0.5px 10px 1px rgba(0, 0, 0, 0.2);
+    border: 1px solid #1998a2;
+
+    &__input {
+      flex: 1;
+      padding: 15px;
+      background-color: transparent;
+      border: none;
+      color: #565656;
+    }
+
+    &__submit {
+      border: none;
+      background: none;
+      padding-right: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+
+      &:hover {
+        transform: scale(1.25);
+      }
+
+      &.disabled {
+        cursor: initial;
+
+        &:hover {
+          transform: none;
+        }
+
+        .svg-icon path,
+        .svg-icon polygon,
+        .svg-icon rect {
+          fill: #565656;
+        }
+
+        .svg-icon circle {
+          stroke: #565656;
+        }
+      }
+    }
+
+    .svg-icon {
+      width: 1.4em;
+      height: auto;
+    }
+
+    .svg-icon path,
+    .svg-icon polygon,
+    .svg-icon rect {
+      fill: #1998a2;
+      transition: all 0.3s;
+    }
+
+    .svg-icon circle {
+      stroke: #1998a2;
+      stroke-width: 1;
+      transition: all 0.3s;
+    }
+  }
+
+  .search-autocomplete {
+    width: 100%;
+    margin: 0 auto;
+    border-top: 1px solid #1998a2;
+    transition: display 0.3s;
+
+
+    &__results {
+      padding: 0;
+      margin: 0;
+      max-height: calc(54.6px * 4);
+      overflow-y: scroll;
+
+      &__result {
+        list-style: none;
+        padding: 15px;
+        background: white;
+        border-top: 1px solid #dcdcdc;
+        cursor: pointer;
+
+        &.selected {
+          background: #e7e7e7;
+        }
+
+        &__name {
+          color: #1998a2;
+          font-size: 14px;
+          line-height: 0.9em;
+        }
+
+        &__hash {
+          color: #565656;
+          font-size: 10px;
+        }
+      }
+    }
+  }
+}

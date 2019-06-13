@@ -1,0 +1,36 @@
+stages:
+  - build
+  - test
+  - deploy
+
+cache:
+  paths:
+    - node_modules/
+
+build:
+  stage: build
+  script:
+    - npm install
+    - ./node_modules/.bin/ng build --prod
+
+lint:
+  stage: test
+  script:
+    - npm run-script lint
+
+unit-test:
+  stage: test
+  script:
+    - npm run test
+
+deploy:
+  stage: deploy
+  only:
+    - master
+  script:
+    - cp -r * /home/gitlab-runner/deploy/etheroscope
+    - cd /home/gitlab-runner/deploy/etheroscope
+    - killall -q node || true
+    - ((parity --tracing on --pruning archive --jsonrpc-port=8545) & disown) &> /dev/null
+    - ./node_modules/.bin/ng build --prod
+  - (npm run deploy & disown) &> /dev/null

@@ -1,0 +1,37 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: etheroscope-process-contract-service
+  namespace: default
+spec:
+  replicas: 7
+  selector:
+    matchLabels:
+      app: etheroscope-process-contract-service
+  template:
+    metadata:
+      labels:
+        app: etheroscope-process-contract-service
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: etheroscope-process-contract-service
+          image: gcr.io/etheroscope/etheroscope-process-contract-service:latest
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: DB_USERNAME
+              value: "zppuser"
+            - name: DB_PASSWORD
+              value: "T6yt1rLPYv25"
+            - name: DB_NAME
+              value: "mysqldb"
+            - name: DB_HOSTNAME
+              value: "10.43.145.3"
+            - name: RABBITMQADDRESS
+              value: "10.72.9.72"
+            - name: RABBITMQUSER
+              value: "test"
+            - name: RABBITMQPASSWORD
+              value: "test"
+          imagePullPolicy: "Always"

@@ -1,0 +1,22 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: parity-mainnet-service
+spec:
+  selector:
+    app: parity-mainnet
+  ports:
+  - protocol: TCP
+    name: halo3
+    port: 8545
+    targetPort: 8545
+  - protocol: TCP
+    name: halo2
+    port: 8546
+    targetPort: 8546
+  - protocol: TCP
+    name: halo
+    port: 30303
+    targetPort: 30303
+#  type: ClusterIP
+  type: LoadBalancer

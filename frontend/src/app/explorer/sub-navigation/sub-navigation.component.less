@@ -1,0 +1,85 @@
+.sub-navigation {
+  position: fixed;
+  top: 50px;
+  left: 0;
+  right: 0;
+  background: white;
+  height: 35px;
+  font-family: Metropolis, Avenir Next, Helvetica Neue, Arial, sans-serif;
+  box-shadow: 0 .5px 10px 1px rgba(0,0,0,.2);
+  display: flex;
+  z-index: 1;
+
+  &__contract {
+    margin-left: 15px;
+    flex: 1;
+    align-self: center;
+
+    &__name {
+      display: block;
+      color: #1998a2;
+      font-size: 15px;
+    }
+
+    &__hash {
+      color: #565656;
+      font-size: 10px;
+    }
+  }
+
+  &__links {
+    margin: 0;
+    padding: 0;
+
+    &__item {
+      display: inline-block;
+      overflow: hidden;
+
+      &:after {
+        content: '';
+        display: block;
+        height: 3px;
+        background: #1998a2;
+      }
+
+      &.left:after {
+        width: 100%;
+        margin-left: 100%;
+        transition: margin-left 0.3s ease-in-out;
+      }
+
+      &.right:after {
+        width: 0;
+        transition: width 0.3s ease-in-out;
+      }
+
+      a {
+        text-decoration: none;
+        padding: 0 20px;
+        display: inline-block;
+        color: rgb(86, 86, 86);
+        line-height: 32px;
+        transition: all 0.3s;
+        outline: 0;
+
+        &:hover {
+          color: #1998a2;
+        }
+      }
+
+      &.active {
+        &.left:after {
+          margin-left: 0;
+        }
+
+        &.right:after {
+          width: 100%;
+        }
+
+        a {
+          color: #1998a2;
+        }
+      }
+    }
+  }
+}

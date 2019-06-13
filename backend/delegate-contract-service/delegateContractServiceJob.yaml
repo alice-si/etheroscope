@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: etheroscope-delegate-contract-service
+spec:
+  template:
+    spec:
+      containers:
+        - name: etheroscope-delegate-contract-service
+          image: gcr.io/etheroscope/etheroscope-delegate-contract-service:latest
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: DB_USERNAME
+              value: "zppuser"
+            - name: DB_PASSWORD
+              value: "T6yt1rLPYv25"
+            - name: DB_NAME
+              value: "mysqldb"
+            - name: DB_HOSTNAME
+              value: "10.43.145.3"
+            - name: RABBITMQADDRESS
+              value: "10.72.9.72"
+            - name: RABBITMQUSER
+              value: "test"
+            - name: RABBITMQPASSWORD
+              value: "test"
+            - name: FIRST_BLOCK
+              value: "1"
+            - name: LAST_BLOCK
+              value: "5000000"
+            - name: PROCESS_NUMBER
+              value: "50"
+      restartPolicy: Never
+  backoffLimit: 4
+

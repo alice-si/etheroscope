@@ -1,0 +1,33 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: etheroscope-server
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: etheroscope-server
+  template:
+    metadata:
+      labels:
+        app: etheroscope-server
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: etheroscope-server-container
+        image: gcr.io/etheroscope/etheroscope-server:latest
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: DB_USERNAME
+          value: "zppuser"
+        - name: DB_PASSWORD
+          value: "T6yt1rLPYv25"
+        - name: DB_NAME
+          value: "mysqldb"
+        - name: DB_HOSTNAME
+          value: "10.43.145.3"
+        - name: FRONTEND_IP
+          value: "http://etheroscope-dev.alice.si"
+        imagePullPolicy: "Always"
