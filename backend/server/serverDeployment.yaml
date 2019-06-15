@@ -29,5 +29,5 @@ spec:
         - name: DB_HOSTNAME
           value: "10.43.145.3"
         - name: FRONTEND_IP
-          value: "http://etheroscope-dev.alice.si"
+          value: "http://etheroscope.alice.si"
         imagePullPolicy: "Always"

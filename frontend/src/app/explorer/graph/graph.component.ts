@@ -159,7 +159,7 @@ export class GraphComponent implements OnInit, OnDestroy {
   }
 
   get getProgress() {
-    return this.progress.toFixed(2);
+    return this.progress.toFixed(0);
   }
 
   get nextPageExists() {

@@ -16,6 +16,8 @@
       [autoScale]="true"
       [timeline]="true"
       [curve]="curve"
+      [animations]="true"
+      [xScaleMax]="boundTo"
       (domainChanged)="updateDates($event)">
     </app-custom-graph>
     <ngx-charts-bar-vertical
@@ -108,11 +110,11 @@
       <div class="progress-section" [ngClass]="{'completed': (progress == 100), 'error': error}">
         <h3 class="subtitle">Progress</h3>
         <div class="progress-bar">
-          <div class="progress-positive" [ngStyle]="{'width': progress + '%'}">
+          <div class="progress-positive" [ngStyle]="{'width': getProgress + '%'}">
             <div class="progress-text"> {{ getProgress }} %</div>
             <div class="progress-error">&times;</div>
           </div>
-          <div class="progress-negative" [ngStyle]="{'width': (100 - progress) + '%'}">
+          <div class="progress-negative" [ngStyle]="{'width': (100 - getProgress) + '%'}">
             <div class="progress-text"> {{ getProgress }} %</div>
             <div class="progress-error">&times;</div>
           </div>

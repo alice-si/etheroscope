@@ -128,14 +128,13 @@ module.exports = function (io, log) {
                 log.debug(`dataPointsSender.cacheMorePoints ${address} ${variableName} ${upTo}`)
 
                 let totalUpTo = upTo
-                let chunkSize = settings.dataPointsService.cacheChunkSize
+                let sendChunkSize = settings.dataPointsService.sendChunkSize
 
                 while (totalUpTo < latestBlock) {
-                    [from, totalUpTo] = [totalUpTo + 1, Math.min(totalUpTo + chunkSize, latestBlock)]
+                    [from, totalUpTo] = [totalUpTo + 1, Math.min(totalUpTo + sendChunkSize, latestBlock)]
                     await generateAndSendDataPoints(contractInfo, variableName, from, totalUpTo)
                 }
                 // adding delimiter
-                await parityClient.getBlockTime(latestBlock)
                 await db.addDataPoints(address, variableName, [['timestamp_placholder', null, latestBlock]])
             } catch (err) {
                 errorHandler.errorHandleThrow(
@@ -158,15 +157,21 @@ module.exports = function (io, log) {
             try {
                 log.debug(`dataPointsSender.generateAndSendDataPoints ${address} ${variableName} ${from} ${upTo}`)
 
-                let dataPoints = await parityClient.generateDataPoints(contractInfo, variableName, from, upTo)
+                let cachecChunkSize = settings.dataPointsService.cacheChunkSize, totalDataPoints = [], actFrom = from
+                while (actFrom <= upTo) {
+                    let actUpTo = Math.min(actFrom + cachecChunkSize, upTo)
+                    let dataPoints = await parityClient.generateDataPoints(contractInfo, variableName, actFrom, actUpTo)
+                    actFrom += cachecChunkSize + 1
+                    totalDataPoints = totalDataPoints.concat(dataPoints)
+                }
                 await lock.async.writeLock(`DataPoints lock ${address + variableName}`, async (err, release) => {
-                    await db.addDataPoints(address, variableName, dataPoints)
+                    await db.addDataPoints(address, variableName, totalDataPoints)
 
                     io.to(address + variableName).emit('getHistoryResponse', {
                         error: false,
                         from: from,
                         to: upTo,
-                        results: dataPoints
+                        results: totalDataPoints
                     })
                     processedToMap.set(address + variableName, upTo)
                     release()
