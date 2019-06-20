@@ -13,7 +13,7 @@ module.exports.server = {
 
 module.exports.dataPointsService = {
   cacheChunkSize: 100,
-  sendChunkSize: 10000,
+  sendChunkSize: 1000,
   socketPort: 8081,
   cachedFrom: 1,
 }

@@ -97,15 +97,29 @@ module.exports = function (io, log) {
                 let actProcessedTo = processedToMap.get(address + variableName)
                 to = actProcessedTo ? actProcessedTo : to
 
-                let new_dataPoints = dataPoints.map(dataPoint =>
-                    [dataPoint.Block.timeStamp, parseInt(dataPoint.value), dataPoint.Block.number])
+                let actFrom = settings.dataPointsService.cachedFrom
+                while (dataPoints.length > 0) {
+                    let actDataPoints = dataPoints.splice(0, settings.dataPointsService.sendChunkSize),
+                        actTo = actDataPoints[actDataPoints.length - 1].Block.number
+                    actDataPoints = actDataPoints.map(dataPoint =>
+                        [dataPoint.Block.timeStamp, parseInt(dataPoint.value), dataPoint.Block.number])
+                    io.to(socketId).emit('getHistoryResponse', {
+                        error: false,
+                        from: actFrom,
+                        to: actTo,
+                        results: actDataPoints
+                    })
 
-                io.to(socketId).emit('getHistoryResponse', {
-                    error: false,
-                    from: settings.dataPointsService.cachedFrom,
-                    to: to,
-                    results: new_dataPoints
-                })
+                    actFrom = actTo + 1
+                }
+                if (actFrom <= to) {
+                    io.to(socketId).emit('getHistoryResponse', {
+                        error: false,
+                        from: actFrom,
+                        to: to,
+                        results: []
+                    })
+                }
             } catch (err) {
                 errorHandler.errorHandleThrow("dataPointsSender sendAllDataPointsFromDB", '')(err)
             }
