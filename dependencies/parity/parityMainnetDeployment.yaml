@@ -30,7 +30,7 @@ spec:
           value: "parity"
         - name: RUST_BACKTRACE
           value: "1"
-        command: ["/home/parity/bin/parity"]
+        command: ["parity"]
         args: ["-d", "/ethereum-data", "--no-warp", "--tracing", "on", "--pruning", "archive","--jsonrpc-hosts", "all",
                "--jsonrpc-interface", "all", "--allow-ips=public", "--no-discovery"]
         ports:
