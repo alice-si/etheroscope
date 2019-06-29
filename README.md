@@ -1,13 +1,11 @@
 ## Etheroscope
 ### An Ethereum-based smart contract visualiser
 Etheroscope helps you monitor the state of smart contract variables over time.
-<br>
-Video presentation:
-<br>
+### Video presentations
+#### Caching points online
 [![Watch the video](https://img.youtube.com/vi/eLNDXLViJZ8/hqdefault.jpg)](https://www.youtube.com/watch?v=eLNDXLViJZ8)
-<br>
+#### User interface overview
 [![Watch the video](https://img.youtube.com/vi/dBDGcbk6F4Q/hqdefault.jpg)](https://www.youtube.com/watch?v=dBDGcbk6F4Q)
-<br>
 
 ### To install backend on Linux
 ```shell
