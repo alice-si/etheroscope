@@ -35,7 +35,7 @@
     "karma-mocha-reporter": "~2.2.1",
     "karma-remap-istanbul": "~0.6.0",
     "method-override": "^2.1.2",
-    "mongoose": "^4.13.2",
+    "mongoose": "^5.7.5",
     "morgan": "^1.9.1",
     "passport": "^0.3.0",
     "passport-jwt": "^2.2.1",
