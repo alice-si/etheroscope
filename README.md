@@ -8,6 +8,26 @@ Even better, Etheroscope is able to scan over the blockchain, index how those va
 
 ![etheroscope-screenshot](https://miro.medium.com/max/1222/1*fVzsWs1Nxa0CTx6cD7cepA.png)
 
+### Indexed data storage
+
+Etheroscope stores indexed contract states in a sql database.
+
+The configuration is located in the backend/db/config.js file and depends on the environment.
+
+The credentials for a production deployment are taken from the environment variables:
+
+```shell
+production: {
+        username: process.env.DB_USERNAME,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        host: process.env.DB_HOSTNAME,
+        dialect: 'mysql',
+        operatorsAliases: false,
+        logging: false,
+    }
+```
+
 ### Installation on unix-like environment
 ```shell
 cd dev-scripts/local-work
@@ -18,7 +38,7 @@ cd dev-scripts/local-work
 ```shell
 # in 1 terminal
 cd backend
-sh startBackend 
+sh startBackend
 # in 2. terminal
 cd frontend
 sh startFrontend
@@ -40,7 +60,7 @@ go localhost:8090
 
 #### The first stage of the project have been implemented together with the students of Imperial College London
 
-Please check out their [blog post](https://docs.microsoft.com/en-gb/archive/blogs/uk_faculty_connection/etheroscope-a-smart-contract-visualiser) summarising the development. 
+Please check out their [blog post](https://docs.microsoft.com/en-gb/archive/blogs/uk_faculty_connection/etheroscope-a-smart-contract-visualiser) summarising the development.
 
 #### The next stage have been implemented by the students from Warsaw University
 
