@@ -12,7 +12,7 @@
     "@types/jasmine": "^2.8.6",
     "@types/jasminewd2": "^2.0.2",
     "@types/node": "^8.0.51",
-    "bcrypt": "^0.8.5",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.5.2",
     "codelyzer": "~3.1.2",
     "del": "^1.1.1",
