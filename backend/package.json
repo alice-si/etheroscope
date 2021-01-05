@@ -68,7 +68,7 @@
     "@swimlane/ngx-charts": "^6.1.0",
     "@webcomponents/custom-elements": "^1.0.0",
     "amqplib": "^0.5.3",
-    "axios": "^0.17.1",
+    "axios": "^0.21.1",
     "clarity-angular": "^0.10.13",
     "clarity-icons": "^0.10.13",
     "clarity-ui": "^0.10.13",
