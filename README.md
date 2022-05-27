@@ -6,7 +6,7 @@ This makes a huge difference in terms of user experience. To draw an analogy, it
 
 Even better, Etheroscope is able to scan over the blockchain, index how those variables have changed over time, and present you with that data in a visual format that is simple and, most importantly, familiar. As a donor on the Alice platform, this means you can find out a wealth of information held in relevant smart contracts, simply by searching for a project’s name. No hashes, no sifting, no headaches.
 
-We'd like to thank Imperial College London for their contribution to this project.
+We'd like to thank Imperial College London and University of Warsaw for their contribution to this project.
 
 ![etheroscope-screenshot](https://miro.medium.com/max/1222/1*fVzsWs1Nxa0CTx6cD7cepA.png)
 
